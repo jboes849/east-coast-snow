@@ -1200,7 +1200,7 @@ export function writeups(rows, resorts, { nws, setups } = {}) {
         return null;
       };
       const strength = (p) => (p >= 60 ? "strongly " : p >= 45 ? "" : "slightly ");
-      const parts = ["temp", "precip"].map((k) => cpc[k] && word(cpc[k].cat, k) && `${strength(cpc[k].prob ?? 0)}${word(cpc[k].cat, k)}`).filter(Boolean);
+      const parts = ["temp", "precip"].map((k) => cpc[k] && word(cpc[k].cat, k) && `${String(cpc[k].cat).toLowerCase().startsWith("n") ? "" : strength(cpc[k].prob ?? 0)}${word(cpc[k].cat, k)}`).filter(Boolean);
       outlook = parts.length ? `Days 8 to 14: NOAA's outlook leans ${listTxt(parts)}.` : "Days 8 to 14: NOAA's outlook shows no clear lean either way.";
       const t = String(cpc.temp?.cat || "").toLowerCase();
       const pr = String(cpc.precip?.cat || "").toLowerCase();
