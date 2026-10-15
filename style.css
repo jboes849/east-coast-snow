@@ -492,3 +492,15 @@ button.day.snowy[aria-pressed="true"] { box-shadow: inset 0 2px 0 var(--accent),
 .detail-actions { flex: none; }
 .sq.wide { white-space: nowrap; }
 @media (max-width: 560px) { .detail-head { padding: 10px 12px; } .sq.wide { padding: 0 8px; font-size: 10.5px; } }
+
+/* Ski pass */
+.pass-select { margin-left: 0; }
+.navlinks + .pass-select { margin-left: 4px; }
+.pass-tag { display: inline-block; margin-left: 8px; padding: 1px 5px; border: 1px solid var(--line); font: 500 9.5px var(--mono); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); vertical-align: 2px; }
+.d-title h2 .pass-tag { vertical-align: 6px; font-size: 10.5px; }
+.pass-tag.p-epic { color: #0b3d91; border-color: #c7d4ea; }
+.pass-tag.p-ikon { color: #0b0d10; border-color: #0b0d10; }
+.pass-tag.p-indy { color: #8a4b00; border-color: #ead7bd; }
+@media (max-width: 680px) { .pass-select { margin-left: auto; } .nav .seg { margin-left: 6px; } }
+.nav .seg button { white-space: nowrap; }
+@media (max-width: 680px) { .nav-inner { gap: 10px; } .pass-select { width: 96px; } .nav .seg button { padding: 0 7px; } }

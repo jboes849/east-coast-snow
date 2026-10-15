@@ -23,6 +23,7 @@
     sort: "7d",
     view: store.get("ups-view", "rows"),
     units: store.get("ups-units", "in"),
+    pass: store.get("ups-pass", "any"),
     favorites: new Set(store.get("ups-favs", [])),
     mapRange: "3",
     radar: false,
@@ -181,7 +182,7 @@
     if (state.open) {
       head.innerHTML = `<h2>Powder Mornings${qlink("powder", "What is a powder morning")}</h2><span class="label">Next 72 h · score 0–100</span>`;
       $('.navlinks a[href="#picks-block"]').textContent = "Powder";
-      const top = state.rows.filter((r) => operating(r) && r.best.score > 0).sort((a, b) => b.best.score - a.best.score || b.total3 - a.total3).slice(0, 4);
+      const top = passRows().filter((r) => operating(r) && r.best.score > 0).sort((a, b) => b.best.score - a.best.score || b.total3 - a.total3).slice(0, 4);
       if (!top.length) {
         el.innerHTML = `<p class="empty">No powder mornings in the next three days.</p>`;
         return;
@@ -204,7 +205,7 @@
     }
     head.innerHTML = `<h2>Snowmaking Windows${qlink("snowmaking", "What is a snowmaking window")}</h2><span class="label">Pre-season · hours cold enough for snow guns</span>`;
     $('.navlinks a[href="#picks-block"]').textContent = "Snowmaking";
-    const wins = state.rows
+    const wins = passRows()
       .flatMap((r) => r.snowmaking.windows.map((w) => ({ ...w, row: r })))
       .sort((a, b) => b.hours - a.hours || a.minTw - b.minTw)
       .filter((w, i, all) => all.findIndex((x) => x.row === w.row) === i)
@@ -232,7 +233,7 @@
     let pair = store.get("ups-compare", null);
     if (!Array.isArray(pair) || pair.length !== 2 || !pair.every((x) => ids.includes(x))) {
       const favs = [...state.favorites].filter((x) => ids.includes(x));
-      const byTotal = [...state.rows].sort((a, b) => b.total7 - a.total7).map((r) => r.resort.id);
+      const byTotal = [...passRows()].sort((a, b) => b.total7 - a.total7).map((r) => r.resort.id);
       pair = [...new Set([...favs, ...byTotal])].slice(0, 2);
     }
     return pair;
@@ -276,7 +277,7 @@
     const opts = (sel) =>
       [...RESORTS]
         .sort((x, y) => x.name.localeCompare(y.name))
-        .map((r) => `<option value="${r.id}"${r.id === sel ? " selected" : ""}>${esc(r.name)} · ${r.state}</option>`)
+        .map((r) => `<option value="${r.id}"${r.id === sel ? " selected" : ""}>${esc(r.name)} · ${r.state}${r.pass ? ` · ${PASS_NAME[r.pass]}` : ""}</option>`)
         .join("");
     const sa = compareSummary(a);
     const sb = compareSummary(b);
@@ -325,7 +326,7 @@
 
   function planScope() {
     const scope = store.get("ups-plan", "all");
-    const rows = state.rows.filter(operating);
+    const rows = passRows().filter(operating);
     if (scope === "mine") return { scope, rows: rows.filter((r) => state.favorites.has(r.resort.id)) };
     if (scope !== "all") return { scope, rows: rows.filter((r) => r.resort.state === scope) };
     return { scope, rows };
@@ -352,7 +353,7 @@
       return;
     }
     el.hidden = false;
-    const head = `<div class="block-head"><h2>Weekend Planner${qlink("weekend", "How the planner chooses")}</h2><span class="label">${wk.map((x) => dayLong(x.d)).join(" and ")}</span></div>`;
+    const head = `<div class="block-head"><h2>Weekend Planner${qlink("weekend", "How the planner chooses")}</h2><span class="label">${wk.map((x) => dayLong(x.d)).join(" and ")}${state.pass !== "any" ? ` · ${PASS_NAME[state.pass]} mountains` : ""}</span></div>`;
     if (!anyOpen) {
       const first = [...state.rows].filter((r) => r.season.phase === "preseason").sort((a, b) => a.season.daysToOpen - b.season.daysToOpen)[0];
       el.innerHTML = `${head}<p class="hint">The planner turns on once lifts start spinning${first ? `. ${esc(first.resort.name)} usually opens first, around ${dayNum(first.season.open)}` : ""}. Until then, check the snowmaking windows below.</p>`;
@@ -431,7 +432,7 @@
       mapFitted = true;
     }
     markerLayer.clearLayers();
-    state.rows.forEach((row) => {
+    passRows().forEach((row) => {
       const v = state.mapRange === "3" ? row.total3 : row.total7;
       const icon = L.divIcon({
         className: "pin-wrap",
@@ -461,9 +462,15 @@
     $("#sort").innerHTML = opts.map(([v, l]) => `<option value="${v}"${v === state.sort ? " selected" : ""}>${l}</option>`).join("");
   }
 
+  // Rows on the chosen ski pass (all of them for "any").
+  const PASS_NAME = { epic: "Epic", ikon: "Ikon", indy: "Indy" };
+  const onPass = (r) => state.pass === "any" || r.resort.pass === state.pass;
+  const passRows = () => state.rows.filter(onPass);
+  const passTag = (r) => (r.pass ? `<span class="pass-tag p-${r.pass}">${PASS_NAME[r.pass]}</span>` : "");
+
   function filteredRows() {
     const q = state.search.trim().toLowerCase();
-    let rows = state.rows.filter((r) => {
+    let rows = passRows().filter((r) => {
       if (state.region === "★") return state.favorites.has(r.resort.id);
       return state.region === "All" || r.resort.state === state.region;
     });
@@ -516,7 +523,7 @@
       ${rows
         .map(
           (row) => `<div class="row" data-open="${row.resort.id}" tabindex="0">
-          <div class="r-name"><a class="r-link" href="resorts/${row.resort.id}/"><b>${esc(row.resort.name)}</b></a><small>${esc(row.resort.region)} · ${elevTxt(row.resort.summit)}</small></div>
+          <div class="r-name"><a class="r-link" href="resorts/${row.resort.id}/"><b>${esc(row.resort.name)}</b></a>${passTag(row.resort)}<small>${esc(row.resort.region)} · ${elevTxt(row.resort.summit)}</small></div>
           <div class="r-num"><b>${snowVal(row.total7)}</b><small>${rangeVal(row.lo7, row.hi7)}</small></div>
           <div>${spark(row)}${dayStrip(row)}<div class="flags">${flags(row)}</div></div>
           ${favButton(row.resort.id)}
@@ -531,7 +538,7 @@
       <tbody>${rows
         .map(
           (row) => `<tr data-open="${row.resort.id}" tabindex="0">
-          <th class="resort-col" scope="row"><a class="r-link name" href="resorts/${row.resort.id}/">${esc(row.resort.name)}</a><span class="sub">${row.resort.state} · ${elevTxt(row.resort.summit)}</span></th>
+          <th class="resort-col" scope="row"><a class="r-link name" href="resorts/${row.resort.id}/">${esc(row.resort.name)}</a>${passTag(row.resort)}<span class="sub">${row.resort.state} · ${elevTxt(row.resort.summit)}</span></th>
           <td class="total">${snowVal(row.total7)}</td>
           ${row.days
             .map(
@@ -551,7 +558,7 @@
     const rows = filteredRows();
     const el = $("#list");
     if (!rows.length) {
-      el.innerHTML = `<p class="empty">${state.region === "★" ? "Tap the star on any resort to add it to your mountains." : "No resorts match."}</p>`;
+      el.innerHTML = `<p class="empty">${state.region === "★" ? "Tap the star on any resort to add it to your mountains." : state.pass !== "any" ? `No ${PASS_NAME[state.pass]} mountains match. Pick "Any pass" up top to see all.` : "No resorts match."}</p>`;
       return;
     }
     const legend = state.open
@@ -1191,7 +1198,7 @@
         <div class="detail-actions">${actions}</div>
       </header>
       <div class="d-body">
-        <div class="d-title"><h2>${esc(r.name)}</h2><p class="mono">SUMMIT ${elevTxt(r.summit).toUpperCase()} · BASE ${elevTxt(r.base).toUpperCase()}</p></div>
+        <div class="d-title"><h2>${esc(r.name)}${passTag(r)}</h2><p class="mono">SUMMIT ${elevTxt(r.summit).toUpperCase()} · BASE ${elevTxt(r.base).toUpperCase()}</p></div>
         <section class="verdict">
           <span class="label">This week</span>
           <p class="verdict-title">${fmt(v.title)}</p>
@@ -1430,7 +1437,19 @@
       state.search = e.target.value;
       renderList();
     });
+    const passSel = $("#pass");
+    if (passSel) passSel.value = state.pass;
     document.addEventListener("change", (e) => {
+      if (e.target.id === "pass") {
+        state.pass = e.target.value;
+        store.set("ups-pass", state.pass);
+        if (!state.rows.length || PAGE) return;
+        renderWeekend();
+        renderPicks();
+        renderMap();
+        renderList();
+        return;
+      }
       if (e.target.matches("[data-cmp]")) {
         const pair = comparePair();
         pair[Number(e.target.dataset.cmp)] = e.target.value;
