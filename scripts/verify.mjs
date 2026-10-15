@@ -138,8 +138,14 @@ async function main() {
   const fc = {};
   for (const m of MODELS) {
     try {
-      fc[m.id] = await forecasts(m.id);
-      log.push(`${m.id}: ok`);
+      try {
+        fc[m.id] = await forecasts(m.id);
+        log.push(`${m.id}: ok`);
+      } catch (e) {
+        if (!m.alt) throw e;
+        fc[m.id] = await forecasts(m.alt);
+        log.push(`${m.id}: ok (via ${m.alt})`);
+      }
     } catch (e) {
       log.push(`${m.id}: FAILED ${e.message}`);
     }

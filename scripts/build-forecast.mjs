@@ -22,6 +22,8 @@ function loadBrowserGlobal(file) {
 const { RESORTS } = loadBrowserGlobal("resorts.js");
 const { GUIDES } = loadBrowserGlobal("guides.js");
 const { UPSLOPE_CONFIG } = loadBrowserGlobal("config.js");
+const SKILL_FILE = path.join(ROOT, "data", "skill.json");
+const skill = fs.existsSync(SKILL_FILE) ? JSON.parse(fs.readFileSync(SKILL_FILE, "utf8")) : null;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function liveFetch(url) {
@@ -94,8 +96,17 @@ async function main() {
   const results = [];
   for (const m of MODELS) {
     try {
-      results.push({ meta: m, blocks: await fetchModel(m.id) });
-      log.push(`${m.id}: ok`);
+      let blocks;
+      let used = m.id;
+      try {
+        blocks = await fetchModel(m.id);
+      } catch (e) {
+        if (!m.alt) throw e;
+        used = m.alt;
+        blocks = await fetchModel(m.alt);
+      }
+      results.push({ meta: { ...m, source: used }, blocks });
+      log.push(`${m.id}: ok${used !== m.id ? ` (via ${used})` : ""}`);
     } catch (e) {
       log.push(`${m.id}: FAILED ${e.message}`);
     }
@@ -126,14 +137,14 @@ async function main() {
   const details = {};
   RESORTS.forEach((resort, i) => {
     const wrap = (r, block) => {
-      const raw = parseBlock(block, r.meta.id);
+      const raw = parseBlock(block, r.meta.source || r.meta.id);
       const at = new Map(raw.time.map((t, k) => [t, k]));
       return { id: r.meta.id, raw, rawAt: (t, f) => (at.has(t) ? raw[f][at.get(t)] ?? null : null) };
     };
     const summitModels = results.map((r) => wrap(r, r.blocks[i]));
     const baseModels = results.map((r) => wrap(r, r.blocks[n + i]));
     const ensembles = ens.map((e) => ({ id: e.meta.id, members: parseEnsemble(e.blocks[i], timeIndex) })).filter((e) => e.members.length);
-    const out = forecastResort({ resort, guide: GUIDES[resort.id] || {}, timeIndex, nowK, summitModels, baseModels, ensembles, modelMeta: MODELS });
+    const out = forecastResort({ resort, guide: GUIDES[resort.id] || {}, timeIndex, nowK, summitModels, baseModels, ensembles, modelMeta: MODELS, skill });
     details[resort.id] = out.detail;
     delete out.detail;
     resorts.push(out);

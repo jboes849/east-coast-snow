@@ -14,9 +14,9 @@ export const MODELS = [
   { id: "ncep_nam_conus", label: "NAM 3 km", color: "#f59e0b", hires: true },
   { id: "gem_hrdps_continental", label: "Canadian HRDPS", color: "#8b5e00", hires: true },
   { id: "ncep_nbm_conus", label: "NWS Blend", color: "#0aa2c0" },
-  { id: "gfs_seamless", label: "GFS", color: "#d4380d" },
+  { id: "gfs_global", alt: "gfs_seamless", label: "GFS", color: "#d4380d" },
   { id: "ecmwf_ifs025", label: "ECMWF", color: "#0b8a5f" },
-  { id: "gem_seamless", label: "Canadian GEM", color: "#c08a00" },
+  { id: "gem_global", alt: "gem_seamless", label: "Canadian GEM", color: "#c08a00" },
   { id: "icon_seamless", label: "German ICON", color: "#7a4fd1" },
 ];
 
@@ -261,12 +261,13 @@ function processModel(raw, siteFt, fill850, fill700, timeIndex) {
 // Blend models hour by hour. Amounts use a weighted mean (keeps totals when models
 // disagree on timing), then each day is rescaled to the weighted median of the
 // models' daily totals, which resists a single wild model.
-function blend(models, timeIndex, leads, dates) {
+function blend(models, timeIndex, leads, dates, factors = {}) {
+  const wt = (id, lead) => weight(id, lead) * (factors[id] ?? 1);
   const n = timeIndex.length;
   const H = { snow: [], snowW: [], rain: [], ice: [], t: [], tw: [], t850: [], fzl: [], gust: [], wind: [], dir: [], dir850: [], cloud: [], sd: [], type: [] };
   for (let k = 0; k < n; k++) {
     const hs = models.map((m) => m.hours[k]);
-    const ws = models.map((m, j) => (hs[j] ? weight(m.id, leads[k]) : 0));
+    const ws = models.map((m, j) => (hs[j] ? wt(m.id, leads[k]) : 0));
     const pick = (f) => hs.map((h) => (h ? h[f] : null));
     H.snow.push(wmean(pick("snow"), ws) ?? 0);
     H.snowW.push(wmean(pick("snowW"), ws) ?? 0);
@@ -289,7 +290,7 @@ function blend(models, timeIndex, leads, dates) {
         snow: sum(hs.map((h) => h?.snow)),
         rain: sum(hs.map((h) => h?.rainW)),
         ice: sum(hs.map((h) => h?.iceW)),
-        w: wmean(ks.map((k) => weight(m.id, leads[k])), ks.map(() => 1)),
+        w: wmean(ks.map((k) => wt(m.id, leads[k])), ks.map(() => 1)),
       };
     }
     return out;
@@ -500,7 +501,9 @@ export function windChill(t, v) {
 const holdFor = (guide, dir) => (guide.hold || 45) - (inArc(dir, guide.exposed) ? 5 : 0);
 
 // ---------- per-resort forecast ----------
-export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, baseModels, ensembles, modelMeta }) {
+export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, baseModels, ensembles, modelMeta, skill }) {
+  // Track-record factors for this region from data/skill.json (1 = average).
+  const factors = Object.fromEntries(Object.entries(skill?.regions?.[resort.region] || {}).map(([id, x]) => [id, x.factor]));
   const leads = timeIndex.map((_, k) => k - nowK);
   const today = timeIndex[nowK].slice(0, 10);
   const dates = [...new Set(timeIndex.map((t) => t.slice(0, 10)))].filter((d) => d >= today).slice(0, 7);
@@ -515,8 +518,8 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
 
   const sm = summitModels.map((m) => ({ id: m.id, hours: processModel(m.raw, resort.summit, fill850, fill700, timeIndex) }));
   const bm = baseModels.map((m) => ({ id: m.id, hours: processModel(m.raw, resort.base, fill850, fill700, timeIndex) }));
-  const S_ = blend(sm, timeIndex, leads, dates);
-  const B_ = blend(bm, timeIndex, leads, dates);
+  const S_ = blend(sm, timeIndex, leads, dates, factors);
+  const B_ = blend(bm, timeIndex, leads, dates, factors);
   const H = S_.H;
   const HB = B_.H;
   const dayKs = (d) => timeIndex.map((t, k) => (t.startsWith(d) ? k : -1)).filter((k) => k >= 0);
