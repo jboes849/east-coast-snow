@@ -285,3 +285,33 @@ thead th .sub { display: block; font-size: 10px; color: #9ca3af; }
 .windgrid th:first-child { width: 44px; }
 .windgrid td { min-width: 0; padding: 6px 0; }
 @media (max-width: 560px) { .flags span:nth-child(n+3) { display: none; } .windgrid td, .windgrid th { font-size: 10.5px; } }
+
+/* ---------- forecast engine v2 ---------- */
+.flags .f-muted { color: var(--muted); }
+.grades.sm span { color: var(--muted); }
+.grades.sm .sm-1 { color: var(--fg-2); }
+.grades.sm .sm-2 { color: var(--accent); }
+.grades.sm .sm-3 { color: var(--accent); font-weight: 600; }
+.cell-grade.sm-cell { color: var(--accent); font-weight: 500; }
+.day-flag.cold { color: var(--accent); }
+.models td.na { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+.insights { list-style: none; margin: 14px 0 0; padding: 0; max-width: 72ch; border-top: 1px solid var(--line); }
+.insights li { padding: 9px 0 9px 18px; border-bottom: 1px solid var(--line); font-size: 14.5px; line-height: 1.55; color: var(--fg-2); position: relative; }
+.insights li::before { content: ""; position: absolute; left: 2px; top: 17px; width: 6px; height: 1px; background: var(--fg); }
+.insights li[data-kind="ice"]::before, .insights li[data-kind="rain"]::before, .insights li[data-kind="thaw"]::before { background: var(--warn); height: 2px; }
+.insights li[data-kind="setup"]::before, .insights li[data-kind="models"]::before { background: var(--accent); height: 2px; }
+.notes { margin: 10px 0 0; padding-left: 18px; max-width: 72ch; }
+.notes li { font-size: 15px; line-height: 1.6; color: var(--fg-2); margin-bottom: 6px; }
+.ptype { display: grid; grid-template-columns: 56px 1fr; gap: 6px 10px; align-items: center; margin-top: 14px; }
+.pt-strip { display: grid; grid-template-columns: repeat(var(--n), 1fr); height: 18px; border: 1px solid var(--line); }
+.pt-axis { display: grid; grid-template-columns: repeat(var(--n), 1fr); font: 500 10px var(--mono); color: var(--muted); text-transform: uppercase; }
+.pt-axis span { border-left: 1px solid var(--line); padding-left: 3px; }
+.pt-none { background: transparent; }
+.pt-sn { background: var(--accent); }
+.pt-mx { background: #8b7fd6; }
+.pt-ra { background: #3aa76d; }
+.pt-pl { background: #e0a100; }
+.pt-zr { background: var(--warn); }
+.legend i.pt-sn, .legend i.pt-mx, .legend i.pt-ra, .legend i.pt-pl, .legend i.pt-zr { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; }
+.odds-table td { text-align: left; }
+.odds { display: inline-block; min-width: 46px; padding: 2px 4px; font: 500 12px var(--mono); background: linear-gradient(90deg, rgba(0, 87, 255, 0.16) var(--p), transparent var(--p)); }

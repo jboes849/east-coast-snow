@@ -2,32 +2,31 @@
 
 Free ski snow forecasts for East Coast resorts (VT, NH, ME, NY, MA, PA, WV). Live at https://jboes849.github.io/east-coast-snow/
 
-## What it does
+## How the forecast works
 
-- **Snow story:** a plain-English headline for the week, plus quick stats (most snow, best powder morning, coldest summit).
-- **Snow map:** every resort on a map, colored by expected snow for 3 or 7 days, with a live NEXRAD radar layer.
-- **Powder mornings:** the best first chairs in the next 3 days, scored 0 to 100 (overnight snow 4pm to 9am, cold, no rain, model agreement).
-- **Resort cards:** 7-day mini bar chart with the model range behind each bar, plus badges for powder, rain, wind holds and snowmaking weather. A table view, search, state filters, and starred "My mountains" (saved in the browser).
-- **Resort detail:** a written summary, 7-day tiles with weather icons, a chart of snow piling up for every model, a snow quality meter, summit vs base temperature, and wind gusts against the lift-hold line.
-- **Day grades:** every day gets an A–F ski grade from fresh snow, rain, icy refreezes, lift-closing wind and wind chill.
-- **Storm guides:** `guides.js` has a write-up per mountain (which storm setups deliver, which lifts are wind-prone, wind-hold threshold). Each forecast storm is classified (northwest upslope, nor'easter, lake effect, southerly, westerly) from its snow-weighted wind direction and flagged when it matches the mountain's best setup.
-- **Lift wind:** hourly 8am–4pm summit gusts with direction arrows and hold risk per mountain.
-- **Units:** inches/°F or cm/°C.
+A GitHub Actions job (`.github/workflows/forecast.yml`) runs `scripts/build-forecast.mjs` four times a day. It pulls Open-Meteo data for every summit and base and writes:
 
-Under the hood it pulls five models from Open-Meteo in the visitor's browser (GFS/HRRR, ECMWF, Canadian GEM, German ICON, NWS National Blend) and recomputes snow from liquid with a temperature-based snow-to-liquid ratio instead of the models' fixed 7:1.
+- `data/forecast.json`: the summary the page loads (days, storms, odds, insights, grades or snowmaking).
+- `data/r/<resort>.json`: hourly detail for the resort view.
+- `data/archive/<run>.json`: a compact copy of each run, kept so models can be scored against observed snow later.
+
+The math lives in `scripts/engine.mjs`:
+
+- **Models:** HRRR, NAM 3 km, Canadian HRDPS, NWS Blend, GFS, ECMWF, Canadian GEM, German ICON. High-resolution models get extra weight in the first 36–60 hours; daily totals are the weighted median of the models, so one wild model can't drag the forecast.
+- **Ensembles:** GFS (31 members) and ECMWF (51) give probabilities like "70% chance of 6 inches+" and the 10–90% band on the chart.
+- **Precipitation type:** wet-bulb temperature at each elevation plus the 850/700 hPa warm layer, so sleet and freezing rain show up. Snow ratios use the warmest temperature in the column (Kuchera) reduced for wind.
+- **Season:** typical opening and closing dates per resort (`resorts.js`). Before opening day there are no day grades, powder scores or ice warnings; the site shows snowmaking windows (summit wet bulb at or below 27°F) and first natural snow instead.
+- **Insights:** generated from the numbers: rain/snow line by elevation, warm-layer sleet risk, heaviest-rate timing, outlier models, high-res vs global splits, northwest upslope tails, lake-band alignment, thaws, wind holds, refrozen surfaces.
 
 ## Files
 
-- `index.html`, `style.css`: the page.
-- `app.js`: rendering, map, charts and interaction.
-- `forecast.js`: data fetching and forecast math (consensus, storms, powder score, snow quality).
-- `resorts.js`: resort list. Coordinates and elevations are approximate; correct them as needed.
-- `guides.js`: storm setups and per-mountain guides. Written from general knowledge; edit as local knowledge improves.
-- `icons.js`: inline SVG icons.
-- Fonts: Geist and Geist Mono from Google Fonts.
-- `vendor/`: Leaflet 1.9.4 and Chart.js 4.4.1 (MIT), served from the site so there's no CDN dependency.
+- `index.html`, `style.css`, `app.js`: the page. It only reads the JSON files.
+- `scripts/engine.mjs`, `scripts/build-forecast.mjs`: the forecast engine and the job that runs it.
+- `resorts.js`: resorts, elevations and typical season dates (approximate; correct as needed).
+- `guides.js`: storm setups, per-mountain wind arcs the engine uses (upslope, shadow, lake, exposed lifts) and local notes.
+- `icons.js`: inline SVG icons. `vendor/`: Leaflet 1.9.4 and Chart.js 4.4.1 (MIT).
 
-No build step and no server. Any static host works (GitHub Pages, Cloudflare Pages, Netlify).
+To run the job by hand: `node scripts/build-forecast.mjs` (Node 20+, needs internet).
 
 ## Run locally
 
@@ -37,5 +36,5 @@ No build step and no server. Any static host works (GitHub Pages, Cloudflare Pag
 ## Notes
 
 - Open-Meteo's free API is for non-commercial use. A free site with no ads fits; ads or sponsors mean switching to their paid plan.
-- Each visit makes about 5 API calls (cached 30 minutes in the browser). Opening a resort adds 5 more. Map tiles come from CARTO and radar from Iowa Environmental Mesonet, both free with attribution.
-- Not yet built: email sign-up, storing past forecasts to score model accuracy per resort, and observed snow (Mount Washington Observatory, NOHRSC).
+- Each run of the job is about 1,500 Open-Meteo calls (well under the free 10,000 a day); visitors make no API calls. Map tiles come from CARTO and radar from Iowa Environmental Mesonet, both free with attribution.
+- Not yet built: email sign-up, and scoring the archived forecasts against observed snow (NOHRSC, Mount Washington Observatory).

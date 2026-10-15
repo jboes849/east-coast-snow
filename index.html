@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Upslope · Snow forecasts for East Coast skiers</title>
-  <meta name="description" content="Free ski snow forecasts for East Coast resorts from Maine to West Virginia. Five weather models, plain-English summaries, powder scores and a live snow map.">
+  <meta name="description" content="Free ski snow forecasts for East Coast resorts from Maine to West Virginia. Eight weather models plus 82 ensemble runs, precipitation type, snowmaking windows, powder scores and a live snow map.">
   <meta name="theme-color" content="#ffffff">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M1 18 8 5l4 7 2.5-4L19 18Z' fill='%230b0d10'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,7 +46,7 @@
         <div class="kpi"><span class="label">Best first chair</span><span class="kpi-value skeleton">00</span></div>
         <div class="kpi"><span class="label">Coldest summit</span><span class="kpi-value skeleton">00</span></div>
       </div>
-      <p id="status" class="status label">Loading forecasts from 5 weather models</p>
+      <p id="status" class="status label">Loading the latest forecast</p>
     </section>
 
     <section id="map-block" class="block">
@@ -104,10 +104,10 @@
         <span class="label">Built for skiers</span>
       </div>
       <div class="how-grid">
-        <article><span class="label">01</span><h3>Five models, one range</h3><p>Most apps show one computer model. We pull five (American GFS and HRRR, European ECMWF, Canadian, German ICON and the National Weather Service blend) and show the middle forecast with the lowest and highest.</p></article>
-        <article><span class="label">02</span><h3>Snow quality</h3><p>Cold air makes light snow; warm air makes heavy snow. Totals are sized using the temperature at each summit instead of a fixed ratio, so you know whether to expect powder or a dense base builder.</p></article>
-        <article><span class="label">03</span><h3>Powder score</h3><p>A 0–100 score for each morning. It rewards snow that falls overnight before first chair, cold temperatures, no rain, and models that agree with each other.</p></article>
-        <article><span class="label">04</span><h3>Day grades, wind and storm setups</h3><p>Every day gets an A–F ski grade that weighs fresh snow, rain, icy refreezes, lift-closing wind and cold. Each mountain has a storm guide, and we flag when this week's storm matches the setup that works best there.</p></article>
+        <article><span class="label">01</span><h3>Eight models, weighted by range</h3><p>Every six hours we pull eight models at each summit and base: high-resolution HRRR, NAM and Canadian HRDPS, plus the NWS Blend, GFS, ECMWF, Canadian GEM and German ICON. The high-resolution models see the terrain best, so they carry the most weight for the first two days.</p></article>
+        <article><span class="label">02</span><h3>Real odds from 82 ensemble runs</h3><p>The GFS and European ensembles rerun their models dozens of times with small changes. We count how many runs reach 3, 6 or 12 inches, so "70% chance of 6 inches" means something.</p></article>
+        <article><span class="label">03</span><h3>Snow, sleet or rain</h3><p>Precipitation type comes from the wet-bulb temperature at each elevation and the warm layer near 5,000 ft, which is how sleet and freezing rain happen. Snow ratios use the warmest air between the summit and 10,000 ft plus the wind.</p></article>
+        <article><span class="label">04</span><h3>Season aware</h3><p>Before opening day there are no ski grades. Instead we track snowmaking windows and first natural snow. Once lifts turn, every day gets an A–F grade for fresh snow, rain, refrozen surfaces, wind holds and cold.</p></article>
       </div>
       <details class="glossary">
         <summary>Glossary</summary>
@@ -117,7 +117,10 @@
           <dt>Snow level</dt><dd>The elevation where rain turns to snow, roughly 1,000 ft below the freezing level.</dd>
           <dt>Overnight snow</dt><dd>Snow that falls from 4pm to 9am, so it's waiting for you on the first chair.</dd>
           <dt>Wind hold</dt><dd>When gusts get too strong (often above 45 mph) resorts stop upper lifts for safety.</dd>
-          <dt>Snowmaking weather</dt><dd>Several hours at or below about 26°F, cold enough for snow guns to work well.</dd>
+          <dt>Wet bulb</dt><dd>The temperature air cools to when water evaporates into it. Dry air at 32°F can have a wet bulb in the 20s, which is why snow guns can run above freezing and why snow can fall at 36°F.</dd>
+          <dt>Snowmaking window</dt><dd>Hours with a summit wet bulb at or below 27°F. Below about 22°F the guns run at full output.</dd>
+          <dt>Ensemble</dt><dd>One model run dozens of times with slightly different starting conditions. The spread of results shows how sure the forecast is.</dd>
+          <dt>Sleet and freezing rain</dt><dd>Snow melts in a warm layer aloft, then refreezes into pellets (sleet) or freezes on contact with the cold ground (freezing rain).</dd>
           <dt>Day grade</dt><dd>A quick A–F rating for skiing that day. A: fresh snow or a bluebird day. C: a normal groomer day. F: rain or lifts likely closed.</dd>
           <dt>Nor'easter</dt><dd>A coastal storm tracking up the Atlantic with northeast winds. The classic big-dump setup for southern New England, the Catskills and Maine.</dd>
           <dt>Lake effect</dt><dd>Narrow, intense snow bands off the Great Lakes on cold westerly winds. Huge totals for Tug Hill and western New York.</dd>
@@ -143,7 +146,6 @@
   <script src="icons.js"></script>
   <script src="resorts.js"></script>
   <script src="guides.js"></script>
-  <script src="forecast.js"></script>
   <script>
     document.getElementById("search-icon").innerHTML = Icon("search");
     document.getElementById("view-rows").innerHTML = Icon("bars");

@@ -1,10 +1,9 @@
 (function () {
-  const F = window.Forecast;
-  const { MODELS, loadAll, consensus, hourly, storms, powderScore, forecastDates, median } = F;
   const RESORTS = window.RESORTS;
   const GUIDES = window.GUIDES || {};
   const SETUPS = window.SETUPS || {};
   const Icon = window.Icon;
+  const DATA_URL = "data/forecast.json";
 
   const store = {
     get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
@@ -12,9 +11,10 @@
   };
 
   const state = {
-    dates: forecastDates(),
-    summit: null,
+    data: null,
+    dates: [],
     rows: [],
+    open: false,
     region: store.get("ups-region", "All"),
     search: "",
     sort: "7d",
@@ -24,19 +24,26 @@
     mapRange: "3",
     radar: false,
     selected: null,
+    details: {},
     charts: [],
   };
 
   const $ = (sel, el = document) => el.querySelector(sel);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-  const sum = (xs) => xs.reduce((a, b) => a + b, 0);
+  const sum = (xs) => xs.reduce((a, b) => a + (b || 0), 0);
+  const median = (xs) => {
+    const v = xs.filter((x) => x != null).sort((a, b) => a - b);
+    if (!v.length) return null;
+    const m = Math.floor(v.length / 2);
+    return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+  };
 
   // ---------- units and formatting ----------
   const metric = () => state.units === "cm";
   const snowNum = (inches) => (metric() ? inches * 2.54 : inches);
   const snowUnit = () => (metric() ? "cm" : "in");
   function snowVal(inches) {
-    const v = snowNum(inches);
+    const v = snowNum(inches || 0);
     if (v < (metric() ? 1 : 0.5)) return "0";
     if (v < 10) return v.toFixed(metric() ? 0 : 1).replace(/\.0$/, "");
     return String(Math.round(v));
@@ -46,32 +53,46 @@
   const rangeVal = (lo, hi) => `${snowVal(lo)}–${snowVal(hi)}`;
   const tempNum = (f) => (f == null ? null : metric() ? (f - 32) * 5 / 9 : f);
   const tempTxt = (f) => (f == null ? "–" : `${Math.round(tempNum(f))}°`);
+  const tempTxtU = (f) => (f == null ? "–" : `${Math.round(tempNum(f))}°${metric() ? "C" : "F"}`);
   const windNum = (mph) => (mph == null ? null : metric() ? mph * 1.609 : mph);
   const windTxt = (mph) => (mph == null ? "–" : `${Math.round(windNum(mph))} ${metric() ? "km/h" : "mph"}`);
   const elevTxt = (ft) => (metric() ? `${Math.round(ft * 0.3048).toLocaleString()} m` : `${Math.round(ft).toLocaleString()} ft`);
-  const WIND_HOLD = 45;
+  const liqTxt = (inch) => (metric() ? `${Math.round(inch * 25.4)} mm` : `${inch.toFixed(2)}″`);
+
+  // Engine text carries unit tokens like {{s:4.2}}; render them in the reader's units.
+  function fmt(text) {
+    return esc(text || "").replace(/\{\{(\w):([^}]+)\}\}/g, (_, k, v) => {
+      const n = v.split(",").map(Number);
+      if (k === "s") return snowTxt(n[0]);
+      if (k === "r") return rangeTxt(n[0], n[1]);
+      if (k === "t") return tempTxtU(n[0]);
+      if (k === "w") return windTxt(n[0]);
+      if (k === "e") return elevTxt(n[0]);
+      if (k === "l") return liqTxt(n[0]);
+      return v;
+    });
+  }
 
   // ---------- dates ----------
-  const today = () => state.dates[0];
+  const nyToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const dateObj = (date) => new Date(date + "T12:00:00");
-  const dayShort = (date) => (date === state.dates[0] ? "Today" : dateObj(date).toLocaleDateString("en-US", { weekday: "short" }));
+  const dayShort = (date) => (date === nyToday() ? "Today" : dateObj(date).toLocaleDateString("en-US", { weekday: "short" }));
   const dayInitial = (date) => dateObj(date).toLocaleDateString("en-US", { weekday: "narrow" });
-  function dayLong(date) {
-    if (date === state.dates[0]) return "today";
-    if (date === state.dates[1]) return "tomorrow";
-    return dateObj(date).toLocaleDateString("en-US", { weekday: "long" });
-  }
   const dayNum = (date) => dateObj(date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const dayLong = (date) => dateObj(date).toLocaleDateString("en-US", { weekday: "long" });
   function whenTxt(t) {
-    const date = t.slice(0, 10);
+    const d = dayLong(t.slice(0, 10));
     const h = Number(t.slice(11, 13));
-    const d = dayLong(date);
-    if (date === today()) return h < 12 ? "this morning" : h < 17 ? "this afternoon" : "tonight";
-    if (h < 6) return `early ${d}`;
+    if (h < 5) return `early ${d}`;
     if (h < 12) return `${d} morning`;
     if (h < 17) return `${d} afternoon`;
-    return d === "tomorrow" ? "tomorrow night" : `${d} night`;
+    return `${d} night`;
   }
+  const spanTxt = (a, b) => (whenTxt(a) === whenTxt(b) ? whenTxt(a) : `${whenTxt(a)} – ${whenTxt(b)}`);
+  const hourLabel = (t) => {
+    const h = Number(t.slice(11, 13));
+    return h === 0 ? "12a" : h === 12 ? "12p" : h > 12 ? `${h - 12}p` : `${h}a`;
+  };
 
   // ---------- colors ----------
   const SNOW_STEPS = [0.5, 3, 6, 12, 18];
@@ -81,76 +102,21 @@
   const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
   function dayIcon(d) {
+    const wet = (d.rain || 0) + (d.ice || 0);
     if (d.snow >= 3) return { icon: "heavySnow", label: "Heavy snow" };
-    if (d.snow >= 0.5) return d.mix > 0.1 ? { icon: "mix", label: "Snow and rain" } : { icon: "snow", label: "Snow" };
-    if (d.mix > 0.1) return { icon: "rain", label: "Rain" };
+    if (d.snow >= 0.5) return wet > 0.1 ? { icon: "mix", label: "Snow and rain" } : { icon: "snow", label: "Snow" };
+    if (wet > 0.1) return { icon: d.ice > 0.05 ? "mix" : "rain", label: d.ice > 0.05 ? "Sleet or freezing rain" : "Rain" };
     if (d.cloud != null && d.cloud < 30) return { icon: "sun", label: "Sunny" };
     if (d.cloud != null && d.cloud < 70) return { icon: "partly", label: "Partly cloudy" };
     return { icon: "cloud", label: "Cloudy" };
   }
-  // ---------- storm setups, ski hours, grades ----------
-  const inArc = (dir, [a, b]) => (a <= b ? dir >= a && dir <= b : dir >= a || dir <= b);
+
+  // ---------- wind ----------
+  const inArc = (dir, arc) => !!arc && dir != null && (arc[0] <= arc[1] ? dir >= arc[0] && dir <= arc[1] : dir >= arc[0] || dir <= arc[1]);
   const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
   const compass = (dir) => (dir == null ? "–" : COMPASS[Math.round(dir / 45) % 8]);
-  const guideFor = (r) => GUIDES[r.id] || { setups: [], hold: WIND_HOLD, exposed: [250, 340] };
-
-  // Classify a storm by its snow-weighted wind direction.
-  function classifyStorm(row, s) {
-    const g = guideFor(row.resort);
-    const items = [];
-    let tSum = 0;
-    let n = 0;
-    for (let i = s.start; i <= s.end; i++) {
-      if (row.hc.dir[i] != null) items.push({ dir: row.hc.dir[i], w: Math.max(0.01, row.hc.snow[i]) });
-      if (row.hc.temp[i] != null) { tSum += row.hc.temp[i]; n++; }
-    }
-    const dir = F.meanDir(items);
-    const temp = n ? tSum / n : null;
-    let key = "west";
-    if (dir == null) key = "west";
-    else if (g.lake && inArc(dir, g.lake) && (temp == null || temp <= 32)) key = "lake";
-    else if (dir >= 280 || dir < 10) key = "upslope";
-    else if (dir < 130) key = "noreaster";
-    else if (dir < 240) key = "southern";
-    return { key, dir, favored: g.setups.includes(key), best: g.setups[0] === key };
-  }
-
-  // Lift-hours (8am-4pm) weather for one day.
-  function skiHours(row, date) {
-    const idx = [];
-    row.hc.time.forEach((t, i) => {
-      const h = Number(t.slice(11, 13));
-      if (t.startsWith(date) && h >= 8 && h <= 16) idx.push(i);
-    });
-    const pick = (arr) => idx.map((i) => arr[i]).filter((v) => v != null);
-    const temps = pick(row.hc.temp);
-    const gusts = pick(row.hc.gust);
-    const chills = idx.map((i) => windChill(row.hc.temp[i], row.hc.wind[i])).filter((v) => v != null);
-    return {
-      idx,
-      snow: sum(pick(row.hc.snow)),
-      mix: sum(pick(row.hc.mix)),
-      tMax: temps.length ? Math.max(...temps) : null,
-      tMin: temps.length ? Math.min(...temps) : null,
-      gustMax: gusts.length ? Math.max(...gusts) : null,
-      chillMin: chills.length ? Math.min(...chills) : null,
-      dir: F.meanDir(idx.map((i) => (row.hc.dir[i] != null ? { dir: row.hc.dir[i], w: row.hc.wind[i] || 1 } : null))),
-    };
-  }
-
-  function windChill(t, v) {
-    if (t == null || v == null) return null;
-    if (t > 50 || v < 3) return t;
-    const p = Math.pow(v, 0.16);
-    return 35.74 + 0.6215 * t - 35.75 * p + 0.4275 * t * p;
-  }
-
-  // Wind-hold threshold for a resort, a little lower when the wind hits its exposed side.
-  function holdFor(row, dir) {
-    const g = guideFor(row.resort);
-    return g.hold - (dir != null && inArc(dir, g.exposed) ? 5 : 0);
-  }
-
+  const guideFor = (r) => GUIDES[r.id] || { setups: [], hold: 45, exposed: [250, 340], notes: [] };
+  const holdFor = (row, dir) => guideFor(row.resort).hold - (inArc(dir, guideFor(row.resort).exposed) ? 5 : 0);
   function windRisk(row, gust, dir) {
     if (gust == null) return "none";
     const hold = holdFor(row, dir);
@@ -159,168 +125,98 @@
     return "low";
   }
 
-  // A-F ski grade for a day: fresh snow and bluebird calm push it up; rain,
-  // refreeze ice, lift-closing wind and brutal cold pull it down.
-  function gradeDay(row, k) {
-    const d = row.days[k];
-    const prev = row.days[k - 1];
-    const ski = skiHours(row, d.date);
-    let score = 66;
-    const why = [];
-    if (d.overnight >= 1) { score += Math.min(30, d.overnight * 4); why.push(`${snowTxt(d.overnight)} fresh`); }
-    if (ski.snow >= 1) { score += Math.min(10, ski.snow * 1.5); why.push("snowing"); }
-    let ice = false;
-    if (ski.mix > 0.05) { score -= 35; why.push("rain"); }
-    else if (d.mix > 0.1) { score -= 12; why.push("rain later"); }
-    if (prev && (prev.mix > 0.1 || (prev.tMax ?? 0) > 38) && ski.tMax != null && ski.tMax <= 30 && d.overnight < 2) {
-      score -= 20;
-      ice = true;
-      why.push("icy refreeze");
-    }
-    if (!ice && ski.tMax != null && ski.tMax >= 36 && ski.tMax <= 50 && ski.mix < 0.02 && (d.tMin ?? 99) <= 30) { score += 4; why.push("softening"); }
-    const hold = holdFor(row, ski.dir);
-    if (ski.gustMax != null && ski.gustMax >= hold) { score -= 15; why.push("lift holds likely"); }
-    else if (ski.gustMax != null && ski.gustMax >= hold - 10) { score -= 5; why.push("breezy"); }
-    if (ski.chillMin != null && ski.chillMin <= -20) { score -= 15; why.push("brutal wind chill"); }
-    else if (ski.chillMin != null && ski.chillMin <= -5) { score -= 7; why.push("very cold"); }
-    if (d.cloud != null && d.cloud < 40 && (ski.gustMax ?? 0) < 25 && ski.mix < 0.02 && !ice) { score += 6; why.push("bluebird"); }
-    score = Math.max(0, Math.min(100, Math.round(score)));
-    const letter = score >= 85 ? "A" : score >= 72 ? "B" : score >= 58 ? "C" : score >= 45 ? "D" : "F";
-    return { score, letter, why, ice, ski };
-  }
-
   const confTxt = (c) => (c === "high" ? "High agreement" : c === "medium" ? "Medium agreement" : "Low agreement");
+  const operating = (row) => row.season.operating;
+  const SETUP_SHORT = { noreaster: "Nor'easter", lake: "Lake effect", upslope: "Upslope", southern: "Southerly", west: "Clipper" };
 
-  // ---------- data shaping ----------
+  // ---------- data ----------
   function buildRows() {
-    state.rows = RESORTS.map((r, i) => {
-      const perModel = state.summit.map((m) => m.locs[i]).filter(Boolean);
-      const days = consensus(perModel, state.dates);
-      const hc = hourly(perModel);
-      const best = [1, 2, 3].map((k) => ({ k, score: powderScore(days[k]) })).sort((a, b) => b.score - a.score)[0];
-      const totals = perModel.map((m) => sum(state.dates.map((d) => m.days[d]?.snow ?? 0)));
-      return {
-        resort: r,
-        index: i,
-        perModel,
-        days,
-        hc,
-        storms: storms(hc, perModel),
-        total3: sum(days.slice(0, 3).map((d) => d.snow)),
-        total7: sum(days.map((d) => d.snow)),
-        lo7: Math.min(...totals),
-        hi7: Math.max(...totals),
-        best,
-        rainDay: days.find((d) => d.mix > 0.1),
-        windDay: days.find((d) => d.gustMax >= WIND_HOLD),
-        snowmaking: days.slice(0, 3).filter((d) => d.coldHours >= 6).length,
-      };
-    });
-    state.rows.forEach((row) => {
-      row.storms.forEach((s) => (s.setup = classifyStorm(row, s)));
-      row.grades = row.days.map((d, k) => gradeDay(row, k));
-      row.bestDay = row.grades.map((g, k) => ({ ...g, k })).sort((a, b) => b.score - a.score || a.k - b.k)[0];
-      row.iceDay = row.grades.find((g) => g.ice) ? row.days[row.grades.findIndex((g) => g.ice)] : null;
-    });
+    const byId = Object.fromEntries(RESORTS.map((r) => [r.id, r]));
+    state.rows = state.data.resorts.filter((r) => byId[r.id]).map((r) => ({ ...r, resort: byId[r.id] }));
+    state.dates = state.data.dates;
+    state.open = state.rows.some(operating);
     state.sparkMax = Math.max(6, ...state.rows.flatMap((r) => r.days.map((d) => d.snow)));
-  }
-
-  // Plain-English summary for one resort.
-  function describe(row) {
-    const out = [];
-    const big = [...row.storms].sort((a, b) => b.total - a.total)[0];
-    if (!big) {
-      out.push(`No meaningful snow in the next 7 days at ${row.resort.name}.`);
-      if (row.snowmaking >= 2) out.push("Cold nights should keep the snow guns running.");
-    } else {
-      const start = whenTxt(big.startTime);
-      const end = whenTxt(big.endTime);
-      const when = start === end ? `Snow ${start}` : `Snow starts ${start} and wraps up ${end}`;
-      out.push(`${when}, with about ${snowTxt(big.total)} up top (models range ${rangeTxt(big.lo, big.hi)}).`);
-      if (big.quality) out.push(`Expect ${big.quality.blurb} snow.`);
-      if (big.setup) {
-        const s = SETUPS[big.setup.key];
-        if (big.setup.best) out.push(`It's a ${s.label.toLowerCase()} setup, this mountain's specialty.`);
-        else if (big.setup.favored) out.push(`It's a ${s.label.toLowerCase()} setup, which usually works well here.`);
-      }
-      const others = row.storms.filter((s) => s !== big);
-      if (others.length) out.push(`${others.length === 1 ? "Another round adds" : "More rounds add"} ${snowTxt(sum(others.map((s) => s.total)))} later in the week.`);
-    }
-    if (row.rainDay) {
-      const summitMix = row.rainDay.tMax != null && row.rainDay.tMax > 34;
-      out.push(`Rain or ice is likely ${dayLong(row.rainDay.date)}${summitMix ? ", even at the summit" : ", mainly lower down"}.`);
-    }
-    if (row.windDay) out.push(`Gusts near ${windTxt(row.windDay.gustMax)} ${dayLong(row.windDay.date)} could put upper lifts on wind hold.`);
-    if (row.iceDay) out.push(`Expect firm, icy snow ${dayLong(row.iceDay.date)} after the refreeze.`);
-    if (row.best.score >= 40) out.push(`Best powder morning: ${dayLong(row.days[row.best.k].date)} (score ${row.best.score}).`);
-    out.push(`Best day to ski: ${dayLong(row.days[row.bestDay.k].date)} (${row.bestDay.letter}).`);
-    return out.join(" ");
-  }
-
-  const listTxt = (xs) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
-
-  // Region-level headline for the hero.
-  function headline() {
-    const byRegion = {};
-    state.rows.forEach((r) => (byRegion[r.resort.region] ||= []).push(r));
-    const regions = Object.entries(byRegion)
-      .map(([name, rows]) => ({ name, top: [...rows].sort((a, b) => b.total7 - a.total7)[0] }))
-      .sort((a, b) => b.top.total7 - a.top.total7);
-    const lead = regions[0];
-    if (!lead || lead.top.total7 < 1) {
-      const cold = state.rows.filter((r) => r.snowmaking >= 2).length;
-      return {
-        title: "A quiet week across the East.",
-        text: `No meaningful natural snow in the next 7 days.${cold ? ` Cold nights mean good snowmaking weather at ${cold} of ${state.rows.length} resorts.` : ""}`,
-      };
-    }
-    const big = [...lead.top.storms].sort((a, b) => b.total - a.total)[0];
-    const when = big ? ` The main round arrives ${whenTxt(big.startTime)}.` : "";
-    const second = regions[1] && regions[1].top.total7 >= 2 ? ` ${regions[1].name} follows with up to ${snowTxt(regions[1].top.total7)} at ${regions[1].top.resort.name}.` : "";
-    const quiet = regions.filter((r) => r.top.total7 < 2).map((r) => r.name);
-    return {
-      title: `${lead.name} leads the week.`,
-      text: `Up to ${snowTxt(lead.top.total7)} at ${lead.top.resort.name} over the next 7 days (models range ${rangeTxt(lead.top.lo7, lead.top.hi7)}).${when}${second}${quiet.length && quiet.length < regions.length ? ` Little to nothing for ${listTxt(quiet.slice(0, 3))}.` : ""}`,
-    };
   }
 
   // ---------- hero ----------
   function renderHero() {
-    const h = headline();
-    $("#headline").innerHTML = `<h1>${esc(h.title)}</h1><p>${esc(h.text)}</p>`;
+    const h = state.data.headline;
+    $("#headline").innerHTML = `<h1>${fmt(h.title)}</h1><p>${fmt(h.text)}</p>`;
     const biggest = [...state.rows].sort((a, b) => b.total7 - a.total7)[0];
-    const powder = [...state.rows].sort((a, b) => b.best.score - a.best.score || b.total3 - a.total3)[0];
-    const bestSki = [...state.rows].sort((a, b) => b.bestDay.score - a.bestDay.score || b.total3 - a.total3)[0];
-    const stats = [
-      { label: "Most snow · 7d", value: `${snowVal(biggest.total7)}<i>${snowUnit()}</i>`, sub: biggest.resort.name, id: biggest.resort.id },
-      powder.best.score > 0
-        ? { label: "Best first chair", value: dayShort(powder.days[powder.best.k].date), sub: `${powder.resort.name} · ${powder.best.score}`, id: powder.resort.id }
-        : { label: "Best first chair", value: "–", sub: "None in 3 days" },
-      { label: "Best ski day", value: `${dayShort(bestSki.days[bestSki.bestDay.k].date)}<i>${bestSki.bestDay.letter}</i>`, sub: bestSki.resort.name, id: bestSki.resort.id },
-    ];
+    const stats = [{ label: "Most snow · 7d", value: `${snowVal(biggest.total7)}<i>${snowUnit()}</i>`, sub: biggest.resort.name, id: biggest.resort.id }];
+    if (state.open) {
+      const open = state.rows.filter(operating);
+      const powder = [...open].sort((a, b) => b.best.score - a.best.score || b.total3 - a.total3)[0];
+      const bestSki = [...open].sort((a, b) => b.bestDay.score - a.bestDay.score || b.total3 - a.total3)[0];
+      stats.push(
+        powder.best.score > 0
+          ? { label: "Best first chair", value: dayShort(powder.days[powder.best.k].date), sub: `${powder.resort.name} · ${powder.best.score}`, id: powder.resort.id }
+          : { label: "Best first chair", value: "–", sub: "None in 3 days" },
+        { label: "Best ski day", value: `${dayShort(bestSki.days[bestSki.bestDay.k].date)}<i>${bestSki.bestDay.letter}</i>`, sub: bestSki.resort.name, id: bestSki.resort.id }
+      );
+    } else {
+      const sm = [...state.rows].sort((a, b) => b.snowmaking.hours7 - a.snowmaking.hours7)[0];
+      const first = [...state.rows].filter((r) => r.season.phase === "preseason").sort((a, b) => a.season.daysToOpen - b.season.daysToOpen)[0];
+      stats.push(
+        sm.snowmaking.hours7 > 0
+          ? { label: "Snowmaking hours · 7d", value: `${sm.snowmaking.hours7}<i>h</i>`, sub: sm.resort.name, id: sm.resort.id }
+          : { label: "Snowmaking hours · 7d", value: "0", sub: "Too warm everywhere" },
+        first
+          ? { label: "Typically opens first", value: dayNum(first.season.open), sub: `${first.resort.name} · ${first.season.daysToOpen} days`, id: first.resort.id }
+          : { label: "Season", value: "–", sub: "Closed" }
+      );
+    }
     $("#stats").innerHTML = stats
       .map((s) => `<button class="kpi" ${s.id ? `data-open="${s.id}"` : "disabled"}><span class="label">${s.label}</span><span class="kpi-value">${s.value}</span><span class="kpi-sub">${esc(s.sub)}</span></button>`)
       .join("");
   }
 
-  // ---------- powder picks ----------
+  // ---------- picks: powder mornings in season, snowmaking windows before ----------
   function renderPicks() {
-    const top = state.rows.filter((r) => r.best.score > 0).sort((a, b) => b.best.score - a.best.score || b.total3 - a.total3).slice(0, 4);
     const el = $("#picks");
-    if (!top.length) {
-      el.innerHTML = `<p class="empty">No powder mornings in the next three days.</p>`;
+    const head = $("#picks-block .block-head");
+    if (state.open) {
+      head.innerHTML = `<h2>Powder mornings</h2><span class="label">Next 72 h · score 0–100</span>`;
+      $('.navlinks a[href="#picks-block"]').textContent = "Powder";
+      const top = state.rows.filter((r) => operating(r) && r.best.score > 0).sort((a, b) => b.best.score - a.best.score || b.total3 - a.total3).slice(0, 4);
+      if (!top.length) {
+        el.innerHTML = `<p class="empty">No powder mornings in the next three days.</p>`;
+        return;
+      }
+      el.innerHTML = top
+        .map((row) => {
+          const d = row.days[row.best.k];
+          const bits = [`${dayShort(d.date)} 06:00`, `${snowTxt(d.overnight)} overnight`];
+          if (d.slr) bits.push(`SLR ${d.slr}:1`);
+          bits.push(confTxt(d.conf));
+          return `<button class="pick" data-open="${row.resort.id}">
+            <span class="score" data-tier="${row.best.score >= 75 ? 3 : 1}">${row.best.score}</span>
+            <span><b>${esc(row.resort.name)}</b><br><span class="detail-line">${bits.join(" · ")}</span></span>
+            <span class="meter-line"><i style="width:${row.best.score}%"></i></span>
+          </button>`;
+        })
+        .join("");
       return;
     }
-    el.innerHTML = top
-      .map((row) => {
-        const d = row.days[row.best.k];
-        const bits = [`${dayShort(d.date)} 06:00`, `${snowTxt(d.overnight)} overnight`];
-        if (d.ratio) bits.push(`SLR ${Math.round(d.ratio)}:1`);
-        bits.push(confTxt(d.confidence));
-        return `<button class="pick" data-open="${row.resort.id}">
-          <span class="score" data-tier="${row.best.score >= 75 ? 3 : 1}">${row.best.score}</span>
-          <span><b>${esc(row.resort.name)}</b><br><span class="detail-line">${bits.join(" · ")}</span></span>
-          <span class="meter-line"><i style="width:${row.best.score}%"></i></span>
+    head.innerHTML = `<h2>Snowmaking windows</h2><span class="label">Pre-season · summit wet bulb ≤ ${tempTxtU(27)}</span>`;
+    $('.navlinks a[href="#picks-block"]').textContent = "Snowmaking";
+    const wins = state.rows
+      .flatMap((r) => r.snowmaking.windows.map((w) => ({ ...w, row: r })))
+      .sort((a, b) => b.hours - a.hours || a.minTw - b.minTw)
+      .filter((w, i, all) => all.findIndex((x) => x.row === w.row) === i)
+      .slice(0, 4);
+    if (!wins.length) {
+      el.innerHTML = `<p class="empty">No resort gets cold enough for snowmaking this week.</p>`;
+      return;
+    }
+    const maxH = Math.max(...wins.map((w) => w.hours));
+    el.innerHTML = wins
+      .map((w) => {
+        const bits = [spanTxt(w.start, w.end), `low ${tempTxtU(w.minTw)} wet bulb`, w.baseHours >= 3 ? `base ${w.baseHours}h` : "base too warm"];
+        return `<button class="pick" data-open="${w.row.resort.id}">
+          <span class="score" data-tier="${w.good >= 6 ? 3 : 1}">${w.hours}h</span>
+          <span><b>${esc(w.row.resort.name)}</b><br><span class="detail-line">${esc(bits.join(" · "))}</span></span>
+          <span class="meter-line"><i style="width:${Math.round((w.hours / maxH) * 100)}%"></i></span>
         </button>`;
       })
       .join("");
@@ -352,7 +248,6 @@
   function renderMap() {
     if (!map) return;
     if (!mapFitted) {
-      // The page may have reflowed since the map was created; re-measure once.
       map.invalidateSize();
       map.fitBounds(resortBounds());
       mapFitted = true;
@@ -380,6 +275,14 @@
   }
 
   // ---------- resort list ----------
+  function renderSortOptions() {
+    const opts = state.open
+      ? [["7d", "Most snow · 7d"], ["3d", "Most snow · 3d"], ["odds", "Odds of 6″+"], ["powder", "Powder score"], ["grade", "Best ski day"], ["az", "A–Z"]]
+      : [["7d", "Most snow · 7d"], ["3d", "Most snow · 3d"], ["sm", "Snowmaking hours"], ["opens", "Typical opening"], ["az", "A–Z"]];
+    if (!opts.some(([v]) => v === state.sort)) state.sort = "7d";
+    $("#sort").innerHTML = opts.map(([v, l]) => `<option value="${v}"${v === state.sort ? " selected" : ""}>${l}</option>`).join("");
+  }
+
   function filteredRows() {
     const q = state.search.trim().toLowerCase();
     let rows = state.rows.filter((r) => {
@@ -387,12 +290,17 @@
       return state.region === "All" || r.resort.state === state.region;
     });
     if (q) rows = rows.filter((r) => `${r.resort.name} ${r.resort.region} ${r.resort.state}`.toLowerCase().includes(q));
-    if (state.sort === "3d") rows.sort((a, b) => b.total3 - a.total3);
-    else if (state.sort === "7d") rows.sort((a, b) => b.total7 - a.total7);
-    else if (state.sort === "powder") rows.sort((a, b) => b.best.score - a.best.score || b.total3 - a.total3);
-    else if (state.sort === "grade") rows.sort((a, b) => b.bestDay.score - a.bestDay.score || b.total7 - a.total7);
-    else rows.sort((a, b) => a.resort.name.localeCompare(b.resort.name));
-    // Favorites float to the top.
+    const by = {
+      "3d": (a, b) => b.total3 - a.total3,
+      "7d": (a, b) => b.total7 - a.total7,
+      odds: (a, b) => (b.prob7?.[6] ?? 0) - (a.prob7?.[6] ?? 0) || b.total7 - a.total7,
+      powder: (a, b) => (b.best?.score ?? -1) - (a.best?.score ?? -1) || b.total3 - a.total3,
+      grade: (a, b) => (b.bestDay?.score ?? -1) - (a.bestDay?.score ?? -1) || b.total7 - a.total7,
+      sm: (a, b) => b.snowmaking.hours7 - a.snowmaking.hours7,
+      opens: (a, b) => a.season.open.localeCompare(b.season.open),
+      az: (a, b) => a.resort.name.localeCompare(b.resort.name),
+    }[state.sort];
+    rows.sort(by || ((a, b) => b.total7 - a.total7));
     rows.sort((a, b) => state.favorites.has(b.resort.id) - state.favorites.has(a.resort.id));
     return rows;
   }
@@ -402,30 +310,27 @@
     return `<button class="${cls}" data-fav="${id}" aria-pressed="${on}" aria-label="${on ? "Remove from" : "Add to"} my mountains">${Icon(on ? "starFill" : "star")}</button>`;
   }
 
-  function flags(row) {
-    const f = [];
-    if (row.best.score >= 40) f.push(`<span class="f-powder">Pwdr ${dayShort(row.days[row.best.k].date)}</span>`);
-    const fav = row.storms.find((s) => s.setup && s.setup.favored);
-    if (fav) f.push(`<span class="f-setup">${fav.setup.key === "noreaster" ? "Nor'easter" : fav.setup.key === "lake" ? "Lake effect" : fav.setup.key === "upslope" ? "Upslope" : SETUPS[fav.setup.key].label} ${dayShort(fav.startTime.slice(0, 10))}</span>`);
-    if (row.days.some((d) => d.quality && d.quality.key === "blower" && d.snow >= 2)) f.push(`<span class="f-powder">Blower</span>`);
-    if (row.rainDay) f.push(`<span class="f-rain">Rain ${dayShort(row.rainDay.date)}</span>`);
-    if (row.windDay) f.push(`<span class="f-wind">Wind ${dayShort(row.windDay.date)}</span>`);
-    if (row.iceDay) f.push(`<span class="f-rain">Icy ${dayShort(row.iceDay.date)}</span>`);
-    if (row.snowmaking >= 2 && row.total7 < 2) f.push(`<span class="f-cold">Snowmaking</span>`);
-    return f.slice(0, 3).join("");
-  }
+  const flags = (row) => row.flags.slice(0, 3).map((f) => `<span class="f-${f.cls}">${fmt(f.text)}</span>`).join("");
 
-  // Bars share one scale across resorts so they can be compared at a glance.
   function spark(row) {
     const peak = Math.max(...row.days.map((d) => d.snow));
     return `<div class="spark" role="img" aria-label="Daily snow: ${row.days.map((d) => `${dayShort(d.date)} ${snowTxt(d.snow)}`).join(", ")}">${row.days
       .map((d) => {
-        if (d.snow < 0.5 && d.mix > 0.1) return `<i class="rain" style="height:${Math.min(30, 8 + d.mix * 40)}%" title="${dayShort(d.date)}: rain"></i>`;
+        const wet = d.rain + d.ice;
+        if (d.snow < 0.5 && wet > 0.1) return `<i class="rain" style="height:${Math.min(30, 8 + wet * 40)}%" title="${dayShort(d.date)}: ${d.ice > 0.05 ? "ice" : "rain"}"></i>`;
         const h = d.snow < 0.5 ? 0 : Math.max(4, (d.snow / state.sparkMax) * 100);
-        const cls = [d.snow >= 0.5 && d.snow === peak ? "peak" : "", d.mix > 0.1 && d.snow >= 0.5 ? "mixed" : ""].join(" ").trim();
+        const cls = [d.snow >= 0.5 && d.snow === peak ? "peak" : "", wet > 0.1 && d.snow >= 0.5 ? "mixed" : ""].join(" ").trim();
         return `<i class="${cls}" style="height:${h}%" title="${dayShort(d.date)}: ${snowTxt(d.snow)}"></i>`;
       })
       .join("")}</div>`;
+  }
+
+  // Under the bars: day grades in season, snowmaking hours before it.
+  function dayStrip(row) {
+    if (operating(row)) {
+      return `<div class="grades">${row.days.map((d) => `<span class="g-${d.grade.letter}" title="${dayShort(d.date)}: ${d.grade.letter} · ${fmt(d.grade.why.join(", ") || "typical day")}">${d.grade.letter}</span>`).join("")}</div>`;
+    }
+    return `<div class="grades sm">${row.days.map((d) => `<span class="sm-${d.smHours >= 10 ? 3 : d.smHours >= 5 ? 2 : d.smHours > 0 ? 1 : 0}" title="${dayShort(d.date)}: ${d.smHours} snowmaking hours at the summit">${d.smHours ? d.smHours + "h" : "·"}</span>`).join("")}</div>`;
   }
 
   function renderRowsView(rows) {
@@ -435,7 +340,7 @@
           (row) => `<div class="row" data-open="${row.resort.id}" tabindex="0">
           <div class="r-name"><b>${esc(row.resort.name)}</b><small>${esc(row.resort.region)} · ${elevTxt(row.resort.summit)}</small></div>
           <div class="r-num"><b>${snowVal(row.total7)}</b><small>${rangeVal(row.lo7, row.hi7)}</small></div>
-          <div>${spark(row)}<div class="grades">${row.grades.map((g) => `<span class="g-${g.letter}" title="${dayShort(row.days[row.grades.indexOf(g)].date)}: ${g.letter} · ${g.why.join(", ") || "typical day"}">${g.letter}</span>`).join("")}</div><div class="flags">${flags(row)}</div></div>
+          <div>${spark(row)}${dayStrip(row)}<div class="flags">${flags(row)}</div></div>
           ${favButton(row.resort.id)}
         </div>`
         )
@@ -452,10 +357,12 @@
           <td class="total">${snowVal(row.total7)}</td>
           ${row.days
             .map(
-              (d) => `<td class="cell" data-conf="${d.confidence}" style="--c:${d.snow >= 0.5 ? snowColor(d.snow) : "transparent"}">
+              (d) => `<td class="cell" data-conf="${d.conf}" style="--c:${d.snow >= 0.5 ? snowColor(d.snow) : "transparent"}">
               <span class="amt">${d.snow >= 0.5 ? snowVal(d.snow) : "–"}</span>
               ${d.hi >= 1 ? `<span class="range">${rangeVal(d.lo, d.hi)}</span>` : ""}
-              ${d.mix > 0.1 ? `<span class="rain-mark">RAIN</span>` : ""}<span class="cell-grade g-${row.grades[row.days.indexOf(d)].letter}">${row.grades[row.days.indexOf(d)].letter}</span></td>`
+              ${d.rain + d.ice > 0.1 ? `<span class="rain-mark">${d.ice > 0.05 ? "ICE" : "RAIN"}</span>` : ""}${
+                d.grade ? `<span class="cell-grade g-${d.grade.letter}">${d.grade.letter}</span>` : d.smHours ? `<span class="cell-grade sm-cell">${d.smHours}h</span>` : ""
+              }</td>`
             )
             .join("")}</tr>`
         )
@@ -498,18 +405,14 @@
       animation: { duration: 300 },
       interaction: { mode: "index", intersect: false },
       plugins: {
-        legend: { position: "bottom", align: "start", labels: { color: muted, boxWidth: 14, boxHeight: 2, padding: 14, font: mono } },
+        legend: { position: "bottom", align: "start", labels: { color: muted, boxWidth: 14, boxHeight: 2, padding: 14, font: mono, filter: (item) => !item.text.startsWith("_") } },
         tooltip: {
           backgroundColor: "#0b0d10",
           cornerRadius: 0,
           titleFont: { family: "Geist Mono", size: 11 },
           bodyFont: { family: "Geist Mono", size: 11 },
-          callbacks: {
-            title: (items) => {
-              const t = times[items[0].dataIndex];
-              return `${dayShort(t.slice(0, 10))} ${t.slice(11, 13)}:00`;
-            },
-          },
+          filter: (item) => !item.dataset.label.startsWith("_"),
+          callbacks: { title: (items) => `${dayShort(times[items[0].dataIndex].slice(0, 10))} ${hourLabel(times[items[0].dataIndex])}` },
         },
       },
       scales: {
@@ -529,43 +432,71 @@
     };
   }
 
-  function drawCharts(row, baseHc) {
-    if (!window.Chart) return;
+  function drawCharts(row, det) {
+    if (!window.Chart || !det) return;
     destroyCharts();
-    const times = row.hc.time;
+    const n = Math.min(det.time.length, 24 * state.dates.length);
+    const times = det.time.slice(0, n);
     const fg = css("--fg");
     const accent = css("--accent");
     const warn = css("--warn");
+    const cut = (a) => a.slice(0, n);
+    const sv = (v) => (v == null ? null : +snowNum(v).toFixed(1));
 
-    // Snow accumulation: each model's running total plus the consensus.
+    // Snow accumulation: ensemble 10–90% band, each model, and the blend.
+    const ds = [];
+    if (det.ens) {
+      ds.push({ label: "_p90", data: cut(det.ens.p90).map(sv), borderWidth: 0, pointRadius: 0, backgroundColor: "rgba(0,87,255,0.08)", fill: "+1" });
+      ds.push({ label: "_p10", data: cut(det.ens.p10).map(sv), borderWidth: 0, pointRadius: 0, fill: false });
+    }
+    det.models.forEach((m) => {
+      const meta = state.data.models.find((x) => x.id === m.id) || { label: m.id, color: "#999" };
+      ds.push({ label: meta.label, data: cut(m.cum).map(sv), borderColor: meta.color, backgroundColor: meta.color, borderWidth: 1.1, pointRadius: 0, tension: 0.2 });
+    });
     let run = 0;
-    const consensusCum = row.hc.snow.map((s) => (run += s));
-    const snowDs = state.summit.map((m, k) => ({
-      label: m.model.label,
-      data: row.hc.cumulative[k].map((v) => (v == null ? null : +snowNum(v).toFixed(1))),
-      borderColor: m.model.color,
-      backgroundColor: m.model.color,
-      borderWidth: 1.25,
-      pointRadius: 0,
-      tension: 0.2,
-    }));
-    snowDs.push({ label: "Upslope", data: consensusCum.map((v) => +snowNum(v).toFixed(1)), borderColor: fg, backgroundColor: fg, borderWidth: 2.5, pointRadius: 0, tension: 0.2 });
-    state.charts.push(new Chart($("#chart-snow"), { type: "line", data: { labels: times, datasets: snowDs }, options: chartOptions(times, snowUnit()) }));
+    ds.push({ label: "Upslope blend", data: cut(det.summit.snow).map((s) => +snowNum((run += s || 0)).toFixed(1)), borderColor: fg, backgroundColor: fg, borderWidth: 2.5, pointRadius: 0, tension: 0.2 });
+    state.charts.push(new Chart($("#chart-snow"), { type: "line", data: { labels: times, datasets: ds }, options: chartOptions(times, snowUnit()) }));
 
-    // Temperature at summit and base, with the freezing line.
-    const freeze = metric() ? 0 : 32;
-    const temps = (arr) => arr.map((t) => (t == null ? null : +tempNum(t).toFixed(1)));
-    const tempDs = [
-      { label: "Summit", data: temps(row.hc.temp), borderColor: accent, backgroundColor: accent, borderWidth: 1.75, pointRadius: 0, tension: 0.2 },
-      { label: "Freezing", data: times.map(() => freeze), borderColor: warn, backgroundColor: warn, borderDash: [4, 4], borderWidth: 1, pointRadius: 0 },
+    // Temperatures at summit and base, with the freezing and snowmaking lines.
+    const temps = (arr) => cut(arr).map((t) => (t == null ? null : +tempNum(t).toFixed(1)));
+    const flat = (f) => times.map(() => +tempNum(f).toFixed(1));
+    const tds = [
+      { label: "Summit", data: temps(det.summit.t), borderColor: accent, backgroundColor: accent, borderWidth: 1.75, pointRadius: 0, tension: 0.2 },
+      { label: "Base", data: temps(det.base.t), borderColor: fg, backgroundColor: fg, borderWidth: 1.25, pointRadius: 0, tension: 0.2 },
+      { label: "Freezing", data: flat(32), borderColor: warn, backgroundColor: warn, borderDash: [4, 4], borderWidth: 1, pointRadius: 0 },
     ];
-    if (baseHc) tempDs.splice(1, 0, { label: "Base", data: temps(baseHc.temp), borderColor: fg, backgroundColor: fg, borderWidth: 1.25, pointRadius: 0, tension: 0.2 });
+    if (!operating(row)) {
+      tds.splice(2, 0, { label: "Summit wet bulb", data: temps(det.summit.tw), borderColor: "#0aa2c0", backgroundColor: "#0aa2c0", borderWidth: 1.25, borderDash: [2, 2], pointRadius: 0, tension: 0.2 });
+      tds.push({ label: "Snowmaking", data: flat(27), borderColor: "#6b7280", backgroundColor: "#6b7280", borderDash: [1, 3], borderWidth: 1, pointRadius: 0 });
+    }
     const o2 = chartOptions(times, metric() ? "°C" : "°F");
     o2.scales.y.beginAtZero = false;
-    state.charts.push(new Chart($("#chart-temp"), { type: "line", data: { labels: times, datasets: tempDs }, options: o2 }));
-
+    state.charts.push(new Chart($("#chart-temp"), { type: "line", data: { labels: times, datasets: tds }, options: o2 }));
   }
 
+  // Hour-by-hour precipitation type at summit and base.
+  const PTYPE = { sn: "Snow", mx: "Rain/snow", ra: "Rain", pl: "Sleet", zr: "Freezing rain" };
+  function ptypePanel(row, det) {
+    if (!det) return "";
+    const n = Math.min(det.time.length, 24 * state.dates.length);
+    const any = det.summit.type.slice(0, n).some(Boolean) || det.base.type.slice(0, n).some(Boolean);
+    if (!any) return "";
+    const strip = (types, amt) =>
+      types
+        .slice(0, n)
+        .map((t, i) => `<i class="pt-${t || "none"}" title="${dayShort(det.time[i].slice(0, 10))} ${hourLabel(det.time[i])}: ${t ? PTYPE[t] : "Dry"}"></i>`)
+        .join("");
+    return `<section class="panel">
+      <div class="block-head"><h3>Precipitation type</h3><span class="label">Hour by hour</span></div>
+      <p class="hint">Uses the wet-bulb temperature at each elevation and the warm layer near 5,000 ft, so it catches sleet and freezing rain that a surface temperature alone misses.</p>
+      <div class="ptype"><span class="label">Summit</span><div class="pt-strip" style="--n:${n}">${strip(det.summit.type)}</div>
+      <span class="label">Base</span><div class="pt-strip" style="--n:${n}">${strip(det.base.type)}</div>
+      <span></span><div class="pt-axis" style="--n:${state.dates.length}">${state.dates.map((d) => `<span>${dayShort(d)}</span>`).join("")}</div></div>
+      <div class="legend label">${Object.entries(PTYPE).map(([k, v]) => `<span><i class="pt-${k}"></i>${v}</span>`).join("")}</div>
+    </section>`;
+  }
+
+  const QUALITY = (slr) => (slr == null ? null : slr >= 15 ? { key: "blower", label: "Blower powder" } : slr >= 11 ? { key: "powder", label: "Classic powder" } : slr >= 8 ? { key: "packing", label: "Dense snow" } : { key: "wet", label: "Heavy, wet snow" });
   const QUALITY_KEYS = ["wet", "packing", "powder", "blower"];
   const QUALITY_SHORT = { wet: "Wet", packing: "Dense", powder: "Powder", blower: "Blower" };
 
@@ -574,31 +505,30 @@
     const idx = QUALITY_KEYS.indexOf(q.key);
     return `<section class="panel">
       <div class="block-head"><h3>Snow quality</h3><span class="label">SLR ${Math.round(ratio)}:1</span></div>
-      <p class="hint"><strong style="color:var(--fg)">${q.label}.</strong> About ${Math.round(ratio)} inches of snow for every inch of water.</p>
+      <p class="hint"><strong style="color:var(--fg)">${q.label}.</strong> About ${Math.round(ratio)} inches of snow for every inch of water, from the warmest temperature between the summit and 10,000 ft and the wind.</p>
       <div class="scale">${QUALITY_KEYS.map((k, i) => `<span class="${i <= idx ? "on" : ""}"></span>`).join("")}</div>
       <div class="scale-labels label">${QUALITY_KEYS.map((k) => `<span>${QUALITY_SHORT[k]}</span>`).join("")}</div>
     </section>`;
   }
 
-  function setupName(key) {
-    return SETUPS[key] ? SETUPS[key].label : key;
-  }
+  const setupName = (key) => (SETUPS[key] ? SETUPS[key].label : key);
 
   function guidePanel(row) {
     const g = guideFor(row.resort);
-    if (!g.storms) return "";
-    const thisWeek = row.storms.length
+    const thisWeek = row.storms.filter((s) => s.total >= 1).length
       ? row.storms
+          .filter((s) => s.total >= 1)
           .map((s) => {
             const tag = s.setup.best ? `<span class="tag on">Best setup</span>` : s.setup.favored ? `<span class="tag on">Good setup</span>` : `<span class="tag">Not its best setup</span>`;
-            return `<li><span class="mono">${dayShort(s.startTime.slice(0, 10)).toUpperCase()} ${s.startTime.slice(11, 13)}:00</span><span>${setupName(s.setup.key)} · ${compass(s.setup.dir)} winds · ${snowTxt(s.total)}</span>${tag}</li>`;
+            const odds = s.prob && s.prob[6] != null ? ` · ${s.prob[6]}% odds of ${snowTxt(6)}+` : "";
+            return `<li><span class="mono">${dayShort(s.start.slice(0, 10)).toUpperCase()} ${hourLabel(s.start)}</span><span>${setupName(s.setup.key)} · ${compass(s.setup.dir)} flow · ${snowTxt(s.total)}${odds}</span>${tag}</li>`;
           })
           .join("")
       : `<li><span class="mono">7 DAYS</span><span>No snow events in the forecast.</span></li>`;
     return `<section class="panel">
-      <div class="block-head"><h3>Storm guide</h3><span class="label">What works here</span></div>
-      <p class="guide-text">${esc(g.storms)}</p>
-      <div class="setups">${g.setups.map((k, i) => `<div class="setup"><span class="label">${i === 0 ? "Best setup" : "Also works"}</span><b>${setupName(k)}</b><p>${esc(SETUPS[k].blurb)}</p></div>`).join("")}</div>
+      <div class="block-head"><h3>Local knowledge</h3><span class="label">What works here</span></div>
+      <ul class="notes">${(g.notes || []).map((n) => `<li>${esc(n)}</li>`).join("")}</ul>
+      <div class="setups">${(g.setups || []).map((k, i) => `<div class="setup"><span class="label">${i === 0 ? "Best setup" : "Also works"}</span><b>${setupName(k)}</b><p>${esc(SETUPS[k].blurb)}</p></div>`).join("")}</div>
       <div class="label week-label">This week's storms</div>
       <ul class="storm-list">${thisWeek}</ul>
     </section>`;
@@ -606,11 +536,11 @@
 
   function arrow(dir) {
     if (dir == null) return "";
-    // Arrow points where the wind is blowing to.
     return `<svg class="arrow" viewBox="0 0 12 12" style="transform:rotate(${Math.round(dir + 180)}deg)" aria-hidden="true"><path d="M6 1v10M2.5 7.5 6 11l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>`;
   }
 
-  function windPanel(row) {
+  function windPanel(row, det) {
+    if (!det || !operating(row)) return "";
     const g = guideFor(row.resort);
     const hours = [8, 9, 10, 11, 12, 13, 14, 15, 16];
     const label = (h) => (h === 12 ? "12p" : h > 12 ? `${h - 12}p` : `${h}a`);
@@ -618,10 +548,10 @@
       .map((d) => {
         const cells = hours
           .map((h) => {
-            const i = row.hc.time.findIndex((t) => t.startsWith(d.date) && Number(t.slice(11, 13)) === h);
+            const i = det.time.findIndex((t) => t.startsWith(d.date) && Number(t.slice(11, 13)) === h);
             if (i < 0) return `<td class="w-none"></td>`;
-            const gust = row.hc.gust[i];
-            const dir = row.hc.dir[i];
+            const gust = det.summit.gust[i];
+            const dir = det.summit.dir[i];
             const risk = windRisk(row, gust, dir);
             return `<td class="w-${risk}" title="${label(h)} · gusts ${windTxt(gust)} from ${compass(dir)}">${gust != null ? Math.round(windNum(gust)) : "–"}${arrow(dir)}</td>`;
           })
@@ -629,9 +559,10 @@
         return `<tr><th scope="row">${dayShort(d.date)}</th>${cells}</tr>`;
       })
       .join("");
+    const mid = (g.exposed[0] + ((g.exposed[1] - g.exposed[0] + 360) % 360) / 2) % 360;
     return `<section class="panel">
       <div class="block-head"><h3>Lift wind, 8am–4pm</h3><span class="label">Summit gusts · ${metric() ? "km/h" : "mph"}</span></div>
-      <p class="guide-text">${esc(g.wind || "")} Holds get likely here around ${windTxt(g.hold)}, a bit lower when wind comes from the ${compass((g.exposed[0] + ((g.exposed[1] - g.exposed[0] + 360) % 360) / 2) % 360)}.</p>
+      <p class="guide-text">${esc(g.wind || "")} Holds get likely here around ${windTxt(g.hold)}, a bit lower when wind comes from the ${compass(mid)}.</p>
       <div class="scroll"><table class="windgrid">
         <thead><tr><th></th>${hours.map((h) => `<th>${label(h)}</th>`).join("")}</tr></thead>
         <tbody>${rowsHtml}</tbody>
@@ -640,42 +571,117 @@
     </section>`;
   }
 
+  function modelTable(row, det) {
+    if (!det) return "";
+    return `<section class="panel">
+      <div class="block-head"><h3>Model by model</h3><span class="label">Summit snow · ${snowUnit()}</span></div>
+      <p class="hint">High-resolution models (HRRR, NAM, HRDPS) run about two days out and get extra weight while they last. Blank cells are past a model's range.</p>
+      <div class="scroll"><table class="models">
+        <thead><tr><th style="text-align:left;padding-left:0">Model</th>${state.dates.map((d) => `<th>${dayShort(d)}</th>`).join("")}<th>Total</th></tr></thead>
+        <tbody>${det.modelDays
+          .map((m) => {
+            const meta = state.data.models.find((x) => x.id === m.id) || { label: m.id, color: "#999" };
+            const full = m.days.every((v) => v != null);
+            return `<tr><th scope="row"><span class="swatch" style="background:${meta.color}"></span>${esc(meta.label)}</th>${m.days
+              .map((v) => (v == null ? `<td class="na"></td>` : `<td style="--c:${v >= 0.5 ? snowColor(v) : "transparent"}">${v >= 0.5 ? snowVal(v) : "–"}</td>`))
+              .join("")}<td class="strong">${full ? snowVal(sum(m.days)) : "–"}</td></tr>`;
+          })
+          .join("")}</tbody>
+      </table></div>
+    </section>`;
+  }
+
+  function oddsPanel(row) {
+    if (!row.prob7) return "";
+    const ths = [1, 3, 6, 12, 18];
+    const p = (o) => ths.map((t) => `<td><span class="odds" style="--p:${o[t]}%">${o[t]}%</span></td>`).join("");
+    return `<section class="panel">
+      <div class="block-head"><h3>Odds of snow</h3><span class="label">${state.data.ensembles.members} ensemble runs</span></div>
+      <p class="hint">The GFS and European ensembles each rerun their model dozens of times with small tweaks. The share of runs reaching each total is a fair read on the odds.${row.ens7 ? ` Middle 80% of runs: ${rangeTxt(row.ens7.p10, row.ens7.p90)} over 7 days.` : ""}</p>
+      <div class="scroll"><table class="models odds-table">
+        <thead><tr><th style="text-align:left;padding-left:0">At least</th>${ths.map((t) => `<th>${snowTxt(t)}</th>`).join("")}</tr></thead>
+        <tbody><tr><th scope="row">Next 3 days</th>${p(row.prob3)}</tr><tr><th scope="row">Next 7 days</th>${p(row.prob7)}</tr></tbody>
+      </table></div>
+    </section>`;
+  }
+
+  function seasonLine(row) {
+    const s = row.season;
+    if (s.phase === "preseason") return `Pre-season · typically opens ${dayNum(s.open)}`;
+    if (s.phase === "closed") return "Closed for the season";
+    if (s.phase === "early") return "Early season";
+    if (s.phase === "spring") return "Spring skiing";
+    return "In season";
+  }
+
+  async function loadDetail(id) {
+    if (state.details[id]) return state.details[id];
+    try {
+      const res = await fetch(`data/r/${id}.json?v=${encodeURIComponent(state.data.generated)}`);
+      if (!res.ok) return null;
+      return (state.details[id] = await res.json());
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function kpis(row) {
+    const days = row.days;
+    const snowy = days.filter((d) => d.slr && d.snow >= 0.5);
+    const ratio = snowy.length ? median(snowy.map((d) => d.slr)) : null;
+    const q = QUALITY(ratio);
+    const k = [`<div><span class="label">Snow · 7d</span><b>${snowTxt(row.total7)}</b><span>${rangeTxt(row.lo7, row.hi7)} range</span></div>`];
+    if (operating(row)) {
+      k.push(`<div><span class="label">Odds of ${snowTxt(6)}+</span><b>${row.prob7 ? row.prob7[6] + "%" : "–"}</b><span>Next 7 days</span></div>`);
+      k.push(`<div><span class="label">Snow quality</span><b>${q ? QUALITY_SHORT[q.key] : "–"}</b><span>${q ? `SLR ${Math.round(ratio)}:1` : "No snow"}</span></div>`);
+      k.push(`<div><span class="label">Best ski day</span><b>${dayShort(days[row.bestDay.k].date)} · ${row.bestDay.letter}</b><span>${fmt(days[row.bestDay.k].grade.why.slice(0, 2).join(", ") || "typical day")}</span></div>`);
+    } else {
+      const best = [...row.snowmaking.windows].sort((a, b) => b.hours - a.hours)[0];
+      k.push(`<div><span class="label">Snowmaking · 7d</span><b>${row.snowmaking.hours7}h</b><span>${best ? `Best ${dayShort(best.start.slice(0, 10))}, low ${tempTxtU(best.minTw)}` : "Too warm"}</span></div>`);
+      k.push(`<div><span class="label">Odds of ${snowTxt(1)}+</span><b>${row.prob7 ? row.prob7[1] + "%" : "–"}</b><span>Next 7 days</span></div>`);
+      k.push(`<div><span class="label">Typically opens</span><b>${row.season.phase === "preseason" ? dayNum(row.season.open) : "–"}</b><span>${row.season.phase === "preseason" ? `${row.season.daysToOpen} days out` : "Closed"}</span></div>`);
+    }
+    return { html: k.join(""), q, ratio };
+  }
+
   async function openDetail(id) {
     const row = state.rows.find((r) => r.resort.id === id);
     if (!row) return;
     const r = row.resort;
     state.selected = id;
     const dlg = $("#detail");
+    const det = state.details[id];
     const days = row.days;
-    const snowy = days.filter((d) => d.quality);
-    const ratio = snowy.length ? median(snowy.map((d) => d.ratio)) : null;
-    const q = ratio ? F.quality(ratio) : null;
+    const { html: kpiHtml, q, ratio } = kpis(row);
+    const lead = row.insights.slice(0, 2);
+    const rest = row.insights.slice(2);
     $("#detail-body").innerHTML = `
       <header class="detail-head">
-        <span class="label">${esc(r.region)} · ${r.state}</span>
+        <span class="label">${esc(r.region)} · ${r.state} · ${seasonLine(row)}</span>
         <div class="detail-actions">${favButton(id, "sq fav")}<button class="sq" data-close aria-label="Close">${Icon("close")}</button></div>
       </header>
       <div class="d-body">
         <div class="d-title"><h2>${esc(r.name)}</h2><p class="mono">SUMMIT ${elevTxt(r.summit).toUpperCase()} · BASE ${elevTxt(r.base).toUpperCase()}</p></div>
-        <p class="summary">${esc(describe(row))}</p>
-        <div class="d-kpis">
-          <div><span class="label">Snow · 7d</span><b>${snowTxt(row.total7)}</b><span>${rangeTxt(row.lo7, row.hi7)} range</span></div>
-          <div><span class="label">Powder score</span><b>${row.best.score || "–"}</b><span>${row.best.score ? `${dayShort(days[row.best.k].date)} morning` : "Next 3 days"}</span></div>
-          <div><span class="label">Snow quality</span><b>${q ? QUALITY_SHORT[q.key] : "–"}</b><span>${q ? `SLR ${Math.round(ratio)}:1` : "No snow"}</span></div>
-          <div><span class="label">Best ski day</span><b>${dayShort(days[row.bestDay.k].date)} · ${row.bestDay.letter}</b><span>${esc(row.bestDay.why.slice(0, 2).join(", ") || "typical day")}</span></div>
-        </div>
+        <p class="summary">${lead.map((x) => fmt(x.text)).join(" ")}</p>
+        ${rest.length ? `<ul class="insights">${rest.map((x) => `<li data-kind="${x.kind}">${fmt(x.text)}</li>`).join("")}</ul>` : ""}
+        <div class="d-kpis">${kpiHtml}</div>
         <div class="days">${days
           .map((d) => {
             const ic = dayIcon(d);
-            const flag =
-              d.gustMax >= WIND_HOLD
-                ? `<span class="day-flag wind">Wind ${Math.round(windNum(d.gustMax))}</span>`
-                : d.mix > 0.1
-                  ? `<span class="day-flag rain">Rain</span>`
-                  : `<span class="day-flag conf-${d.confidence}">${d.confidence === "high" ? "Sure" : d.confidence === "medium" ? "Likely" : "Unsure"}</span>`;
-            const g = row.grades[days.indexOf(d)];
-            return `<div class="day${d.snow >= 0.5 ? " snowy" : ""}" style="--c:${snowColor(d.snow)}" title="${g.letter}: ${esc(g.why.join(", ") || "typical day")}">
-              <span class="day-top"><span class="label">${dayShort(d.date)}</span><span class="grade g-${g.letter}">${g.letter}</span></span>
+            const wet = d.rain + d.ice;
+            const flag = d.windHold
+              ? `<span class="day-flag wind">Wind ${Math.round(windNum(d.skiGust))}</span>`
+              : wet > 0.1
+                ? `<span class="day-flag rain">${d.ice > 0.05 ? "Ice" : "Rain"}</span>`
+                : d.snow >= 0.5 || d.hi >= 1
+                  ? `<span class="day-flag conf-${d.conf}">${d.conf === "high" ? "Sure" : d.conf === "medium" ? "Likely" : "Unsure"}</span>`
+                  : !operating(row) && d.smHours
+                    ? `<span class="day-flag cold">Guns ${d.smHours}h</span>`
+                    : `<span class="day-flag">&nbsp;</span>`;
+            const badge = d.grade ? `<span class="grade g-${d.grade.letter}">${d.grade.letter}</span>` : "";
+            const title = d.grade ? `${d.grade.letter}: ${fmt(d.grade.why.join(", ") || "typical day")}` : `${d.smHours} snowmaking hours at the summit, ${d.smBase} at the base`;
+            return `<div class="day${d.snow >= 0.5 ? " snowy" : ""}" style="--c:${snowColor(d.snow)}" title="${title}">
+              <span class="day-top"><span class="label">${dayShort(d.date)}</span>${badge}</span>
               <span title="${ic.label}">${Icon(ic.icon)}</span>
               <span class="day-snow">${d.snow >= 0.5 ? snowTxt(d.snow) : "–"}</span>
               <span class="day-range">${d.hi >= 1 ? rangeTxt(d.lo, d.hi) : "&nbsp;"}</span>
@@ -684,44 +690,45 @@
             </div>`;
           })
           .join("")}</div>
-        <p class="hint grade-key">Day grades A–F weigh fresh snow, rain, refreeze ice, lift-closing wind and cold. Tap or hover a day for the reasons.</p>
+        <p class="hint grade-key">${
+          operating(row)
+            ? "Day grades A–F weigh fresh snow, rain, refrozen surfaces, lift-closing wind and cold. Tap or hover a day for the reasons."
+            : "Pre-season: no day grades until the lifts turn. Days show snowmaking hours, when the summit wet-bulb temperature is at or below " + tempTxtU(27) + "."
+        }</p>
+        <div id="detail-hourly">${detailHourly(row, det)}</div>
         ${guidePanel(row)}
-        ${windPanel(row)}
-        <section class="panel">
-          <div class="block-head"><h3>Snow accumulation, summit</h3><span class="label">${snowUnit()} · running total</span></div>
-          <p class="hint">Each thin line is one weather model. The black line is the Upslope forecast, the middle of the pack. The wider the lines spread, the less certain the forecast.</p>
-          <div class="chart"><canvas id="chart-snow"></canvas></div>
-        </section>
+        ${oddsPanel(row)}
         ${qualityBlock(q, ratio)}
-        <section class="panel">
-          <div class="block-head"><h3>Temperature, summit vs base</h3><span class="label">${metric() ? "°C" : "°F"} · hourly</span></div>
-          <p class="hint">Above the dashed freezing line, snow turns to rain or melts. Base above and summit below means snow up top and slush at the bottom.</p>
-          <div class="chart"><canvas id="chart-temp"></canvas></div>
-        </section>
-        <section class="panel">
-          <div class="block-head"><h3>Model by model</h3><span class="label">Summit snow · ${snowUnit()}</span></div>
-          <div class="scroll"><table class="models">
-            <thead><tr><th style="text-align:left;padding-left:0">Model</th>${state.dates.map((d) => `<th>${dayShort(d)}</th>`).join("")}<th>Total</th></tr></thead>
-            <tbody>${state.summit
-              .map((m) => {
-                const loc = m.locs[row.index];
-                const vals = state.dates.map((d) => loc.days[d]?.snow ?? 0);
-                return `<tr><th scope="row"><span class="swatch" style="background:${m.model.color}"></span>${esc(m.model.label)}</th>${vals
-                  .map((v) => `<td style="--c:${v >= 0.5 ? snowColor(v) : "transparent"}">${v >= 0.5 ? snowVal(v) : "–"}</td>`)
-                  .join("")}<td class="strong">${snowVal(sum(vals))}</td></tr>`;
-              })
-              .join("")}</tbody>
-          </table></div>
-        </section>
       </div>`;
     if (!dlg.open) dlg.showModal();
     dlg.scrollTop = 0;
     history.replaceState(null, "", `#${id}`);
+    if (det) return drawCharts(row, det);
+    const loaded = await loadDetail(id);
+    if (state.selected !== id || !loaded) return;
+    $("#detail-hourly").innerHTML = detailHourly(row, loaded);
+    drawCharts(row, loaded);
+  }
 
-    drawCharts(row, null);
-    const base = await loadAll([r], [r.base]);
-    if (state.selected !== id || !base.length) return;
-    drawCharts(row, hourly(base.map((m) => m.locs[0])));
+  function detailHourly(row, det) {
+    if (!det) return `<div class="skeleton sk-row"></div><div class="skeleton sk-row"></div>`;
+    return `${windPanel(row, det)}
+      <section class="panel">
+        <div class="block-head"><h3>Snow accumulation, summit</h3><span class="label">${snowUnit()} · running total</span></div>
+        <p class="hint">Thin lines are individual models. The black line is the Upslope blend. The shaded band holds the middle 80% of ${state.data.ensembles.members} ensemble runs: the wider it is, the less certain the forecast.</p>
+        <div class="chart"><canvas id="chart-snow"></canvas></div>
+      </section>
+      ${ptypePanel(row, det)}
+      <section class="panel">
+        <div class="block-head"><h3>Temperature, summit vs base</h3><span class="label">${metric() ? "°C" : "°F"} · hourly</span></div>
+        <p class="hint">${
+          operating(row)
+            ? "Above the dashed freezing line, snow turns to rain or melts. Base above and summit below means snow up top and slush at the bottom."
+            : "Snow guns need the wet-bulb temperature (air temperature adjusted for humidity) at or below the dotted snowmaking line. Dry air lets them run above freezing."
+        }</p>
+        <div class="chart"><canvas id="chart-temp"></canvas></div>
+      </section>
+      ${modelTable(row, det)}`;
   }
 
   function closeDetail() {
@@ -825,16 +832,22 @@
     renderFilters();
     bind();
     initMap();
-    state.summit = await loadAll(RESORTS, RESORTS.map((r) => r.summit));
-    if (!state.summit.length) {
-      $("#status").textContent = "Forecast service unreachable · retry in a few minutes";
-      $("#headline").innerHTML = `<h1>Forecast unavailable.</h1><p>The weather service didn't respond. Refresh in a few minutes.</p>`;
+    try {
+      const res = await fetch(`${DATA_URL}?t=${Math.floor(Date.now() / 600000)}`);
+      if (!res.ok) throw new Error(res.status);
+      state.data = await res.json();
+    } catch (e) {
+      $("#status").textContent = "Forecast unavailable · retry in a few minutes";
+      $("#headline").innerHTML = `<h1>Forecast unavailable.</h1><p>The forecast file didn't load. Refresh in a few minutes.</p>`;
       return;
     }
     buildRows();
-    const now = new Date();
-    $("#asof").textContent = `${now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "America/New_York" })} · ${now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "America/New_York" })} ET`;
-    $("#status").textContent = `${state.summit.length} of ${MODELS.length} models · ${state.summit.map((m) => m.model.label).join(" · ")}`;
+    renderSortOptions();
+    const gen = new Date(state.data.generated);
+    const ageH = (Date.now() - gen) / 3600000;
+    $("#asof").textContent = `Updated ${gen.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "America/New_York" })} · ${gen.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" })} ET`;
+    const ok = state.data.models.filter((m) => m.ok);
+    $("#status").textContent = `${ok.length} models${state.data.ensembles.members ? ` + ${state.data.ensembles.members} ensemble runs` : ""} · ${ok.map((m) => m.label).join(" · ")}${ageH > 12 ? " · forecast is more than 12 hours old" : ""}`;
     renderAll();
     const hash = location.hash.slice(1);
     if (hash && RESORTS.some((r) => r.id === hash)) openDetail(hash);

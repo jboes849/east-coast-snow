@@ -1,0 +1,31 @@
+name: forecast
+on:
+  schedule:
+    # 6am, noon, 6pm, midnight Eastern (UTC times), after the main model runs land.
+    - cron: "25 4,10,16,22 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["scripts/**", "resorts.js", "guides.js", ".github/workflows/forecast.yml"]
+permissions:
+  contents: write
+concurrency:
+  group: forecast
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: node scripts/build-forecast.mjs
+      - name: Commit forecast
+        run: |
+          git config user.name "upslope-bot"
+          git config user.email "upslope-bot@users.noreply.github.com"
+          git add data
+          git commit -m "Forecast $(date -u +%Y-%m-%dT%H:%MZ)" || exit 0
+          for i in 1 2 3; do git pull --rebase origin main && git push && exit 0; sleep 5; done
+          exit 1
