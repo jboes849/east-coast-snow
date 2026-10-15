@@ -5,7 +5,7 @@
   <base href="../../">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Stowe snow forecast · Upslope</title>
-  <meta name="description" content="Stowe (VT) 7-day snow forecast from 8 weather models and 82 ensemble runs. Snow guns can run Saturday morning to Sunday morning: about 28 hours cold enough at the summit, getting down to 19°F once humidity is factored in. The base is cold enough for 12 of those hours.">
+  <meta name="description" content="Stowe (VT) 7-day snow forecast from 8 weather models and 82 ensemble runs. First flakes: about 0.6&quot; at the summit Friday morning to early Saturday (models 0-4.1&quot;). Rain reaches the summit Friday morning. It won't last: highs reach 51°F Monday.">
   <meta name="theme-color" content="#ffffff">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M1 18 8 5l4 7 2.5-4L19 18Z' fill='%230b0d10'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="style.css">
   <link rel="canonical" href="https://jboes849.github.io/east-coast-snow/resorts/stowe/">
   <meta property="og:title" content="Stowe snow forecast · Upslope">
-  <meta property="og:description" content="Stowe (VT) 7-day snow forecast from 8 weather models and 82 ensemble runs. Snow guns can run Saturday morning to Sunday morning: about 28 hours cold enough at the summit, getting down to 19°F once humidity is factored in. The base is cold enough for 12 of those hours.">
+  <meta property="og:description" content="Stowe (VT) 7-day snow forecast from 8 weather models and 82 ensemble runs. First flakes: about 0.6&quot; at the summit Friday morning to early Saturday (models 0-4.1&quot;). Rain reaches the summit Friday morning. It won't last: highs reach 51°F Monday.">
   <meta property="og:url" content="https://jboes849.github.io/east-coast-snow/resorts/stowe/">
 </head>
 <body data-resort="stowe">
@@ -29,6 +29,7 @@
         <a href="#map-block">Map</a>
         <a href="#picks-block">Powder</a>
         <a href="#resorts">Resorts</a>
+        <a href="#skill-block">Scores</a>
         <a href="#how">Method</a>
       </nav>
       <div class="seg" role="group" aria-label="Units">
@@ -108,13 +109,15 @@
       </div>
     </section>
 
+    <section id="skill-block" class="block" hidden></section>
+
     <section id="how" class="block">
       <div class="block-head">
         <h2>Method</h2>
         <span class="label">Built for skiers</span>
       </div>
       <div class="how-grid">
-        <article><span class="label">01</span><h3>Eight models, weighted by range</h3><p>Every six hours we pull eight models at each summit and base: high-resolution HRRR, NAM and Canadian HRDPS, plus the NWS Blend, GFS, ECMWF, Canadian GEM and German ICON. The high-resolution models see the terrain best, so they carry the most weight for the first two days.</p></article>
+        <article><span class="label">01</span><h3>Eight models, weighted by range</h3><p>Every six hours we pull eight models at each summit and base: high-resolution HRRR, NAM and Canadian HRDPS, plus the NWS Blend, GFS, ECMWF, Canadian GEM and German ICON. The high-resolution models see the terrain best, so they carry the most weight for the first two days. Each model's weight also moves with its recent track record in that part of the mountains.</p></article>
         <article><span class="label">02</span><h3>Real odds from 82 ensemble runs</h3><p>The GFS and European ensembles rerun their models dozens of times with small changes. We count how many runs reach 3, 6 or 12 inches, so "70% chance of 6 inches" means something.</p></article>
         <article><span class="label">03</span><h3>Snow, sleet or rain</h3><p>Snow, sleet or rain is decided by humidity-adjusted temperature at the summit and base plus the air a mile up, where warm layers turn snow into sleet. How fluffy the snow is comes from the warmest air the flakes fall through, and the wind.</p></article>
         <article><span class="label">04</span><h3>Season aware</h3><p>Before opening day there are no ski grades. Instead we track snowmaking windows and first natural snow. Once lifts turn, every day gets an A–F grade for fresh snow, rain, refrozen surfaces, wind holds and cold.</p></article>
