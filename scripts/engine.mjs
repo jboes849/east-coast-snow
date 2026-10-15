@@ -715,6 +715,14 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
     id: resort.id,
     season: { ...sea, depth: depthNow != null ? round(depthNow, 0) : null },
     recent,
+    pastDays: (() => {
+      const out = {};
+      for (let k = 0; k < k0; k++) {
+        const d = timeIndex[k].slice(0, 10);
+        out[d] = (out[d] || 0) + (H.snow[k] || 0);
+      }
+      return Object.entries(out).map(([date, v]) => [date, round(v)]);
+    })(),
     total3: round(total3),
     total7: round(total7),
     lo7: round(full.length ? Math.min(...full.map((x) => x.total)) : total7),

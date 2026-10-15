@@ -250,6 +250,7 @@
     ];
     if (operating(row)) out.push(["Best day", `<b>${dayShort(days[row.bestDay.k].date)} · ${row.bestDay.letter}</b>`, row.bestDay.score, 5]);
     else out.push(["Snowmaking", `<b>${row.snowmaking.hours7}h</b>`, row.snowmaking.hours7, 3]);
+    if (row.seasonSnow) out.push(["Season so far", `<b>${snowTxt(row.seasonSnow.total)}</b>${row.seasonSnow.normal >= 3 ? `<span>${Math.round((row.seasonSnow.total / row.seasonSnow.normal) * 100)}% of normal</span>` : ""}`, row.seasonSnow.total, 2]);
     if (row.recent) out.push(["Last 7 days", `<b>${snowTxt(row.recent.snow7)}</b><span>fell at the summit</span>`, row.recent.snow7, 1]);
     out.push(["Summit", `<b>${elevTxt(row.resort.summit)}</b>`, null]);
     return out;
@@ -550,8 +551,8 @@
   // ---------- resort list ----------
   function renderSortOptions() {
     const opts = state.open
-      ? [["7d", "Most snow · 7d"], ["3d", "Most snow · 3d"], ["odds", "Odds of 6″+"], ["powder", "Powder score"], ["grade", "Best ski day"], ["past", "Most snow · last 7d"], ["az", "A–Z"]]
-      : [["7d", "Most snow · 7d"], ["3d", "Most snow · 3d"], ["sm", "Snowmaking hours"], ["opens", "Typical opening"], ["az", "A–Z"]];
+      ? [["7d", "Most snow · 7d"], ["3d", "Most snow · 3d"], ["odds", "Odds of 6″+"], ["powder", "Powder score"], ["grade", "Best ski day"], ["past", "Most snow · last 7d"], ["season", "Season snowfall"], ["az", "A–Z"]]
+      : [["7d", "Most snow · 7d"], ["3d", "Most snow · 3d"], ["sm", "Snowmaking hours"], ["opens", "Typical opening"], ["past", "Most snow · last 7d"], ["season", "Season snowfall"], ["az", "A–Z"]];
     if (!opts.some(([v]) => v === state.sort)) state.sort = "7d";
     $("#sort").innerHTML = opts.map(([v, l]) => `<option value="${v}"${v === state.sort ? " selected" : ""}>${l}</option>`).join("");
   }
@@ -577,6 +578,7 @@
       grade: (a, b) => (b.bestDay?.score ?? -1) - (a.bestDay?.score ?? -1) || b.total7 - a.total7,
       sm: (a, b) => b.snowmaking.hours7 - a.snowmaking.hours7,
       opens: (a, b) => a.season.open.localeCompare(b.season.open),
+      season: (a, b) => (b.seasonSnow?.total ?? 0) - (a.seasonSnow?.total ?? 0),
       past: (a, b) => (b.recent?.snow7 ?? 0) - (a.recent?.snow7 ?? 0),
       az: (a, b) => a.resort.name.localeCompare(b.resort.name),
     }[state.sort];
@@ -1110,7 +1112,21 @@
     if (r.snow7 >= 0.5) txt = `{{s:${r.snow7}}} fell at the summit in the last ${days} days${r.snow2 >= 0.5 ? `, {{s:${r.snow2}}} of it in the last 48 hours` : ""}${r.baseSnow7 >= 0.5 ? ` ({{s:${r.baseSnow7}}} at the base)` : ""}.`;
     else txt = `No real snow in the last ${days} days${r.rain7 >= 0.1 ? `, and {{l:${r.rain7}}} of rain` : ""}.`;
     if (depth != null && depth >= 1) txt += ` Natural snow on the ground up top: about {{s:${depth}}}.`;
-    return `<p class="trend" data-dir="past"><span class="label">Last week</span><span>${fmt(txt)}</span></p>`;
+    return `<p class="trend" data-dir="past"><span class="label">Last week</span><span>${fmt(txt)}</span></p>${seasonLine2(row)}`;
+  }
+
+  // Season snowfall so far against a typical season to date.
+  function seasonLine2(row) {
+    const ss = row.seasonSnow;
+    if (!ss || (ss.total < 1 && (ss.normal ?? 0) < 6)) return "";
+    let txt = `{{s:${ss.total}}} at the summit so far this season`;
+    if (ss.normal >= 3) {
+      const pct = Math.round((ss.total / ss.normal) * 100);
+      txt += `. A typical season has about {{s:${ss.normal}}} by now, so that's ${pct >= 115 ? `ahead of normal (${pct}%)` : pct <= 85 ? `behind normal (${pct}%)` : "about normal"}`;
+    }
+    txt += ".";
+    if (ss.avg) txt += ` Average season: about {{s:${ss.avg}}}.`;
+    return `<p class="trend" data-dir="season"><span class="label">Season</span><span>${fmt(txt)}</span></p>`;
   }
 
   // How the forecast changed since about a day ago. Small wiggles stay quiet.

@@ -158,6 +158,7 @@ async function main() {
   });
 
   const generated = new Date().toISOString();
+  addSeason(resorts, now.slice(0, 10));
   addTrend(resorts, Date.parse(`${now.slice(0, 13)}:00:00-05:00`));
   const members = ens.reduce((a, e) => a + (parseEnsemble(e.blocks[0], timeIndex).length || 0), 0);
   const summary = {
@@ -189,6 +190,37 @@ async function main() {
   fs.writeFileSync(path.join(OUT, "archive", `${now.slice(0, 13).replace("T", "-")}.json`), JSON.stringify(archive));
   buildPages({ root: ROOT, resorts: RESORTS, forecast: summary, siteUrl: UPSLOPE_CONFIG.siteUrl });
   console.log(`Built ${resorts.length} resorts from ${results.length} models and ${members} ensemble members in ${((Date.now() - started) / 1000).toFixed(1)}s`);
+}
+
+// Season snowfall so far: each run records the blend's estimate for completed days
+// (the last week, so late corrections win), and compares the total with a typical
+// season to date from the resort's average and a monthly snowfall curve.
+const MONTH_SHARE = { 10: 0.02, 11: 0.09, 12: 0.18, 1: 0.22, 2: 0.21, 3: 0.19, 4: 0.08, 5: 0.01 };
+function normalShare(date) {
+  const [y, m, d] = date.split("-").map(Number);
+  const order = [10, 11, 12, 1, 2, 3, 4, 5];
+  const i = order.indexOf(m);
+  if (i < 0) return m >= 6 && m <= 9 ? (m === 9 ? 0 : 1) : 0;
+  const days = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return order.slice(0, i).reduce((a, k) => a + MONTH_SHARE[k], 0) + MONTH_SHARE[m] * (d / days);
+}
+function addSeason(resorts, today) {
+  const file = path.join(OUT, "season.json");
+  const [y, m] = today.split("-").map(Number);
+  const start = `${m >= 7 ? y : y - 1}-10-01`;
+  let season = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : {};
+  if (season.start !== start) season = { start, resorts: {} };
+  const byId = Object.fromEntries(RESORTS.map((r) => [r.id, r]));
+  for (const r of resorts) {
+    const days = (season.resorts[r.id] ||= {});
+    for (const [date, v] of r.pastDays || []) if (date >= start && date < today) days[date] = v;
+    delete r.pastDays;
+    const total = Object.values(days).reduce((a, b) => a + b, 0);
+    const avg = byId[r.id].avgSnow;
+    const normal = avg ? avg * normalShare(today) : null;
+    r.seasonSnow = { since: Object.keys(days).sort()[0] || null, total: Math.round(total * 10) / 10, normal: normal != null ? Math.round(normal * 10) / 10 : null, avg: avg || null };
+  }
+  fs.writeFileSync(file, JSON.stringify(season));
 }
 
 // How the forecast moved since the run about a day ago, over the days both runs cover.
