@@ -1196,11 +1196,12 @@ export function writeups(rows, resorts, { nws, setups } = {}) {
         const x = String(c || "").toLowerCase();
         if (x.startsWith("a")) return kind === "temp" ? "warmer than normal" : "wetter than normal";
         if (x.startsWith("b")) return kind === "temp" ? "colder than normal" : "drier than normal";
-        if (x.startsWith("n")) return "near normal";
+        if (x.startsWith("n")) return kind === "temp" ? "near-normal temperatures" : "near-normal precipitation";
         return null;
       };
-      const parts = ["temp", "precip"].map((k) => cpc[k] && word(cpc[k].cat, k) && `${word(cpc[k].cat, k)}${cpc[k].prob ? ` (${Math.round(cpc[k].prob)}% odds)` : ""}`).filter(Boolean);
-      outlook = parts.length ? `Days 8 to 14: the NOAA outlook leans ${listTxt(parts)}.` : "Days 8 to 14: the NOAA outlook shows no clear lean either way.";
+      const strength = (p) => (p >= 60 ? "strongly " : p >= 45 ? "" : "slightly ");
+      const parts = ["temp", "precip"].map((k) => cpc[k] && word(cpc[k].cat, k) && `${strength(cpc[k].prob ?? 0)}${word(cpc[k].cat, k)}`).filter(Boolean);
+      outlook = parts.length ? `Days 8 to 14: NOAA's outlook leans ${listTxt(parts)}.` : "Days 8 to 14: NOAA's outlook shows no clear lean either way.";
       const t = String(cpc.temp?.cat || "").toLowerCase();
       const pr = String(cpc.precip?.cat || "").toLowerCase();
       if (t.startsWith("b") && pr.startsWith("a")) outlook += " Cold and stormy is the combination powder chasers want.";
