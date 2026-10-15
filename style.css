@@ -517,3 +517,23 @@ button.day.snowy[aria-pressed="true"] { box-shadow: inset 0 2px 0 var(--accent),
 .afd .afd-src { margin: 0 0 8px; }
 .afd p:not(.afd-src) { margin: 0 0 8px; font-size: 14.5px; line-height: 1.6; color: var(--fg-2); max-width: 75ch; }
 .afd a { font-size: 13px; }
+
+/* Storm watch and timeline */
+.storm-watch { margin-top: 20px; padding: 14px 16px; border: 1px solid var(--accent); border-left-width: 4px; display: grid; grid-template-columns: auto 1fr auto; gap: 6px 18px; align-items: baseline; }
+.storm-watch .label { color: var(--accent); font-weight: 600; }
+.storm-watch p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--fg-2); }
+.storm-watch b { color: var(--fg); font-weight: 600; }
+.storm-watch a { font-size: 13px; white-space: nowrap; }
+@media (max-width: 640px) { .storm-watch { grid-template-columns: 1fr; } }
+.st { border-top: 1px solid var(--fg); }
+.st-row { display: grid; grid-template-columns: 140px 1fr 48px; gap: 12px; align-items: center; width: 100%; padding: 7px 0; border: 0; border-bottom: 1px solid var(--line); background: var(--bg); font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.st-row:hover .st-name { text-decoration: underline; text-underline-offset: 3px; }
+.st-axis { cursor: default; padding: 6px 0; }
+.st-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-track { position: relative; height: 16px; }
+.st-axis .st-track span { position: absolute; top: 0; font: 500 10.5px var(--mono); color: var(--muted); text-transform: uppercase; }
+.st-track i { position: absolute; top: -7px; bottom: -7px; width: 1px; background: var(--line); }
+.st-bar { position: absolute; top: 3px; height: 10px; min-width: 3px; }
+.st-peak { position: absolute; top: 0; width: 2px; height: 16px; background: var(--fg); }
+.st-total { font: 600 13px var(--mono); text-align: right; }
+@media (max-width: 640px) { .st-row { grid-template-columns: 86px 1fr 40px; gap: 6px; } .st-name { font-size: 12.5px; } .st-axis .st-track span { font-size: 9px; } }

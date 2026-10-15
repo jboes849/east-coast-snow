@@ -300,6 +300,75 @@
       <p class="hint small">A box marks the better of the two on each line.</p>`;
   }
 
+  // ---------- storm watch and timeline ----------
+  // Groups each resort's storms into regional events by start time, biggest first.
+  function stormEvents() {
+    const all = passRows().flatMap((row) => row.storms.filter((st) => st.total >= 0.5).map((st) => ({ row, st })));
+    all.sort((a, b) => a.st.start.localeCompare(b.st.start));
+    const events = [];
+    for (const x of all) {
+      const t = Date.parse(x.st.start);
+      let ev = events.find((e) => Math.abs(t - e.t0) <= 30 * 3600000 && !e.items.some((i) => i.row === x.row));
+      if (!ev) events.push((ev = { t0: t, items: [] }));
+      ev.items.push(x);
+    }
+    events.forEach((e) => {
+      e.items.sort((a, b) => b.st.total - a.st.total);
+      e.max = e.items[0].st.total;
+      e.start = e.items.map((i) => i.st.start).sort()[0];
+      e.end = e.items.map((i) => i.st.end).sort().slice(-1)[0];
+    });
+    return events.sort((a, b) => b.max - a.max);
+  }
+
+  function renderStormWatch() {
+    const el = $("#storm-watch");
+    if (!el) return;
+    const ev = stormEvents()[0];
+    const warned = passRows().filter((r) => alertsFor(r.resort.id).some((a) => /warning/i.test(a.event)));
+    const big = ev && ev.max >= 6 && ev.items.filter((i) => i.st.total >= 3).length >= 2;
+    if (!big && !warned.length) {
+      el.innerHTML = "";
+      return;
+    }
+    let html = "";
+    if (big) {
+      const top = ev.items.slice(0, 3);
+      const p6 = top[0].st.prob?.[6];
+      const sure = p6 == null ? "" : p6 >= 70 ? `Models agree: ${p6}% odds of ${snowTxt(6)}+ at ${esc(top[0].row.resort.name)}.` : p6 >= 40 ? `Still some doubt: ${p6}% odds of ${snowTxt(6)}+ at ${esc(top[0].row.resort.name)}.` : `Low confidence so far: ${p6}% odds of ${snowTxt(6)}+ at ${esc(top[0].row.resort.name)}.`;
+      html = `<b>${spanTxt(ev.start, ev.end)}.</b> Most snow: ${top.map((i) => `${esc(i.row.resort.name)} ${rangeTxt(Math.max(i.st.lo, i.st.total * 0.7), Math.min(i.st.hi, i.st.total * 1.4))}`).join(", ")}. ${sure}`;
+    }
+    if (warned.length) html += ` ${big ? "" : "<b>NWS warnings.</b> "}Warnings are out for ${warned.slice(0, 4).map((r) => esc(r.resort.name)).join(", ")}${warned.length > 4 ? ` and ${warned.length - 4} more` : ""}.`;
+    el.innerHTML = `<div class="storm-watch"><span class="label">Storm Watch</span><p>${html}</p>${big ? `<a href="#storm-block">See the timeline</a>` : ""}</div>`;
+  }
+
+  function renderStormTimeline() {
+    const el = $("#storm-block");
+    if (!el) return;
+    const ev = stormEvents().find((e) => e.max >= 1);
+    if (!ev) {
+      el.hidden = true;
+      return;
+    }
+    el.hidden = false;
+    const t0 = Date.parse(`${state.dates[0]}T00:00`);
+    const span = state.dates.length * 24 * 3600000;
+    const pct = (t) => Math.max(0, Math.min(100, ((Date.parse(t) - t0) / span) * 100));
+    const rows = ev.items.slice(0, 12);
+    el.innerHTML = `<div class="block-head"><h2>Storm Timeline</h2><span class="label">${esc(spanTxt(ev.start, ev.end))} · summit snow</span></div>
+      <p class="hint">When the snow starts, peaks and ends at each mountain. Darker bars mean more snow; the tick marks the heaviest hour.</p>
+      <div class="st">
+        <div class="st-row st-axis"><span></span><div class="st-track">${state.dates.map((d, k) => `<span style="left:${(k / state.dates.length) * 100}%">${dayShort(d)}</span>`).join("")}</div><span></span></div>
+        ${rows
+          .map(({ row, st }) => {
+            const a = pct(st.start);
+            const b = Math.max(a + 0.8, pct(st.end));
+            return `<button class="st-row" data-open="${row.resort.id}"><span class="st-name">${esc(row.resort.name)}</span><div class="st-track">${state.dates.map((d, k) => `<i style="left:${(k / state.dates.length) * 100}%"></i>`).join("")}<span class="st-bar" style="left:${a}%;width:${b - a}%;background:${snowColor(st.total)}"></span><span class="st-peak" style="left:${pct(st.peakTime)}%"></span></div><span class="st-total">${snowTxt(st.total)}</span></button>`;
+          })
+          .join("")}
+      </div>`;
+  }
+
   // ---------- first-visit tips and help links ----------
   const qlink = (anchor, what) => `<a class="qlink" href="faq/#${anchor}" aria-label="Help: ${what}" title="${what}">?</a>`;
   function renderTips() {
@@ -1375,6 +1444,8 @@
     renderPicks();
     renderMap();
     renderList();
+    renderStormWatch();
+    renderStormTimeline();
     renderCompare();
     renderSkill();
   }
@@ -1495,6 +1566,8 @@
         renderPicks();
         renderMap();
         renderList();
+        renderStormWatch();
+        renderStormTimeline();
         return;
       }
       if (e.target.matches("[data-cmp]")) {
