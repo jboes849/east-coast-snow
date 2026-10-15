@@ -226,6 +226,78 @@
       .join("");
   }
 
+  // ---------- compare two mountains ----------
+  function comparePair() {
+    const ids = RESORTS.map((r) => r.id);
+    let pair = store.get("ups-compare", null);
+    if (!Array.isArray(pair) || pair.length !== 2 || !pair.every((x) => ids.includes(x))) {
+      const favs = [...state.favorites].filter((x) => ids.includes(x));
+      const byTotal = [...state.rows].sort((a, b) => b.total7 - a.total7).map((r) => r.resort.id);
+      pair = [...new Set([...favs, ...byTotal])].slice(0, 2);
+    }
+    return pair;
+  }
+
+  function compareSummary(row) {
+    const days = row.days;
+    const snowy = days.filter((d) => d.slr && d.snow >= 0.5);
+    const q = QUALITY(snowy.length ? median(snowy.map((d) => d.slr)) : null);
+    const out = [
+      ["Snow · 7 days", `<b>${snowTxt(row.total7)}</b><span>${rangeTxt(row.lo7, row.hi7)} range</span>`, row.total7, Math.max(1, row.total7 * 0.1)],
+      [`Odds of ${snowTxt(6)}+`, `<b>${row.prob7 ? row.prob7[6] + "%" : "–"}</b>`, row.prob7 ? row.prob7[6] : 0, 5],
+      ["Snow feel", `<b>${q ? q.label : "–"}</b>`, null],
+    ];
+    if (operating(row)) out.push(["Best day", `<b>${dayShort(days[row.bestDay.k].date)} · ${row.bestDay.letter}</b>`, row.bestDay.score, 5]);
+    else out.push(["Snowmaking · 7d", `<b>${row.snowmaking.hours7}h</b>`, row.snowmaking.hours7, 3]);
+    out.push(["Summit", `<b>${elevTxt(row.resort.summit)}</b>`, null]);
+    return out;
+  }
+
+  function compareDay(row, k) {
+    const d = row.days[k];
+    const bits = [];
+    if (d.snow >= 0.5) bits.push(`${snowTxt(d.snow)} snow`);
+    if (d.rain + d.ice > 0.05) bits.push(d.ice > 0.05 ? "ice" : "rain");
+    bits.push(`${tempTxtU(d.tMax)} / ${tempTxtU(d.tMin)}`);
+    if (d.gustMax >= 35) bits.push(`gusts ${windTxt(d.gustMax)}`);
+    if (!d.grade && d.smHours) bits.push(`${d.smHours}h snow guns`);
+    return `${d.grade ? `<span class="grade g-${d.grade.letter}">${d.grade.letter}</span>` : ""}<span>${esc(bits.join(" · "))}</span>`;
+  }
+
+  function renderCompare() {
+    const el = $("#compare-block");
+    if (!el) return;
+    const [a, b] = comparePair().map((id) => state.rows.find((r) => r.resort.id === id));
+    if (!a || !b) {
+      el.hidden = true;
+      return;
+    }
+    el.hidden = false;
+    const opts = (sel) =>
+      [...RESORTS]
+        .sort((x, y) => x.name.localeCompare(y.name))
+        .map((r) => `<option value="${r.id}"${r.id === sel ? " selected" : ""}>${esc(r.name)} · ${r.state}</option>`)
+        .join("");
+    const sa = compareSummary(a);
+    const sb = compareSummary(b);
+    const win = (x, y, m = 0) => (x != null && y != null && x > y + m ? " win" : "");
+    const dayScore = (row, k) => (row.days[k].grade ? row.days[k].grade.score : row.days[k].snow * 10 + (row.days[k].smHours || 0));
+    el.innerHTML = `<div class="block-head"><h2>Compare two mountains</h2><span class="label">Side by side · 7 days</span></div>
+      <div class="cmp">
+        <div class="cmp-row cmp-pick"><span></span>
+          <select class="select" data-cmp="0" aria-label="First mountain">${opts(a.resort.id)}</select>
+          <select class="select" data-cmp="1" aria-label="Second mountain">${opts(b.resort.id)}</select>
+        </div>
+        <div class="cmp-row cmp-verdict"><span class="label">This week</span><p>${fmt(verdict(a).title)}</p><p>${fmt(verdict(b).title)}</p></div>
+        ${sa.map((x, i) => `<div class="cmp-row"><span class="label">${x[0]}</span><span class="cmp-cell${win(x[2], sb[i][2], x[3])}">${x[1]}</span><span class="cmp-cell${win(sb[i][2], x[2], x[3])}">${sb[i][1]}</span></div>`).join("")}
+        ${state.dates
+          .map((d, k) => `<div class="cmp-row cmp-day"><span class="label">${dayShort(d)} ${dayNum(d).replace(/^\w+ /, "")}</span><span class="cmp-cell${win(dayScore(a, k), dayScore(b, k) + 2)}">${compareDay(a, k)}</span><span class="cmp-cell${win(dayScore(b, k), dayScore(a, k) + 2)}">${compareDay(b, k)}</span></div>`)
+          .join("")}
+        <div class="cmp-row cmp-links"><span></span><a href="resorts/${a.resort.id}/">Full ${esc(a.resort.name)} forecast</a><a href="resorts/${b.resort.id}/">Full ${esc(b.resort.name)} forecast</a></div>
+      </div>
+      <p class="hint small">A box marks the better of the two on each line.</p>`;
+  }
+
   // ---------- first-visit tips and help links ----------
   const qlink = (anchor, what) => `<a class="qlink" href="faq/#${anchor}" aria-label="Help: ${what}" title="${what}">?</a>`;
   function renderTips() {
@@ -1093,8 +1165,8 @@
     const sel = defaultDay(row);
     state.dayK = sel;
     const actions = page
-      ? `${favButton(id, "sq fav")}<a class="sq wide" href="./">All resorts</a>`
-      : `<a class="sq wide" href="resorts/${id}/">Full page</a>${favButton(id, "sq fav")}<button class="sq" data-close aria-label="Close">${Icon("close")}</button>`;
+      ? `${favButton(id, "sq fav")}<a class="sq wide" href="./#compare=${id}">Compare</a><a class="sq wide" href="./">All resorts</a>`
+      : `<a class="sq wide" href="#compare=${id}" data-compare="${id}">Compare</a><a class="sq wide" href="resorts/${id}/">Full page</a>${favButton(id, "sq fav")}<button class="sq" data-close aria-label="Close">${Icon("close")}</button>`;
     target.innerHTML = `
       <header class="detail-head">
         <span class="label">${esc(r.region)} · ${r.state} · ${seasonLine(row)}</span>
@@ -1231,6 +1303,7 @@
     renderPicks();
     renderMap();
     renderList();
+    renderCompare();
     renderSkill();
   }
 
@@ -1247,6 +1320,15 @@
       if (rlink && !(e.metaKey || e.ctrlKey || e.shiftKey)) e.preventDefault();
       const signup = e.target.closest("[data-signup]");
       if (signup) return;
+      const cmp = e.target.closest("[data-compare]");
+      if (cmp) {
+        e.preventDefault();
+        const pair = comparePair().filter((x) => x !== cmp.dataset.compare);
+        store.set("ups-compare", [cmp.dataset.compare, pair[0]]);
+        closeDetail();
+        renderCompare();
+        return $("#compare-block").scrollIntoView();
+      }
       if (e.target.closest("[data-tips-done]")) {
         store.set("ups-tips-done", true);
         return renderTips();
@@ -1331,6 +1413,12 @@
       renderList();
     });
     document.addEventListener("change", (e) => {
+      if (e.target.matches("[data-cmp]")) {
+        const pair = comparePair();
+        pair[Number(e.target.dataset.cmp)] = e.target.value;
+        store.set("ups-compare", pair);
+        return renderCompare();
+      }
       if (!e.target.matches("[data-plan-state]")) return;
       store.set("ups-plan", e.target.value || "all");
       renderWeekend();
@@ -1371,6 +1459,15 @@
     renderTips();
     renderSignupHome();
     const hash = location.hash.slice(1);
+    if (hash.startsWith("compare=")) {
+      const id = hash.slice(8);
+      if (RESORTS.some((r) => r.id === id)) {
+        const pair = comparePair().filter((x) => x !== id);
+        store.set("ups-compare", [id, pair[0]]);
+        renderCompare();
+      }
+      return $("#compare-block").scrollIntoView();
+    }
     if (hash && RESORTS.some((r) => r.id === hash)) openDetail(hash);
   }
 
