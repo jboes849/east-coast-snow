@@ -497,7 +497,36 @@
     return `<button class="${cls}" data-fav="${id}" aria-pressed="${on}" aria-label="${on ? "Remove from" : "Add to"} my mountains">${Icon(on ? "starFill" : "star")}</button>`;
   }
 
-  const flags = (row) => row.flags.slice(0, 3).map((f) => `<span class="f-${f.cls}">${fmt(f.text)}</span>`).join("");
+  // ---------- National Weather Service ----------
+  const OFFICES = { BTV: "Burlington", GYX: "Gray, Maine", ALY: "Albany", BUF: "Buffalo", BGM: "Binghamton", PHI: "Mount Holly", CTP: "State College", PBZ: "Pittsburgh", RNK: "Blacksburg", RLX: "Charleston", BOX: "Boston", OKX: "New York" };
+  const alertsFor = (id) => state.data?.nws?.alerts?.[id] || [];
+  const untilTxt = (iso) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    return `until ${d.toLocaleDateString("en-US", { weekday: "short", timeZone: "America/New_York" })} ${d.toLocaleTimeString("en-US", { hour: "numeric", timeZone: "America/New_York" }).replace(":00", "").replace(" ", "").toLowerCase()}`;
+  };
+  function alertBox(id) {
+    const list = alertsFor(id);
+    if (!list.length) return "";
+    return `<section class="nws-alerts">${list
+      .map((a) => `<div class="nws-alert" data-sev="${esc(a.severity || "")}"><b>${esc(a.event)}</b><span class="label">${esc(untilTxt(a.ends))} · NWS ${esc(OFFICES[a.office] || a.office)}</span>${a.text ? `<p>${esc(a.text)}</p>` : ""}</div>`)
+      .join("")}</section>`;
+  }
+  function forecasterPanel(id) {
+    const office = state.data?.nws?.resortOffice?.[id];
+    const afd = office && state.data.nws.offices?.[office];
+    if (!afd?.excerpt) return "";
+    const issued = new Date(afd.issued);
+    const when = issued.toLocaleString("en-US", { weekday: "short", hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
+    return `<section class="afd">
+      <h3 class="sub-h">From the Forecasters</h3>
+      <p class="afd-src label">NWS ${esc(OFFICES[office] || office)} · ${esc(when)}</p>
+      ${afd.excerpt.split("\n").map((p) => `<p>${esc(p)}</p>`).join("")}
+      <a href="${esc(afd.url)}" target="_blank" rel="noopener">Read the full forecast discussion</a>
+    </section>`;
+  }
+
+  const flags = (row) => [...alertsFor(row.resort.id).map((a) => ({ cls: "alert", text: a.event })), ...row.flags].slice(0, 3).map((f) => `<span class="f-${f.cls}">${fmt(f.text)}</span>`).join("");
 
   function spark(row) {
     const peak = Math.max(...row.days.map((d) => d.snow));
@@ -1214,6 +1243,7 @@
       </header>
       <div class="d-body">
         <div class="d-title"><h2>${esc(r.name)}${passTag(r)}</h2><p class="mono">SUMMIT ${elevTxt(r.summit).toUpperCase()} · BASE ${elevTxt(r.base).toUpperCase()}</p></div>
+        ${alertBox(id)}
         <section class="verdict">
           <span class="label">This week</span>
           <p class="verdict-title">${fmt(v.title)}</p>
@@ -1225,6 +1255,7 @@
         <p class="day-why" id="day-why" aria-live="polite">${dayWhy(row, sel)}</p>
         <div id="day-hours">${skiDay(row, det, sel)}</div>
         ${top.length ? `<h3 class="sub-h">What to Know</h3><ul class="insights">${top.map((x) => `<li data-kind="${x.kind}">${fmt(x.text)}</li>`).join("")}</ul>` : ""}
+        ${forecasterPanel(id)}
         <div class="d-kpis">${kpiHtml}</div>
         ${qualityBlock(q, ratio)}
         <details class="more" id="more"${state.moreOpen ? " open" : ""}>

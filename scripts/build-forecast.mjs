@@ -7,6 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { buildPages } from "./build-pages.mjs";
+import { fetchNws } from "./nws.mjs";
 import { MODELS, ENSEMBLES, HOURLY, ENS_HOURLY, parseBlock, parseEnsemble, forecastResort, headline } from "./engine.mjs";
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
@@ -120,6 +121,12 @@ async function main() {
       log.push(`ens ${e.id}: FAILED ${err.message}`);
     }
   }
+  let nws = null;
+  if (!process.env.UPSLOPE_MOCK) {
+    const r = await fetchNws({ resorts: RESORTS, root: ROOT });
+    nws = r.nws;
+    log.push(...r.log);
+  }
   console.log(log.join("\n"));
   fs.mkdirSync(OUT, { recursive: true });
   fs.writeFileSync(path.join(OUT, "build-log.txt"), `${new Date().toISOString()}\n${log.join("\n")}\n`);
@@ -161,6 +168,7 @@ async function main() {
     ensembles: { systems: ens.map((e) => e.meta.label), members },
     headline: headline(resorts, RESORTS),
     skill: skillSummary(skill),
+    nws,
     resorts,
   };
 
