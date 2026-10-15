@@ -38,7 +38,10 @@ export function buildPages({ root, resorts, forecast, siteUrl }) {
       .replace(/<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${esc(desc)}">`)
       .replace(/<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${url}">`)
       .replace(/<meta property="og:image" content="[^"]*">/, `<meta property="og:image" content="${siteUrl}img/og/${r.id}.png">`)
-      .replace("<body>", `<body data-resort="${r.id}">`);
+      .replace("<body>", `<body data-resort="${r.id}">`)
+      // No map on a resort page, so skip Leaflet.
+      .replace(/\s*<link rel="stylesheet" href="vendor\/leaflet\/leaflet.css">/, "")
+      .replace(/\s*<script src="vendor\/leaflet\/leaflet.js"><\/script>/, "");
     fs.mkdirSync(path.join(root, "resorts", r.id), { recursive: true });
     fs.writeFileSync(path.join(root, "resorts", r.id, "index.html"), html);
     urls.push(url);

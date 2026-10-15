@@ -244,11 +244,11 @@
     const q = QUALITY(snowy.length ? median(snowy.map((d) => d.slr)) : null);
     const out = [
       ["Snow · 7 days", `<b>${snowTxt(row.total7)}</b><span>${rangeTxt(row.lo7, row.hi7)} range</span>`, row.total7, Math.max(1, row.total7 * 0.1)],
-      [`Odds of ${snowTxt(6)}+`, `<b>${row.prob7 ? row.prob7[6] + "%" : "–"}</b>`, row.prob7 ? row.prob7[6] : 0, 5],
+      [`Odds of ${snowTxt(operating(row) ? 6 : 1)}+`, `<b>${row.prob7 ? row.prob7[operating(row) ? 6 : 1] + "%" : "–"}</b>`, row.prob7 ? row.prob7[operating(row) ? 6 : 1] : 0, 5],
       ["Snow feel", `<b>${q ? q.label : "–"}</b>`, null],
     ];
     if (operating(row)) out.push(["Best day", `<b>${dayShort(days[row.bestDay.k].date)} · ${row.bestDay.letter}</b>`, row.bestDay.score, 5]);
-    else out.push(["Snowmaking · 7d", `<b>${row.snowmaking.hours7}h</b>`, row.snowmaking.hours7, 3]);
+    else out.push(["Snowmaking", `<b>${row.snowmaking.hours7}h</b>`, row.snowmaking.hours7, 3]);
     out.push(["Summit", `<b>${elevTxt(row.resort.summit)}</b>`, null]);
     return out;
   }
@@ -291,7 +291,7 @@
         <div class="cmp-row cmp-verdict"><span class="label">This week</span><p>${fmt(verdict(a).title)}</p><p>${fmt(verdict(b).title)}</p></div>
         ${sa.map((x, i) => `<div class="cmp-row"><span class="label">${x[0]}</span><span class="cmp-cell${win(x[2], sb[i][2], x[3])}">${x[1]}</span><span class="cmp-cell${win(sb[i][2], x[2], x[3])}">${sb[i][1]}</span></div>`).join("")}
         ${state.dates
-          .map((d, k) => `<div class="cmp-row cmp-day"><span class="label">${dayShort(d)} ${dayNum(d).replace(/^\w+ /, "")}</span><span class="cmp-cell${win(dayScore(a, k), dayScore(b, k) + 2)}">${compareDay(a, k)}</span><span class="cmp-cell${win(dayScore(b, k), dayScore(a, k) + 2)}">${compareDay(b, k)}</span></div>`)
+          .map((d, k) => `<div class="cmp-row cmp-day"><span class="label">${k === 0 ? "Today" : `${dayShort(d)} ${dayNum(d).replace(/^\w+ /, "")}`}</span><span class="cmp-cell${win(dayScore(a, k), dayScore(b, k) + 2)}">${compareDay(a, k)}</span><span class="cmp-cell${win(dayScore(b, k), dayScore(a, k) + 2)}">${compareDay(b, k)}</span></div>`)
           .join("")}
         <div class="cmp-row cmp-links"><span></span><a href="resorts/${a.resort.id}/">Full ${esc(a.resort.name)} forecast</a><a href="resorts/${b.resort.id}/">Full ${esc(b.resort.name)} forecast</a></div>
       </div>
@@ -685,7 +685,7 @@
     const type = det.summit.type[i];
     const bits = [
       `<b>${dayShort(t.slice(0, 10))} ${hourLabel(t)}${idx == null ? " · now" : ""}</b>`,
-      `${snowTxt(run)} since ${dayShort(det.time[0].slice(0, 10))}`,
+      `running total ${snowTxt(run)}`,
       `summit ${tempTxtU(det.summit.t[i])}, base ${tempTxtU(det.base.t[i])}`,
       `gusts ${windTxt(det.summit.gust[i])} ${compass(det.summit.dir[i])}`,
       type ? PTYPE[type] : "dry",
@@ -724,8 +724,26 @@
     document.querySelectorAll("[data-model]").forEach((b) => b.setAttribute("aria-pressed", String(!hidden.has(b.dataset.model))));
   }
 
-  function drawCharts(row, det) {
-    if (!window.Chart || !det) return;
+  // Chart.js loads only when someone opens the forecast details.
+  let chartLib;
+  function loadChart() {
+    if (window.Chart) return Promise.resolve(true);
+    chartLib ||= new Promise((res) => {
+      const s = document.createElement("script");
+      s.src = "vendor/chart.umd.js";
+      s.onload = () => {
+        Chart.defaults.font.family = "Geist, system-ui, sans-serif";
+        res(true);
+      };
+      s.onerror = () => res(false);
+      document.head.appendChild(s);
+    });
+    return chartLib;
+  }
+
+  async function drawCharts(row, det) {
+    if (!det || !(await loadChart())) return;
+    if (state.selected !== row.resort.id || !$("#chart-snow")) return;
     destroyCharts();
     state.hoverIdx = null;
     const n = Math.min(det.time.length, 24 * state.dates.length);
@@ -1430,7 +1448,6 @@
   }
 
   async function init() {
-    if (window.Chart) Chart.defaults.font.family = "Geist, system-ui, sans-serif";
     renderFilters();
     bind();
     if (PAGE) document.body.classList.add("page-mode");
