@@ -217,8 +217,10 @@ function addSeason(resorts, today) {
     delete r.pastDays;
     const total = Object.values(days).reduce((a, b) => a + b, 0);
     const avg = byId[r.id].avgSnow;
-    const normal = avg ? avg * normalShare(today) : null;
-    r.seasonSnow = { since: Object.keys(days).sort()[0] || null, total: Math.round(total * 10) / 10, normal: normal != null ? Math.round(normal * 10) / 10 : null, avg: avg || null };
+    const since = Object.keys(days).sort()[0] || today;
+    // Tracking began this season, so "normal" covers the same stretch we measured.
+    const normal = avg ? avg * Math.max(0, normalShare(today) - normalShare(since)) : null;
+    r.seasonSnow = { since, start, total: Math.round(total * 10) / 10, normal: normal != null ? Math.round(normal * 10) / 10 : null, avg: avg || null };
   }
   fs.writeFileSync(file, JSON.stringify(season));
 }

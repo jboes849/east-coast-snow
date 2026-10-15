@@ -1119,10 +1119,11 @@
   function seasonLine2(row) {
     const ss = row.seasonSnow;
     if (!ss || (ss.total < 1 && (ss.normal ?? 0) < 6)) return "";
-    let txt = `{{s:${ss.total}}} at the summit so far this season`;
+    const late = ss.start && Date.parse(ss.since) - Date.parse(ss.start) > 10 * 86400000;
+    let txt = `{{s:${ss.total}}} at the summit ${late ? `since ${dayNum(ss.since)}, when we started tracking` : "so far this season"}`;
     if (ss.normal >= 3) {
       const pct = Math.round((ss.total / ss.normal) * 100);
-      txt += `. A typical season has about {{s:${ss.normal}}} by now, so that's ${pct >= 115 ? `ahead of normal (${pct}%)` : pct <= 85 ? `behind normal (${pct}%)` : "about normal"}`;
+      txt += `. A typical season has about {{s:${ss.normal}}} ${late ? "over the same stretch" : "by now"}, so that's ${pct >= 115 ? `ahead of normal (${pct}%)` : pct <= 85 ? `behind normal (${pct}%)` : "about normal"}`;
     }
     txt += ".";
     if (ss.avg) txt += ` Average season: about {{s:${ss.avg}}}.`;
