@@ -151,6 +151,7 @@ async function main() {
   });
 
   const generated = new Date().toISOString();
+  addTrend(resorts, Date.parse(`${now.slice(0, 13)}:00:00-05:00`));
   const members = ens.reduce((a, e) => a + (parseEnsemble(e.blocks[0], timeIndex).length || 0), 0);
   const summary = {
     generated,
@@ -159,6 +160,7 @@ async function main() {
     models: MODELS.map((m) => ({ ...m, ok: results.some((r) => r.meta.id === m.id) })),
     ensembles: { systems: ens.map((e) => e.meta.label), members },
     headline: headline(resorts, RESORTS),
+    skill: skillSummary(skill),
     resorts,
   };
 
@@ -178,6 +180,52 @@ async function main() {
   fs.writeFileSync(path.join(OUT, "archive", `${now.slice(0, 13).replace("T", "-")}.json`), JSON.stringify(archive));
   buildPages({ root: ROOT, resorts: RESORTS, forecast: summary, siteUrl: UPSLOPE_CONFIG.siteUrl });
   console.log(`Built ${resorts.length} resorts from ${results.length} models and ${members} ensemble members in ${((Date.now() - started) / 1000).toFixed(1)}s`);
+}
+
+// How the forecast moved since the run about a day ago, over the days both runs cover.
+function addTrend(resorts, nowMs) {
+  const dir = path.join(OUT, "archive");
+  if (!fs.existsSync(dir)) return;
+  const target = nowMs - 24 * 3600000;
+  let best = null;
+  for (const f of fs.readdirSync(dir)) {
+    const m = f.match(/^(\d{4}-\d{2}-\d{2})-(\d{2})\.json$/);
+    if (!m) continue;
+    const t = Date.parse(`${m[1]}T${m[2]}:00:00-05:00`);
+    const age = nowMs - t;
+    if (age < 16 * 3600000 || age > 40 * 3600000) continue;
+    if (!best || Math.abs(t - target) < Math.abs(best.t - target)) best = { f, t };
+  }
+  if (!best) return;
+  let prev;
+  try {
+    prev = JSON.parse(fs.readFileSync(path.join(dir, best.f), "utf8"));
+  } catch (e) {
+    return;
+  }
+  for (const r of resorts) {
+    const old = prev.resorts?.[r.id];
+    if (!old) continue;
+    const oldBy = Object.fromEntries(old.days.map((d) => [d[0], d[1]]));
+    const shared = r.days.filter((d) => oldBy[d.date] != null);
+    if (shared.length < 3) continue;
+    const now = shared.reduce((a, d) => a + d.snow, 0);
+    const was = shared.reduce((a, d) => a + oldBy[d.date], 0);
+    r.trend = { was: +was.toFixed(1), now: +now.toFixed(1), through: shared[shared.length - 1].date, hours: Math.round((nowMs - best.t) / 3600000) };
+  }
+}
+
+// The verification scores the site shows, without the per-region detail.
+function skillSummary(s) {
+  if (!s) return null;
+  const pick = (x) => x && { mae: x.mae, bias: x.bias, hitRate: x.hitRate, falseAlarms: x.falseAlarms, n: x.n, wetDays: x.wetDays };
+  return {
+    generated: s.generated,
+    window: s.window,
+    stations: s.stations,
+    models: Object.fromEntries(Object.entries(s.models).map(([id, m]) => [id, { rank: m.rank, d1: pick(m.d1), d2: pick(m.d2), d3: pick(m.d3) }])),
+    regions: Object.fromEntries(Object.entries(s.regions).map(([reg, ms]) => [reg, Object.fromEntries(Object.entries(ms).map(([id, m]) => [id, { factor: m.factor, mae: m.mae, wetDays: m.wetDays }]))])),
+  };
 }
 
 main().catch((e) => {

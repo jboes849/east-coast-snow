@@ -388,3 +388,19 @@ button.day.snowy[aria-pressed="true"] { box-shadow: inset 0 2px 0 var(--accent),
 .mchip[aria-pressed="false"] { color: var(--muted); text-decoration: line-through; opacity: 0.6; }
 .readout { margin: 6px 0 4px; min-height: 20px; font: 400 12.5px/1.5 var(--mono); color: var(--fg-2); }
 .readout b { color: var(--fg); font-weight: 500; }
+
+/* Model scoreboard and trend */
+.models.skill td { box-shadow: none; text-align: center; }
+.models.skill thead th { font-size: 11px; line-height: 1.3; vertical-align: bottom; }
+.models.skill tbody tr:first-child th, .models.skill tbody tr:first-child td { font-weight: 600; }
+.rank { display: inline-block; width: 18px; font: 500 11px var(--mono); color: var(--muted); }
+.hint.small { font-size: 12px; }
+.models td.rec { box-shadow: none; font-family: var(--sans); font-size: 12.5px; color: var(--fg-2); }
+.trend { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--line); font-size: 14px; color: var(--fg-2); display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.trend .label { min-width: 44px; }
+.trend[data-dir="up"]::after { content: "▲"; color: var(--accent, #0057ff); font-size: 10px; }
+.trend[data-dir="down"]::after { content: "▼"; color: var(--warn); font-size: 10px; }
+.models.skill thead th:not(:first-child) { text-align: center; }
+.acc { display: block; width: 72px; height: 2px; margin: 5px auto 0; background: var(--line); }
+.acc i { display: block; height: 2px; background: var(--fg); }
+.trend > span:last-child { flex: 1; min-width: 0; }

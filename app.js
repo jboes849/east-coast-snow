@@ -728,20 +728,27 @@
     </section>`;
   }
 
+  // Region factor from the daily verification, in words.
+  function recordTxt(row, id) {
+    const f = state.data.skill?.regions?.[row.resort.region]?.[id]?.factor;
+    if (f == null) return "–";
+    return f >= 1.08 ? "Strong" : f <= 0.92 ? "Weak" : "Average";
+  }
+
   function modelTable(row, det) {
     if (!det) return "";
     return `<section class="panel">
       <div class="block-head"><h3>Model by model</h3><span class="label">Summit snow · ${snowUnit()}</span></div>
-      <p class="hint">High-resolution models (HRRR, NAM, HRDPS) run about two days out and get extra weight while they last. Blank cells are past a model's range.</p>
+      <p class="hint">High-resolution models (HRRR, NAM, HRDPS) run about two days out and get extra weight while they last. Models with a strong recent track record near ${esc(row.resort.name)} count for more. Blank cells are past a model's range.</p>
       <div class="scroll"><table class="models">
-        <thead><tr><th style="text-align:left;padding-left:0">Model</th>${state.dates.map((d) => `<th>${dayShort(d)}</th>`).join("")}<th>Total</th></tr></thead>
+        <thead><tr><th style="text-align:left;padding-left:0">Model</th>${state.dates.map((d) => `<th>${dayShort(d)}</th>`).join("")}<th>Total</th><th title="Recent accuracy near this resort">Track record here</th></tr></thead>
         <tbody>${det.modelDays
           .map((m) => {
             const meta = state.data.models.find((x) => x.id === m.id) || { label: m.id, color: "#999" };
             const full = m.days.every((v) => v != null);
             return `<tr><th scope="row"><span class="swatch" style="background:${meta.color}"></span>${esc(meta.label)}</th>${m.days
               .map((v) => (v == null ? `<td class="na"></td>` : `<td style="--c:${v >= 0.5 ? snowColor(v) : "transparent"}">${v >= 0.5 ? snowVal(v) : "–"}</td>`))
-              .join("")}<td class="strong">${full ? snowVal(sum(m.days)) : "–"}</td></tr>`;
+              .join("")}<td class="strong">${full ? snowVal(sum(m.days)) : "–"}</td><td class="rec">${recordTxt(row, m.id)}</td></tr>`;
           })
           .join("")}</tbody>
       </table></div>
@@ -799,6 +806,58 @@
       k.push(`<div><span class="label">Typically opens</span><b>${row.season.phase === "preseason" ? dayNum(row.season.open) : "–"}</b><span>${row.season.phase === "preseason" ? `${row.season.daysToOpen} days out` : "Closed"}</span></div>`);
     }
     return { html: k.join(""), q, ratio };
+  }
+
+  // How the forecast changed since about a day ago. Small wiggles stay quiet.
+  function trendLine(row) {
+    const t = row.trend;
+    if (!t) return "";
+    const diff = t.now - t.was;
+    const big = Math.abs(diff) >= 1 && Math.abs(diff) >= 0.25 * Math.max(t.was, t.now);
+    const when = t.hours <= 30 ? "yesterday" : `${t.hours} hours ago`;
+    const through = `through ${dayLong(t.through)}`;
+    if (!big) {
+      if (t.now < 0.5) return "";
+      return `<p class="trend" data-dir="flat"><span class="label">Trend</span><span>${fmt(`Holding steady: {{s:${t.now}}} ${through}, same as ${when}.`)}</span></p>`;
+    }
+    const up = diff > 0;
+    return `<p class="trend" data-dir="${up ? "up" : "down"}"><span class="label">Trend</span><span>${fmt(`${up ? "Trending up" : "Trending down"}: {{s:${t.was}}} ${when}, {{s:${t.now}}} now (${through}).`)}</span></p>`;
+  }
+
+  // ---------- model scoreboard ----------
+  const skillOf = (id) => state.data.skill?.models?.[id];
+  const tendTxt = (b) => (b == null ? "–" : b >= 1.25 ? "Too wet" : b >= 1.1 ? "A bit wet" : b <= 0.8 ? "Too dry" : b <= 0.9 ? "A bit dry" : "About right");
+  const missTxt = (x) => (!x ? "–" : metric() ? `${(x.mae * 25.4).toFixed(1)} mm` : `${x.mae.toFixed(3)}″`);
+
+  function renderSkill() {
+    const el = $("#skill-block");
+    const sk = state.data.skill;
+    if (!el) return;
+    if (!sk) {
+      el.hidden = true;
+      return;
+    }
+    el.hidden = false;
+    const ms = state.data.models.filter((m) => sk.models[m.id]).sort((a, b) => sk.models[a.id].rank - sk.models[b.id].rank);
+    const best = ms[0];
+    const bestMae = (sk.models[best.id].d1 || sk.models[best.id].d2).mae;
+    const worstMae = Math.max(...ms.map((m) => (sk.models[m.id].d1 || sk.models[m.id].d2).mae));
+    const bar = (x) => (x ? `<span class="acc"><i style="width:${Math.round(100 - ((x.mae - bestMae) / (worstMae - bestMae || 1)) * 75)}%"></i></span>` : "");
+    el.innerHTML = `<div class="block-head"><h2>Model scoreboard</h2><span class="label">Last ${sk.window.days} days · ${sk.stations} weather stations</span></div>
+      <p class="hint">Every morning we check what each model said one to three days earlier against the rain and melted snow actually measured at airports near the resorts. Upslope leans harder on the models doing best in each area. Lately that's the <b>${esc(best.label)}</b>.</p>
+      <div class="scroll"><table class="models skill">
+        <thead><tr><th style="text-align:left;padding-left:0">Model</th><th>Avg miss<br>1 day out</th><th>Avg miss<br>3 days out</th><th>Tends to run</th><th>Caught<br>wet days</th></tr></thead>
+        <tbody>${ms
+          .map((m) => {
+            const s = sk.models[m.id];
+            const d1 = s.d1 || s.d2;
+            return `<tr><th scope="row"><span class="rank">${s.rank}</span><span class="swatch" style="background:${m.color}"></span>${esc(m.label)}</th>
+              <td>${missTxt(d1)}${bar(d1)}</td><td>${s.d3 ? missTxt(s.d3) : `<span class="muted" title="Only forecasts about two days ahead">n/a</span>`}</td>
+              <td>${tendTxt(d1?.bias)}</td><td>${d1?.hitRate != null ? Math.round(d1.hitRate * 100) + "%" : "–"}</td></tr>`;
+          })
+          .join("")}</tbody>
+      </table></div>
+      <p class="hint small">Miss is in inches of water: 0.1″ of water is roughly an inch of snow. A wet day is 0.1″ of water or more. Scores update daily; snowfall scoring starts once the season does.</p>`;
   }
 
   // ---------- plain-language day reasons and the verdict ----------
@@ -939,6 +998,7 @@
           <span class="label">This week</span>
           <p class="verdict-title">${fmt(v.title)}</p>
           ${v.sub ? `<p class="verdict-sub">${fmt(v.sub)}</p>` : ""}
+          ${trendLine(row)}
         </section>
         <div class="days">${dayCards(row, sel)}</div>
         <p class="day-why" id="day-why" aria-live="polite">${dayWhy(row, sel)}</p>
@@ -1058,6 +1118,7 @@
     renderPicks();
     renderMap();
     renderList();
+    renderSkill();
   }
 
   // ---------- events ----------
