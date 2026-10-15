@@ -250,6 +250,7 @@
     ];
     if (operating(row)) out.push(["Best day", `<b>${dayShort(days[row.bestDay.k].date)} · ${row.bestDay.letter}</b>`, row.bestDay.score, 5]);
     else out.push(["Snowmaking", `<b>${row.snowmaking.hours7}h</b>`, row.snowmaking.hours7, 3]);
+    if (row.recent) out.push(["Last 7 days", `<b>${snowTxt(row.recent.snow7)}</b><span>fell at the summit</span>`, row.recent.snow7, 1]);
     out.push(["Summit", `<b>${elevTxt(row.resort.summit)}</b>`, null]);
     return out;
   }
@@ -456,7 +457,7 @@
   // ---------- resort list ----------
   function renderSortOptions() {
     const opts = state.open
-      ? [["7d", "Most snow · 7d"], ["3d", "Most snow · 3d"], ["odds", "Odds of 6″+"], ["powder", "Powder score"], ["grade", "Best ski day"], ["az", "A–Z"]]
+      ? [["7d", "Most snow · 7d"], ["3d", "Most snow · 3d"], ["odds", "Odds of 6″+"], ["powder", "Powder score"], ["grade", "Best ski day"], ["past", "Most snow · last 7d"], ["az", "A–Z"]]
       : [["7d", "Most snow · 7d"], ["3d", "Most snow · 3d"], ["sm", "Snowmaking hours"], ["opens", "Typical opening"], ["az", "A–Z"]];
     if (!opts.some(([v]) => v === state.sort)) state.sort = "7d";
     $("#sort").innerHTML = opts.map(([v, l]) => `<option value="${v}"${v === state.sort ? " selected" : ""}>${l}</option>`).join("");
@@ -483,6 +484,7 @@
       grade: (a, b) => (b.bestDay?.score ?? -1) - (a.bestDay?.score ?? -1) || b.total7 - a.total7,
       sm: (a, b) => b.snowmaking.hours7 - a.snowmaking.hours7,
       opens: (a, b) => a.season.open.localeCompare(b.season.open),
+      past: (a, b) => (b.recent?.snow7 ?? 0) - (a.recent?.snow7 ?? 0),
       az: (a, b) => a.resort.name.localeCompare(b.resort.name),
     }[state.sort];
     rows.sort(by || ((a, b) => b.total7 - a.total7));
@@ -976,6 +978,19 @@
     return { html: k.join(""), q, ratio };
   }
 
+  // What already fell, from the model blend over the past week.
+  function recentLine(row) {
+    const r = row.recent;
+    if (!r) return "";
+    const days = Math.round(r.hours / 24);
+    const depth = row.season.depth;
+    let txt;
+    if (r.snow7 >= 0.5) txt = `{{s:${r.snow7}}} fell at the summit in the last ${days} days${r.snow2 >= 0.5 ? `, {{s:${r.snow2}}} of it in the last 48 hours` : ""}${r.baseSnow7 >= 0.5 ? ` ({{s:${r.baseSnow7}}} at the base)` : ""}.`;
+    else txt = `No real snow in the last ${days} days${r.rain7 >= 0.1 ? `, and {{l:${r.rain7}}} of rain` : ""}.`;
+    if (depth != null && depth >= 1) txt += ` Natural snow on the ground up top: about {{s:${depth}}}.`;
+    return `<p class="trend" data-dir="past"><span class="label">Last week</span><span>${fmt(txt)}</span></p>`;
+  }
+
   // How the forecast changed since about a day ago. Small wiggles stay quiet.
   function trendLine(row) {
     const t = row.trend;
@@ -1203,6 +1218,7 @@
           <span class="label">This week</span>
           <p class="verdict-title">${fmt(v.title)}</p>
           ${v.sub ? `<p class="verdict-sub">${fmt(v.sub)}</p>` : ""}
+          ${recentLine(row)}
           ${trendLine(row)}
         </section>
         <div class="days">${dayCards(row, sel)}</div>

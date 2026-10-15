@@ -55,7 +55,7 @@ async function fetchModel(id) {
     elevation: locs.map(([, e]) => ftToM(e)).join(","),
     hourly: HOURLY.join(","),
     models: id,
-    past_days: "2",
+    past_days: "7",
     forecast_days: "7",
     ...COMMON,
   });

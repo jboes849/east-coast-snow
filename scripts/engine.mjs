@@ -707,10 +707,14 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
     ? { p10: round(percentile(ens, (m) => sum(m.snow.slice(k0, k7 + 1)), 0.1)), p50: round(percentile(ens, (m) => sum(m.snow.slice(k0, k7 + 1)), 0.5)), p90: round(percentile(ens, (m) => sum(m.snow.slice(k0, k7 + 1)), 0.9)) }
     : null;
   const depthNow = H.sd[nowK];
+  // What already fell: the blend over the past week is close to an analysis.
+  const back = (a, h) => sum(a.slice(Math.max(0, nowK - h), nowK));
+  const recent = nowK >= 24 ? { hours: Math.min(168, nowK), snow7: round(back(H.snow, 168)), snow2: round(back(H.snow, 48)), rain7: round(back(H.rain, 168) + back(H.ice, 168), 2), baseSnow7: round(back(HB.snow, 168)) } : null;
 
   const res = {
     id: resort.id,
     season: { ...sea, depth: depthNow != null ? round(depthNow, 0) : null },
+    recent,
     total3: round(total3),
     total7: round(total7),
     lo7: round(full.length ? Math.min(...full.map((x) => x.total)) : total7),
