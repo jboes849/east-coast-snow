@@ -203,34 +203,20 @@ async function main() {
 }
 
 // Season snowfall so far: each run records the blend's estimate for completed days
-// (the last week, so late corrections win), and compares the total with a typical
-// season to date from the resort's average and a monthly snowfall curve.
-const MONTH_SHARE = { 10: 0.02, 11: 0.09, 12: 0.18, 1: 0.22, 2: 0.21, 3: 0.19, 4: 0.08, 5: 0.01 };
-function normalShare(date) {
-  const [y, m, d] = date.split("-").map(Number);
-  const order = [10, 11, 12, 1, 2, 3, 4, 5];
-  const i = order.indexOf(m);
-  if (i < 0) return m >= 6 && m <= 9 ? (m === 9 ? 0 : 1) : 0;
-  const days = new Date(Date.UTC(y, m, 0)).getUTCDate();
-  return order.slice(0, i).reduce((a, k) => a + MONTH_SHARE[k], 0) + MONTH_SHARE[m] * (d / days);
-}
+// (the last week, so late corrections win) and adds them up.
 function addSeason(resorts, today) {
   const file = path.join(OUT, "season.json");
   const [y, m] = today.split("-").map(Number);
   const start = `${m >= 7 ? y : y - 1}-10-01`;
   let season = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : {};
   if (season.start !== start) season = { start, resorts: {} };
-  const byId = Object.fromEntries(RESORTS.map((r) => [r.id, r]));
   for (const r of resorts) {
     const days = (season.resorts[r.id] ||= {});
     for (const [date, v] of r.pastDays || []) if (date >= start && date < today) days[date] = v;
     delete r.pastDays;
     const total = Object.values(days).reduce((a, b) => a + b, 0);
-    const avg = byId[r.id].avgSnow;
     const since = Object.keys(days).sort()[0] || today;
-    // Tracking began this season, so "normal" covers the same stretch we measured.
-    const normal = avg ? avg * Math.max(0, normalShare(today) - normalShare(since)) : null;
-    r.seasonSnow = { since, start, total: Math.round(total * 10) / 10, normal: normal != null ? Math.round(normal * 10) / 10 : null, avg: avg || null };
+    r.seasonSnow = { since, start, total: Math.round(total * 10) / 10 };
   }
   fs.writeFileSync(file, JSON.stringify(season));
 }

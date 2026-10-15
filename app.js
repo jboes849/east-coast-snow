@@ -160,12 +160,11 @@
         { label: "Best ski day", value: `${dayShort(bestSki.days[bestSki.bestDay.k].date)}<i>${bestSki.bestDay.letter}</i>`, sub: bestSki.resort.name, id: bestSki.resort.id }
       );
     } else {
-      const sm = [...state.rows].sort((a, b) => b.snowmaking.hours7 - a.snowmaking.hours7)[0];
+      const low = (r) => Math.min(...r.days.map((d) => d.tMin ?? 99));
+      const coldest = [...state.rows].sort((a, b) => low(a) - low(b))[0];
       const first = [...state.rows].filter((r) => r.season.phase === "preseason").sort((a, b) => a.season.daysToOpen - b.season.daysToOpen)[0];
       stats.push(
-        sm.snowmaking.hours7 > 0
-          ? { label: "Snowmaking hours · 7d", value: `${sm.snowmaking.hours7}<i>h</i>`, sub: sm.resort.name, id: sm.resort.id }
-          : { label: "Snowmaking hours · 7d", value: "0", sub: "Too warm everywhere" },
+        { label: "Coldest Summit · 7d", value: tempTxtU(low(coldest)), sub: coldest.resort.name, id: coldest.resort.id },
         first
           ? { label: "Typically opens first", value: dayNum(first.season.open), sub: `${first.resort.name} · ${first.season.daysToOpen} days`, id: first.resort.id }
           : { label: "Season", value: "–", sub: "Closed" }
@@ -176,7 +175,7 @@
       .join("");
   }
 
-  // ---------- picks: powder mornings in season, snowmaking windows before ----------
+  // ---------- picks: powder mornings in season, the next openings before ----------
   function renderPicks() {
     const el = $("#picks");
     const head = $("#picks-block .block-head");
@@ -204,25 +203,26 @@
         .join("");
       return;
     }
-    head.innerHTML = `<h2>Snowmaking Windows${qlink("snowmaking", "What is a snowmaking window")}</h2><span class="label">Pre-season · hours cold enough for snow guns</span>`;
-    $('.navlinks a[href="#picks-block"]').textContent = "Snowmaking";
-    const wins = passRows()
-      .flatMap((r) => r.snowmaking.windows.map((w) => ({ ...w, row: r })))
-      .sort((a, b) => b.hours - a.hours || a.minTw - b.minTw)
-      .filter((w, i, all) => all.findIndex((x) => x.row === w.row) === i)
+    head.innerHTML = `<h2>Opening Soon${qlink("preseason", "How openings work")}</h2><span class="label">Pre-season · by typical opening date</span>`;
+    $('.navlinks a[href="#picks-block"]').textContent = "Opening";
+    const next = passRows()
+      .filter((r) => r.season.phase === "preseason")
+      .sort((a, b) => a.season.daysToOpen - b.season.daysToOpen)
       .slice(0, 4);
-    if (!wins.length) {
-      el.innerHTML = `<p class="empty">No resort gets cold enough for snowmaking this week.</p>`;
+    if (!next.length) {
+      el.innerHTML = `<p class="empty">No resorts are getting ready to open.</p>`;
       return;
     }
-    const maxH = Math.max(...wins.map((w) => w.hours));
-    el.innerHTML = wins
-      .map((w) => {
-        const bits = [spanTxt(w.start, w.end), `as cold as ${tempTxtU(w.minTw)}`, w.baseHours >= 3 ? `base ${w.baseHours}h` : "base too warm"];
-        return `<button class="pick" data-open="${w.row.resort.id}">
-          <span class="score" data-tier="${w.good >= 6 ? 3 : 1}">${w.hours}h</span>
-          <span><b>${esc(w.row.resort.name)}</b><br><span class="detail-line">${esc(bits.join(" · "))}</span></span>
-          <span class="meter-line"><i style="width:${Math.round((w.hours / maxH) * 100)}%"></i></span>
+    el.innerHTML = next
+      .map((row) => {
+        const s = row.season;
+        const w = [...row.snowmaking.windows].sort((a, b) => b.hours - a.hours)[0];
+        const bits = [`Usually opens ${dayNum(s.open)}`];
+        if (row.total7 >= 0.5) bits.push(`${snowTxt(row.total7)} natural snow this week`);
+        if (row.snowmaking.relevant) bits.push(w ? `cold enough to make snow ${spanTxt(w.start, w.end)}` : "too mild to make snow");
+        return `<button class="pick" data-open="${row.resort.id}">
+          <span class="score" data-tier="${s.daysToOpen <= 14 ? 3 : 1}">${s.daysToOpen}d</span>
+          <span><b>${esc(row.resort.name)}</b><br><span class="detail-line">${esc(bits.join(" · "))}</span></span>
         </button>`;
       })
       .join("");
@@ -250,8 +250,8 @@
       ["Snow feel", `<b>${q ? q.label : "–"}</b>`, null],
     ];
     if (operating(row)) out.push(["Best day", `<b>${dayShort(days[row.bestDay.k].date)} · ${row.bestDay.letter}</b>`, row.bestDay.score, 5]);
-    else out.push(["Snowmaking", `<b>${row.snowmaking.hours7}h</b>`, row.snowmaking.hours7, 3]);
-    if (row.seasonSnow) out.push(["Season so far", `<b>${snowTxt(row.seasonSnow.total)}</b>${row.seasonSnow.normal >= 3 ? `<span>${Math.round((row.seasonSnow.total / row.seasonSnow.normal) * 100)}% of normal</span>` : ""}`, row.seasonSnow.total, 2]);
+    else if (row.season.phase === "preseason") out.push(["Typically opens", `<b>${dayNum(row.season.open)}</b><span>${row.season.daysToOpen} days out</span>`, null]);
+    if (row.seasonSnow) out.push(["Season so far", `<b>${snowTxt(row.seasonSnow.total)}</b>`, row.seasonSnow.total, 2]);
     if (row.recent) out.push(["Last 7 days", `<b>${snowTxt(row.recent.snow7)}</b><span>fell at the summit</span>`, row.recent.snow7, 1]);
     out.push(["Summit", `<b>${elevTxt(row.resort.summit)}</b>`, null]);
     return out;
@@ -264,7 +264,6 @@
     if (d.rain + d.ice > 0.05) bits.push(d.ice > 0.05 ? "ice" : "rain");
     bits.push(`${tempTxtU(d.tMax)} / ${tempTxtU(d.tMin)}`);
     if (d.gustMax >= 35) bits.push(`gusts ${windTxt(d.gustMax)}`);
-    if (!d.grade && d.smHours) bits.push(`${d.smHours}h snow guns`);
     return `${d.grade ? `<span class="grade g-${d.grade.letter}">${d.grade.letter}</span>` : ""}<span>${esc(bits.join(" · "))}</span>`;
   }
 
@@ -285,7 +284,7 @@
     const sa = compareSummary(a);
     const sb = compareSummary(b);
     const win = (x, y, m = 0) => (x != null && y != null && x > y + m ? " win" : "");
-    const dayScore = (row, k) => (row.days[k].grade ? row.days[k].grade.score : row.days[k].snow * 10 + (row.days[k].smHours || 0));
+    const dayScore = (row, k) => (row.days[k].grade ? row.days[k].grade.score : row.days[k].snow * 10);
     el.innerHTML = `<div class="block-head"><h2>Compare Two Mountains</h2><span class="label">Side by side · 7 days</span></div>
       <div class="cmp">
         <div class="cmp-row cmp-pick"><span></span>
@@ -525,7 +524,7 @@
     const head = `<div class="block-head"><h2>Weekend Planner${qlink("weekend", "How the planner chooses")}</h2><span class="label">${wk.map((x) => dayLong(x.d)).join(" and ")}${state.pass !== "any" ? ` · ${PASS_NAME[state.pass]} mountains` : ""}</span></div>`;
     if (!anyOpen) {
       const first = [...state.rows].filter((r) => r.season.phase === "preseason").sort((a, b) => a.season.daysToOpen - b.season.daysToOpen)[0];
-      el.innerHTML = `${head}<p class="hint">The planner turns on once lifts start spinning${first ? `. ${esc(first.resort.name)} usually opens first, around ${dayNum(first.season.open)}` : ""}. Until then, check the snowmaking windows below.</p>`;
+      el.innerHTML = `${head}<p class="hint">The planner turns on once lifts start spinning${first ? `. ${esc(first.resort.name)} usually opens first, around ${dayNum(first.season.open)}` : ""}. Until then, check the next openings below.</p>`;
       return;
     }
     const { scope, rows } = planScope();
@@ -658,7 +657,7 @@
       }
     }
     let legend;
-    if (layer.kind === "temp") legend = TEMP_COLORS.map((c, i) => `<span><i style="background:${c}"></i>${i === 0 ? `<${Math.round(tempNum(TEMP_STEPS[0]))}°` : i === TEMP_COLORS.length - 1 ? `${Math.round(tempNum(TEMP_STEPS[i - 1]))}°+` : `${Math.round(tempNum(TEMP_STEPS[i - 1]))}–${Math.round(tempNum(TEMP_STEPS[i]))}°`}</span>`).join("") + `<span class="unit">Summit low · 27°F and colder is snowmaking weather</span>`;
+    if (layer.kind === "temp") legend = TEMP_COLORS.map((c, i) => `<span><i style="background:${c}"></i>${i === 0 ? `<${Math.round(tempNum(TEMP_STEPS[0]))}°` : i === TEMP_COLORS.length - 1 ? `${Math.round(tempNum(TEMP_STEPS[i - 1]))}°+` : `${Math.round(tempNum(TEMP_STEPS[i - 1]))}–${Math.round(tempNum(TEMP_STEPS[i]))}°`}</span>`).join("") + `<span class="unit">Summit low</span>`;
     else if (layer.kind === "wind") legend = WIND_COLORS.map((c, i) => `<span><i style="background:${c}"></i>${i === 0 ? `<${Math.round(windNum(WIND_STEPS[0]))}` : i === WIND_COLORS.length - 1 ? `${Math.round(windNum(WIND_STEPS[i - 1]))}+` : `${Math.round(windNum(WIND_STEPS[i - 1]))}–${Math.round(windNum(WIND_STEPS[i]))}`}</span>`).join("") + `<span class="unit">${metric() ? "km/h" : "mph"} · summit gusts</span>`;
     else
       legend =
@@ -690,7 +689,7 @@
   function renderSortOptions() {
     const opts = state.open
       ? [["7d", "Most snow · 7d"], ["3d", "Most snow · 3d"], ["odds", "Odds of 6″+"], ["powder", "Powder score"], ["grade", "Best ski day"], ["past", "Most snow · last 7d"], ["season", "Season snowfall"], ["az", "A–Z"]]
-      : [["7d", "Most snow · 7d"], ["3d", "Most snow · 3d"], ["sm", "Snowmaking hours"], ["opens", "Typical opening"], ["past", "Most snow · last 7d"], ["season", "Season snowfall"], ["az", "A–Z"]];
+      : [["7d", "Most snow · 7d"], ["3d", "Most snow · 3d"], ["opens", "Typical opening"], ["past", "Most snow · last 7d"], ["season", "Season snowfall"], ["az", "A–Z"]];
     if (!opts.some(([v]) => v === state.sort)) state.sort = "7d";
     $("#sort").innerHTML = opts.map(([v, l]) => `<option value="${v}"${v === state.sort ? " selected" : ""}>${l}</option>`).join("");
   }
@@ -714,7 +713,6 @@
       odds: (a, b) => (b.prob7?.[6] ?? 0) - (a.prob7?.[6] ?? 0) || b.total7 - a.total7,
       powder: (a, b) => (b.best?.score ?? -1) - (a.best?.score ?? -1) || b.total3 - a.total3,
       grade: (a, b) => (b.bestDay?.score ?? -1) - (a.bestDay?.score ?? -1) || b.total7 - a.total7,
-      sm: (a, b) => b.snowmaking.hours7 - a.snowmaking.hours7,
       opens: (a, b) => a.season.open.localeCompare(b.season.open),
       season: (a, b) => (b.seasonSnow?.total ?? 0) - (a.seasonSnow?.total ?? 0),
       past: (a, b) => (b.recent?.snow7 ?? 0) - (a.recent?.snow7 ?? 0),
@@ -788,12 +786,12 @@
       .join("")}</div>`;
   }
 
-  // Under the bars: day grades in season, snowmaking hours before it.
+  // Under the bars: day grades in season, summit lows before it.
   function dayStrip(row) {
     if (operating(row)) {
       return `<div class="grades">${row.days.map((d) => `<span class="g-${d.grade.letter}" title="${dayShort(d.date)}: ${d.grade.letter} · ${fmt(d.grade.why.join(", ") || "typical day")}">${d.grade.letter}</span>`).join("")}</div>`;
     }
-    return `<div class="grades sm">${row.days.map((d) => `<span class="sm-${d.smHours >= 10 ? 3 : d.smHours >= 5 ? 2 : d.smHours > 0 ? 1 : 0}" title="${dayShort(d.date)}: ${d.smHours} snowmaking hours at the summit">${d.smHours ? d.smHours + "h" : "·"}</span>`).join("")}</div>`;
+    return `<div class="grades lows">${row.days.map((d) => `<span title="${dayShort(d.date)}: summit low ${tempTxtU(d.tMin)}">${d.tMin == null ? "·" : Math.round(tempNum(d.tMin))}</span>`).join("")}</div>`;
   }
 
   function renderRowsView(rows) {
@@ -824,7 +822,7 @@
               <span class="amt">${d.snow >= 0.5 ? snowVal(d.snow) : "–"}</span>
               ${d.hi >= 1 ? `<span class="range">${rangeVal(d.lo, d.hi)}</span>` : ""}
               ${d.rain + d.ice > 0.1 ? `<span class="rain-mark">${d.ice > 0.05 ? "ICE" : "RAIN"}</span>` : ""}${
-                d.grade ? `<span class="cell-grade g-${d.grade.letter}">${d.grade.letter}</span>` : d.smHours ? `<span class="cell-grade sm-cell">${d.smHours}h</span>` : ""
+                d.grade ? `<span class="cell-grade g-${d.grade.letter}">${d.grade.letter}</span>` : ""
               }</td>`
             )
             .join("")}</tr>`
@@ -841,7 +839,7 @@
     }
     const legend = state.open
       ? `<b>Number</b>: snow at the summit over 7 days, with the range across models under it. <b>Bars</b>: snow each day. <b>Letters</b>: ski grade for each day, A is best. Tap a resort for details.`
-      : `<b>Number</b>: snow at the summit over 7 days. <b>Bars</b>: snow each day. <b>Hours</b>: time cold enough for snow guns each day (pre-season). Tap a resort for details.`;
+      : `<b>Number</b>: snow at the summit over 7 days. <b>Bars</b>: snow each day. <b>Under the bars</b>: summit low each day. Tap a resort for details.`;
     el.innerHTML = `<p class="list-legend">${legend}</p>` + (state.view === "table" ? renderTableView(rows) : renderRowsView(rows));
   }
 
@@ -1053,7 +1051,7 @@
     ds.push({ label: "Upslope blend", data: cut(det.summit.snow).map((s) => +snowNum((run += s || 0)).toFixed(1)), borderColor: fg, backgroundColor: fg, borderWidth: 2.75, pointRadius: 0, tension: 0.2 });
     state.charts.push(new Chart($("#chart-snow"), { type: "line", data: { labels: times, datasets: ds }, options: chartOptions(times, snowUnit()), plugins: [decor] }));
 
-    // Temperatures at summit and base, with the freezing and snowmaking lines.
+    // Temperatures at summit and base, with the freezing line.
     const temps = (arr) => cut(arr).map((t) => (t == null ? null : +tempNum(t).toFixed(1)));
     const flat = (f) => times.map(() => +tempNum(f).toFixed(1));
     const tds = [
@@ -1061,10 +1059,6 @@
       { label: "Base", data: temps(det.base.t), borderColor: fg, backgroundColor: fg, borderWidth: 1.25, pointRadius: 0, tension: 0.2 },
       { label: "Freezing", data: flat(32), borderColor: warn, backgroundColor: warn, borderDash: [4, 4], borderWidth: 1, pointRadius: 0 },
     ];
-    if (!operating(row)) {
-      tds.splice(2, 0, { label: "Snowmaking temp", data: temps(det.summit.tw), borderColor: "#0aa2c0", backgroundColor: "#0aa2c0", borderWidth: 1.25, borderDash: [2, 2], pointRadius: 0, tension: 0.2 });
-      tds.push({ label: "Snowmaking line", data: flat(27), borderColor: "#6b7280", backgroundColor: "#6b7280", borderDash: [1, 3], borderWidth: 1, pointRadius: 0 });
-    }
     const o2 = chartOptions(times, metric() ? "°C" : "°F");
     o2.scales.y.beginAtZero = false;
     state.charts.push(new Chart($("#chart-temp"), { type: "line", data: { labels: times, datasets: tds }, options: o2, plugins: [decor] }));
@@ -1245,8 +1239,8 @@
       k.push(`<div><span class="label">Snow feel</span><b>${q ? q.label : "–"}</b><span>${q ? q.short : "No snow"}</span></div>`);
       k.push(`<div><span class="label">Best ski day</span><b>${dayShort(days[row.bestDay.k].date)} · ${row.bestDay.letter}</b><span>${fmt(days[row.bestDay.k].grade.why.slice(0, 2).join(", ") || "typical day")}</span></div>`);
     } else {
-      const best = [...row.snowmaking.windows].sort((a, b) => b.hours - a.hours)[0];
-      k.push(`<div><span class="label">Snowmaking · 7d</span><b>${row.snowmaking.hours7}h</b><span>${best ? `Best ${dayShort(best.start.slice(0, 10))}, low ${tempTxtU(best.minTw)}` : "Too warm"}</span></div>`);
+      const lowDay = [...days].sort((a, b) => (a.tMin ?? 99) - (b.tMin ?? 99))[0];
+      k.push(`<div><span class="label">Coldest Summit</span><b>${tempTxtU(lowDay.tMin)}</b><span>${dayShort(lowDay.date)}</span></div>`);
       k.push(`<div><span class="label">Odds of ${snowTxt(1)}+</span><b>${row.prob7 ? row.prob7[1] + "%" : "–"}</b><span>Next 7 days</span></div>`);
       k.push(`<div><span class="label">Typically opens</span><b>${row.season.phase === "preseason" ? dayNum(row.season.open) : "–"}</b><span>${row.season.phase === "preseason" ? `${row.season.daysToOpen} days out` : "Closed"}</span></div>`);
     }
@@ -1266,18 +1260,12 @@
     return `<p class="trend" data-dir="past"><span class="label">Last week</span><span>${fmt(txt)}</span></p>${seasonLine2(row)}`;
   }
 
-  // Season snowfall so far against a typical season to date.
+  // Season snowfall so far.
   function seasonLine2(row) {
     const ss = row.seasonSnow;
-    if (!ss || (ss.total < 1 && (ss.normal ?? 0) < 6)) return "";
+    if (!ss || ss.total < 1) return "";
     const late = ss.start && Date.parse(ss.since) - Date.parse(ss.start) > 10 * 86400000;
-    let txt = `{{s:${ss.total}}} at the summit ${late ? `since ${dayNum(ss.since)}, when we started tracking` : "so far this season"}`;
-    if (ss.normal >= 3) {
-      const pct = Math.round((ss.total / ss.normal) * 100);
-      txt += `. A typical season has about {{s:${ss.normal}}} ${late ? "over the same stretch" : "by now"}, so that's ${pct >= 115 ? `ahead of normal (${pct}%)` : pct <= 85 ? `behind normal (${pct}%)` : "about normal"}`;
-    }
-    txt += ".";
-    if (ss.avg) txt += ` Average season: about {{s:${ss.avg}}}.`;
+    const txt = `{{s:${ss.total}}} at the summit ${late ? `since ${dayNum(ss.since)}, when we started tracking` : "so far this season"}.`;
     return `<p class="trend" data-dir="season"><span class="label">Season</span><span>${fmt(txt)}</span></p>`;
   }
 
@@ -1356,11 +1344,10 @@
     const first = row.insights[0] ? row.insights[0].text : "";
     if (!operating(row)) {
       if (s.phase === "closed") return { title: "Closed for the season.", sub: first };
-      const w = [...row.snowmaking.windows].sort((a, b) => b.hours - a.hours)[0];
-      const opens = `Not open yet (usually opens around ${dayNum(s.open)}).`;
+      const opens = `Not open yet. Usually opens around ${dayNum(s.open)}, ${s.daysToOpen} days out.`;
       return {
-        title: w ? `${opens} Snow guns get their best run ${whenTxt(w.start)}.` : `${opens} Too warm for snowmaking this week.`,
-        sub: row.insights.find((x) => x.kind === "storm")?.text || "",
+        title: opens,
+        sub: row.insights.find((x) => x.kind === "storm")?.text || row.insights.find((x) => x.kind === "snowmaking")?.text || "",
       };
     }
     const k = row.bestDay.k;
@@ -1396,7 +1383,8 @@
       bits.push(why.length ? cap(why.join(", ")) + "." : "Nothing special either way.");
     } else {
       bits.push(`<b>${name}.</b>`);
-      bits.push(d.smHours ? `${d.smHours} hours cold enough for snow guns at the summit${d.smBase ? `, ${d.smBase} at the base` : ""}.` : "Too warm for snowmaking.");
+      const w = row.snowmaking.windows.find((x) => x.start.slice(0, 10) <= d.date && x.end.slice(0, 10) >= d.date);
+      if (w) bits.push(`Cold enough to make snow ${spanTxt(w.start, w.end)}.`);
     }
     if (d.snow >= 0.5) {
       const tiers = d.midSnow != null && (d.snow - d.baseSnow >= 1 || d.baseRain > 0.1) ? `, about ${snowTxt(d.midSnow)} mid-mountain and ${snowTxt(d.baseSnow)} at the base` : "";
@@ -1437,7 +1425,6 @@
     ];
     if (idx.some((i) => i >= 0 && S.snow[i] >= 0.05))
       rows.splice(1, 0, ["New snow", cell((i) => (S.snow[i] >= 0.05 ? (metric() ? (S.snow[i] * 2.54).toFixed(1) : S.snow[i].toFixed(1)) : "–"), (i) => (S.snow[i] >= 0.05 ? "h-snow" : ""))]);
-    if (!op) rows.push(["Snow guns", cell((i) => (S.tw[i] != null && S.tw[i] <= 27 ? "On" : "–"), (i) => (S.tw[i] != null && S.tw[i] <= 27 ? "h-snow" : ""))]);
     return `<div class="skiday">
       <div class="skiday-head"><span class="label">${k === 0 ? "Today" : dayLong(d.date)} · ${night ? "3pm–9pm" : "8am–4pm"}${(() => { const st = sunTimes(d.date, row.resort.lat, row.resort.lon); return ` · Sunrise ${st.rise} · Sunset ${st.set}`; })()}</span>${row.resort.night ? `<span class="seg mini skiday-seg"><button data-skinight="0" aria-pressed="${!night}">Day</button><button data-skinight="1" aria-pressed="${!!night}">Night</button></span>` : `<span class="label">${metric() ? "°C · km/h · cm" : "°F · mph · in"}</span>`}</div>
       <div class="scroll"><table class="hourly">
@@ -1456,9 +1443,7 @@
           ? `<span class="day-flag wind">Windy</span>`
           : wet > 0.1
             ? `<span class="day-flag rain">${d.ice > 0.05 ? "Ice" : "Rain"}</span>`
-            : !operating(row) && d.smHours
-              ? `<span class="day-flag cold">Guns ${d.smHours}h</span>`
-              : operating(row) && crowdFor(d.date)
+            : operating(row) && crowdFor(d.date)
                 ? `<span class="day-flag busy">Busy</span>`
                 : `<span class="day-flag">&nbsp;</span>`;
         const badge = d.grade ? `<span class="grade g-${d.grade.letter}">${d.grade.letter}</span>` : "";
@@ -1475,8 +1460,8 @@
 
   function defaultDay(row) {
     if (operating(row)) return row.bestDay.k;
-    const best = row.days.map((d, k) => ({ k, h: d.smHours })).sort((a, b) => b.h - a.h)[0];
-    return best && best.h ? best.k : 0;
+    const best = row.days.map((d, k) => ({ k, s: d.snow })).sort((a, b) => b.s - a.s)[0];
+    return best && best.s >= 0.5 ? best.k : 0;
   }
 
   function selectDay(row, k) {
@@ -1573,7 +1558,7 @@
         <p class="hint">${
           operating(row)
             ? "Above the dashed freezing line, snow turns to rain or melts. Base above and summit below means snow up top and slush at the bottom."
-            : "Snow guns go by the snowmaking temp (dotted blue): air temperature adjusted for humidity. Below the gray line, guns can run. Dry air helps, which is why they can sometimes run above freezing."
+            : "Above the dashed freezing line, any early snow melts fast. Long stretches below it, day and night, are what let resorts build a base."
         }</p>
         <div class="chart"><canvas id="chart-temp"></canvas></div>
         <div class="legend label" id="temp-legend"></div>
@@ -1591,7 +1576,7 @@
     </form>`;
   }
   const signupBlock = (row) =>
-    signupForm([row.resort.id], `Get ${esc(row.resort.name)} alerts`, `An email when 6″ or more looks likely, when snowmaking weather lines up before opening, and a Thursday weekend outlook. Free, unsubscribe anytime.`);
+    signupForm([row.resort.id], `Get ${esc(row.resort.name)} alerts`, `An email when 6″ or more looks likely, when the first real cold or snow lines up before opening, and a Thursday weekend outlook. Free, unsubscribe anytime.`);
   function renderSignupHome() {
     const el = $("#signup-home");
     if (!el) return;

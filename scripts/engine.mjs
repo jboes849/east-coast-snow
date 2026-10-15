@@ -1,6 +1,6 @@
 // Upslope forecast engine. Turns raw model output into per-resort forecasts:
 // lead-time weighted blends, precipitation type, snow-to-liquid ratios, ensemble
-// probabilities, season state, snowmaking windows, day grades and insights.
+// probabilities, season state, snowmaking weather, day grades and insights.
 //
 // Units inside the engine: inches, °F, mph, feet. Pressure-level temperatures are
 // kept in °C because that is how forecasters talk about them.
@@ -391,6 +391,11 @@ function addDays(date, n) {
 }
 const daysBetween = (a, b) => Math.round((new Date(b + "T12:00:00Z") - new Date(a + "T12:00:00Z")) / 86400000);
 
+// Snowmaking: a mid-mountain wet bulb at or below this (°F) for several hours is
+// workable for most systems; we only bring it up in the weeks before opening.
+const SNOWMAKING_TW = 26;
+const SNOWMAKING_LEAD = 45;
+
 export function season(resort, date) {
   const y = Number(date.slice(0, 4));
   const m = Number(date.slice(5, 7));
@@ -563,8 +568,6 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
     if (spread > Math.max(3, c.snow * 0.8)) conf = "low";
     else if (spread > Math.max(1.5, c.snow * 0.4)) conf = "medium";
     const snowW = sum(ks.map((k) => H.snowW[k]));
-    const sm27 = ks.filter((k) => H.tw[k] != null && H.tw[k] <= 27).length;
-    const bm27 = ks.filter((k) => HB.tw[k] != null && HB.tw[k] <= 27).length;
     return {
       date: d,
       snow: round(c.snow),
@@ -588,8 +591,6 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
       // Summit in the clouds during lift hours: near-saturated air under overcast.
       fog: ks.filter((k) => { const h = Number(timeIndex[k].slice(11, 13)); return h >= 9 && h <= 16 && (H.rh[k] ?? 0) >= 96 && (H.cloud[k] ?? 0) >= 90; }).length,
       overnight: round(sum(onKs.map((k) => H.snow[k]))),
-      smHours: sm27,
-      smBase: bm27,
       prob: ens && i < 7 ? probAtLeast(ens, ks[0], ks[ks.length - 1], [1, 3, 6]) : null,
       _ks: ks,
     };
@@ -624,11 +625,14 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
     };
   });
 
-  // ---- snowmaking windows (summit wet bulb ≤ 27°F, at least 4 hours) ----
+  // ---- snowmaking weather (mid-mountain wet bulb at or below 26°F for 6+ hours) ----
+  // Only worth talking about in the weeks before a resort usually opens; once
+  // the lifts turn, the snow forecast matters and resorts run guns on their own plan.
+  const smRelevant = sea.phase === "preseason" && sea.daysToOpen <= SNOWMAKING_LEAD;
   const windows = [];
   let cur = null;
-  for (let k = k0; k < timeIndex.length; k++) {
-    const ok = H.tw[k] != null && H.tw[k] <= 27;
+  for (let k = k0; smRelevant && k < timeIndex.length; k++) {
+    const ok = HM.tw[k] != null && HM.tw[k] <= SNOWMAKING_TW;
     if (ok) {
       if (!cur) cur = { s: k, e: k, gap: 0 };
       cur.e = k;
@@ -646,14 +650,12 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
       return {
         start: timeIndex[w.s],
         end: timeIndex[w.e],
-        hours: ks.filter((k) => H.tw[k] <= 27).length,
-        good: ks.filter((k) => H.tw[k] <= 22).length,
-        minTw: round(Math.min(...ks.map((k) => H.tw[k]).filter((v) => v != null)), 0),
-        baseHours: ks.filter((k) => HB.tw[k] != null && HB.tw[k] <= 27).length,
+        hours: ks.filter((k) => HM.tw[k] <= SNOWMAKING_TW).length,
+        minTw: round(Math.min(...ks.map((k) => HM.tw[k]).filter((v) => v != null)), 0),
       };
     })
-    .filter((w) => w.hours >= 4);
-  const smHours7 = sum(days.map((d) => d.smHours));
+    .filter((w) => w.hours >= 6);
+  const smHours7 = smRelevant ? sum(smWindows.map((w) => w.hours)) : 0;
 
   // ---- grades and powder (only when the lifts are turning) ----
   if (sea.operating) {
@@ -754,7 +756,7 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
     ens7: pct,
     days: days.map(({ _ks, ...d }) => d),
     storms: storms.map(({ _ks, ...s }) => s),
-    snowmaking: { hours7: smHours7, windows: smWindows },
+    snowmaking: { relevant: smRelevant, hours7: smHours7, windows: smWindows },
   };
   if (sea.operating) {
     const best = res.days.slice(1, 4).map((d, i) => ({ k: i + 1, score: d.powder })).sort((a, b) => b.score - a.score)[0];
@@ -811,18 +813,14 @@ function insights(c) {
   if (!sea.operating) {
     const w = [...res.snowmaking.windows].sort((a, b) => b.hours - a.hours);
     if (sea.phase === "closed") add(1, `Closed for the season.`, "season");
-    if (w.length) {
-      const top = w[0];
-      const more = w.length > 1 ? ` ${w.length - 1} more ${w.length === 2 ? "window follows" : "windows follow"} this week.` : "";
-      add(9, `Snow guns can run ${span(top.start, top.end)}: about ${top.hours} hours cold enough at the summit, getting down to ${T(top.minTw)} once humidity is factored in${top.baseHours >= 3 ? `. The base is cold enough for ${top.baseHours} of those hours` : ". The base stays too warm"}.${more}`, "snowmaking");
-    } else {
-      const minTw = Math.min(...days.map((d, i) => {
-        const ks = timeIndex.map((t, k) => (t.startsWith(d.date) ? k : -1)).filter((k) => k >= 0);
-        return Math.min(...ks.map((k) => H.tw[k] ?? 99));
-      }));
-      add(8, minTw <= 27
-        ? `No real snowmaking window this week: the summit only gets cold enough for a few hours. Snow guns need several hours around ${T(27)} or colder (factoring in humidity).`
-        : `Too warm for snowmaking this week. Snow guns need about ${T(27)} or colder once humidity is factored in; the summit only gets to about ${T(minTw)}.`, "snowmaking");
+    if (res.snowmaking.relevant) {
+      if (w.length) {
+        const top = w[0];
+        const more = w.length > 1 ? ` ${w.length === 2 ? "One more cold stretch follows" : `${w.length - 1} more cold stretches follow`} this week.` : "";
+        add(7, `Cold enough to make snow ${span(top.start, top.end)}: about ${top.hours} hours at or below ${T(SNOWMAKING_TW)} at mid-mountain, counting humidity.${more} Whether the guns run is up to the resort.`, "snowmaking");
+      } else {
+        add(6, `Too mild to make snow this week: mid-mountain doesn't stay at or below ${T(SNOWMAKING_TW)} (counting humidity) for long.`, "snowmaking");
+      }
     }
     const flakes = [...storms].filter((x) => x.total >= 0.5).sort((a, b) => b.total - a.total)[0];
     if (flakes) {
@@ -832,7 +830,7 @@ function insights(c) {
       const stick = after.maxT != null && after.maxT >= 40 ? ` It won't last: highs reach ${T(after.maxT)} ${after.when}.` : after.maxT != null ? ` Highs stay near ${T(after.maxT)} afterward, so some of it should stick up high.` : "";
       add(10, `${main.total >= 3 ? "Accumulating snow" : "First flakes"}: about ${S(main.total)} at the summit ${span(main.start, main.end)} (models ${R(main.lo, main.hi)}).${rainFirst}${snowLine(c, main)}${stick}`, "storm");
     }
-    if (sea.phase === "preseason") add(2, `Typically opens around ${fmtDate(sea.open)}, ${sea.daysToOpen} days out. Openings depend on snowmaking nights, not the calendar.`, "season");
+    if (sea.phase === "preseason") add(2, `Typically opens around ${fmtDate(sea.open)}, ${sea.daysToOpen} days out.`, "season");
     return out.sort((a, b) => b.pri - a.pri);
   }
 
@@ -877,7 +875,7 @@ function insights(c) {
   }
   if (!snowStorms.length) {
     const dry = storms.length === 0;
-    add(8, `${dry ? "Dry week" : "No meaningful snow this week"}. ${res.snowmaking.hours7 >= 12 ? `Snowmaking gets ${res.snowmaking.hours7} hours of cold enough air to resurface trails.` : "Too mild for much snowmaking."}`, "storm");
+    add(8, `${dry ? "Dry week: no new snow in the forecast." : "No meaningful snow this week."}`, "storm");
   }
 
   // ---- after the main storm ----
@@ -1024,8 +1022,6 @@ function flags(c) {
   const { days, storms, res, sea } = c;
   const f = [];
   if (!sea.operating) {
-    const w = [...res.snowmaking.windows].sort((a, b) => b.hours - a.hours)[0];
-    if (w) f.push({ cls: "cold", text: `Snow guns ${WD(w.start.slice(0, 10))}` });
     const s = storms.find((x) => x.total >= 0.5);
     if (s) f.push({ cls: "powder", text: `Snow ${WD(s.start.slice(0, 10))}` });
     if (sea.phase === "preseason") f.push({ cls: "muted", text: `Usually opens ${fmtDate(sea.open)}` });
@@ -1052,7 +1048,8 @@ export function headline(rows, resorts) {
   const operating = rows.filter((r) => r.season.operating);
   const snowiest = [...rows].sort((a, b) => b.total7 - a.total7)[0];
   if (!operating.length) {
-    const sm = rows.filter((r) => r.snowmaking.windows.length);
+    const near = rows.filter((r) => r.snowmaking.relevant);
+    const sm = near.filter((r) => r.snowmaking.windows.length);
     const firstOpen = [...rows].filter((r) => r.season.phase === "preseason").sort((a, b) => a.season.daysToOpen - b.season.daysToOpen)[0];
     const regions = {};
     sm.forEach((r) => (regions[byId[r.id].region] = (regions[byId[r.id].region] || 0) + r.snowmaking.hours7));
@@ -1064,12 +1061,13 @@ export function headline(rows, resorts) {
       title = `First flakes for ${byId[snowiest.id].region}.`;
       text = `Up to ${S(snowiest.total7)} on the summit of ${byId[snowiest.id].name}${s ? ` ${span(s.start, s.end)}` : ""}.`;
     } else {
-      title = sm.length ? "Pre-season: snowmaking watch." : "Pre-season: still too warm.";
+      title = !near.length ? "Pre-season: waiting on winter." : sm.length ? "Pre-season: cold nights ahead." : "Pre-season: still too mild.";
       text = "";
     }
-    text += sm.length
-      ? ` ${sm.length} of ${rows.length} resorts get cold enough nights for snow guns this week, mostly in ${listTxt(topRegions)}.`
-      : ` No resort gets cold enough for snowmaking this week.`;
+    if (near.length)
+      text += sm.length
+        ? ` ${sm.length === near.length ? `All ${near.length}` : `${sm.length} of the ${near.length}`} resorts close to opening get nights cold enough to make snow, mostly in ${listTxt(topRegions)}.`
+        : ` None of the resorts close to opening get cold enough to make snow this week.`;
     if (firstOpen) text += ` ${byId[firstOpen.id].name} typically opens first, around ${fmtDate(firstOpen.season.open)}.`;
     return { title, text: text.trim() };
   }
@@ -1081,8 +1079,7 @@ export function headline(rows, resorts) {
   const ranked = Object.entries(regions).sort((a, b) => b[1].total7 - a[1].total7);
   const [leadName, lead] = ranked[0];
   if (lead.total7 < 1) {
-    const sm = rows.filter((r) => r.snowmaking.hours7 >= 12).length;
-    return { title: "A quiet week across the East.", text: `No meaningful natural snow in the next 7 days.${sm ? ` ${sm} resorts get solid snowmaking weather.` : ""}` };
+    return { title: "A quiet week across the East.", text: "No meaningful natural snow in the next 7 days." };
   }
   const big = [...lead.storms].sort((a, b) => b.total - a.total)[0];
   let text = `Up to ${S(lead.total7)} at ${byId[lead.id].name} over 7 days (models ${R(lead.lo7, lead.hi7)}).`;
@@ -1123,7 +1120,7 @@ export function writeups(rows, resorts, { nws, setups } = {}) {
     if (main && main.s.total >= 6) title = `${cap(when(main.s.start).replace(/^early /, ""))} storm: up to ${S(main.s.total)} at ${nm(main.r)}.`;
     else if (main && main.s.total >= 2) title = `Some snow ${when(main.s.start)}, best at ${nm(main.r)}.`;
     else if (main) title = `Just a coating for the high peaks.`;
-    else if (!open.length) title = R_.some((r) => r.snowmaking.hours7 >= 12) ? "Dry, with snowmaking nights." : "Quiet and too mild for snow guns.";
+    else if (!open.length) title = R_.some((r) => r.snowmaking.hours7 >= 12) ? "Dry, with cold nights." : "Quiet and mild.";
     else title = "A dry stretch.";
 
     if (main) {
@@ -1158,17 +1155,17 @@ export function writeups(rows, resorts, { nws, setups } = {}) {
     p2 += gust >= 40 ? ` and gusts near ${W(gust)} up top.` : ".";
     paras.push(p2);
 
-    // Skiing or snowmaking.
+    // Skiing, or what's ahead before opening.
     if (open.length) {
       const best = [...open].sort((a, b) => b.bestDay.score - a.bestDay.score || b.total3 - a.total3)[0];
       const d = best.days[best.bestDay.k];
       paras.push(`Best ski day: ${WEEKDAY(d.date)} at ${nm(best)} (${best.bestDay.letter}).${d.overnight >= 1 ? ` About ${S(d.overnight)} falls overnight before first chair.` : ""}`);
     } else {
-      const sm = [...R_].sort((a, b) => b.snowmaking.hours7 - a.snowmaking.hours7);
       const firstOpen = [...R_].filter((r) => r.season.phase === "preseason").sort((a, b) => a.season.daysToOpen - b.season.daysToOpen)[0];
-      let p = sm[0].snowmaking.hours7 >= 4 ? `Snowmaking: ${nm(sm[0])} gets the most hours cold enough for snow guns this week (${sm[0].snowmaking.hours7}).` : "Snowmaking: too warm for snow guns this week.";
-      if (firstOpen) p += ` ${nm(firstOpen)} usually opens first here, around ${fmtDate(firstOpen.season.open)}.`;
-      paras.push(p);
+      const sm = [...R_].filter((r) => r.snowmaking.relevant).sort((a, b) => b.snowmaking.hours7 - a.snowmaking.hours7)[0];
+      let p = firstOpen ? `${nm(firstOpen)} usually opens first here, around ${fmtDate(firstOpen.season.open)}.` : "";
+      if (sm) p += sm.snowmaking.hours7 >= 6 ? ` ${nm(sm)} gets the most hours cold enough to make snow this week (about ${sm.snowmaking.hours7}).` : " Nights stay too mild to make much snow this week.";
+      if (p.trim()) paras.push(p.trim());
     }
 
     // How the forecast has moved.
@@ -1206,7 +1203,7 @@ export function writeups(rows, resorts, { nws, setups } = {}) {
       const pr = String(cpc.precip?.cat || "").toLowerCase();
       if (t.startsWith("b") && pr.startsWith("a")) outlook += " Cold and stormy is the combination powder chasers want.";
       else if (t.startsWith("a") && pr.startsWith("a")) outlook += " Wet and mild often means rain below the summits.";
-      else if (t.startsWith("b")) outlook += " Good news for snowmaking.";
+      else if (t.startsWith("b")) outlook += " Colder air helps the snow that's already down last.";
     }
 
     return { key: area.key, name: area.name, short: area.short || area.name, title, paras, outlook, top: top ? top.id : null };
