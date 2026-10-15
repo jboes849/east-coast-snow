@@ -380,3 +380,11 @@ button.day.snowy[aria-pressed="true"] { box-shadow: inset 0 2px 0 var(--accent),
 .wk .grade { width: 30px; height: 30px; font-size: 15px; }
 .page-mode #weekend-block { display: none; }
 @media (max-width: 640px) { .weekend { grid-template-columns: 1fr; } .wk { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; } .wk:first-child { border-top: 0; } }
+.mchips { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 6px; }
+.seg.mini button { height: 26px; padding: 0 10px; font-size: 11px; }
+.mchip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.mchip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: 500 12px var(--sans); cursor: pointer; }
+.mchip i { width: 12px; height: 3px; display: inline-block; }
+.mchip[aria-pressed="false"] { color: var(--muted); text-decoration: line-through; opacity: 0.6; }
+.readout { margin: 6px 0 4px; min-height: 20px; font: 400 12.5px/1.5 var(--mono); color: var(--fg-2); }
+.readout b { color: var(--fg); font-weight: 500; }

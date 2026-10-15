@@ -433,6 +433,60 @@
     state.charts = [];
   }
 
+  // Current hour in New York as the forecast's "YYYY-MM-DDTHH:00".
+  function nyHour() {
+    const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", hourCycle: "h23" }).formatToParts(new Date()).map((x) => [x.type, x.value]));
+    return `${p.year}-${p.month}-${p.day}T${p.hour}:00`;
+  }
+
+  // Weekend shading, a "now" line and a shared crosshair, drawn on every chart.
+  const decor = {
+    id: "upslopeDecor",
+    beforeDatasetsDraw(chart) {
+      const { ctx, chartArea: a, scales } = chart;
+      const times = chart.data.labels;
+      ctx.save();
+      ctx.fillStyle = "rgba(11,13,16,0.035)";
+      times.forEach((t, i) => {
+        const wd = dateObj(t.slice(0, 10)).getDay();
+        if ((wd === 0 || wd === 6) && t.slice(11, 13) === "00") {
+          const x0 = scales.x.getPixelForValue(i);
+          const x1 = scales.x.getPixelForValue(Math.min(times.length - 1, i + 24));
+          ctx.fillRect(x0, a.top, x1 - x0, a.bottom - a.top);
+        }
+      });
+      ctx.restore();
+    },
+    afterDatasetsDraw(chart) {
+      const { ctx, chartArea: a, scales } = chart;
+      const times = chart.data.labels;
+      const now = times.indexOf(nyHour());
+      ctx.save();
+      if (now >= 0) {
+        const x = scales.x.getPixelForValue(now);
+        ctx.strokeStyle = css("--warn");
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, a.top);
+        ctx.lineTo(x, a.bottom);
+        ctx.stroke();
+        ctx.fillStyle = css("--warn");
+        ctx.font = "500 10px Geist Mono, monospace";
+        ctx.fillText("NOW", x + 4, a.top + 10);
+      }
+      if (state.hoverIdx != null && state.hoverIdx < times.length) {
+        const x = scales.x.getPixelForValue(state.hoverIdx);
+        ctx.strokeStyle = "rgba(11,13,16,0.55)";
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(x, a.top);
+        ctx.lineTo(x, a.bottom);
+        ctx.stroke();
+      }
+      ctx.restore();
+    },
+  };
+
   function chartOptions(times, yTitle) {
     const muted = css("--muted");
     const line = css("--line");
@@ -440,18 +494,13 @@
     return {
       responsive: true,
       maintainAspectRatio: false,
-      animation: { duration: 300 },
+      animation: false,
       interaction: { mode: "index", intersect: false },
+      events: ["mousemove", "mouseout", "click", "touchstart", "touchmove"],
+      onHover: (e, els, chart) => setHover(e.type === "mouseout" ? null : chart.scales.x.getValueForPixel(e.x)),
       plugins: {
-        legend: { position: "bottom", align: "start", labels: { color: muted, boxWidth: 14, boxHeight: 2, padding: 14, font: mono, filter: (item) => !item.text.startsWith("_") } },
-        tooltip: {
-          backgroundColor: "#0b0d10",
-          cornerRadius: 0,
-          titleFont: { family: "Geist Mono", size: 11 },
-          bodyFont: { family: "Geist Mono", size: 11 },
-          filter: (item) => !item.dataset.label.startsWith("_"),
-          callbacks: { title: (items) => `${dayShort(times[items[0].dataIndex].slice(0, 10))} ${hourLabel(times[items[0].dataIndex])}` },
-        },
+        legend: { display: false },
+        tooltip: { enabled: false },
       },
       scales: {
         x: {
@@ -470,9 +519,72 @@
     };
   }
 
+  // One readout for the hour under the finger or cursor, shared by both charts.
+  function setHover(i) {
+    const det = state.details[state.selected];
+    if (!det) return;
+    const n = state.charts[0]?.data.labels.length ?? 0;
+    const idx = i == null ? null : Math.max(0, Math.min(n - 1, Math.round(i)));
+    if (idx === state.hoverIdx) return;
+    state.hoverIdx = idx;
+    state.charts.forEach((c) => c.draw());
+    renderReadout(det, idx);
+  }
+
+  function renderReadout(det, idx) {
+    const el = $("#chart-readout");
+    if (!el) return;
+    const now = det.time.indexOf(nyHour());
+    const i = idx ?? (now >= 0 ? now : 0);
+    const t = det.time[i];
+    let run = 0;
+    for (let k = 0; k <= i; k++) run += det.summit.snow[k] || 0;
+    const type = det.summit.type[i];
+    const bits = [
+      `<b>${dayShort(t.slice(0, 10))} ${hourLabel(t)}${idx == null ? " · now" : ""}</b>`,
+      `${snowTxt(run)} since ${dayShort(det.time[0].slice(0, 10))}`,
+      `summit ${tempTxtU(det.summit.t[i])}, base ${tempTxtU(det.base.t[i])}`,
+      `gusts ${windTxt(det.summit.gust[i])} ${compass(det.summit.dir[i])}`,
+      type ? PTYPE[type] : "dry",
+    ];
+    el.innerHTML = bits.join(" · ");
+  }
+
+  // Which models show on the snow chart. Saved per browser.
+  const MODEL_SETS = {
+    all: () => [],
+    short: () => state.data.models.filter((m) => !m.hires).map((m) => m.id),
+    global: () => state.data.models.filter((m) => m.hires).map((m) => m.id),
+    none: () => state.data.models.map((m) => m.id),
+  };
+  const hiddenModels = () => new Set(store.get("ups-hidden-models", []));
+
+  function modelChips() {
+    const hidden = hiddenModels();
+    const chips = state.data.models
+      .filter((m) => m.ok)
+      .map((m) => `<button class="mchip" data-model="${m.id}" aria-pressed="${!hidden.has(m.id)}"><i style="background:${m.color}"></i>${esc(m.label)}</button>`)
+      .join("");
+    return `<div class="mchips">
+      <div class="seg mini" role="group" aria-label="Model groups"><button data-mset="all">All</button><button data-mset="short">Short-range</button><button data-mset="global">Global</button><button data-mset="none">Blend only</button></div>
+      <div class="mchip-row">${chips}</div>
+    </div>`;
+  }
+
+  function applyModelVisibility() {
+    const c = state.charts.find((x) => x.canvas.id === "chart-snow");
+    const hidden = hiddenModels();
+    if (c) {
+      c.data.datasets.forEach((d) => d.modelId && (d.hidden = hidden.has(d.modelId)));
+      c.update("none");
+    }
+    document.querySelectorAll("[data-model]").forEach((b) => b.setAttribute("aria-pressed", String(!hidden.has(b.dataset.model))));
+  }
+
   function drawCharts(row, det) {
     if (!window.Chart || !det) return;
     destroyCharts();
+    state.hoverIdx = null;
     const n = Math.min(det.time.length, 24 * state.dates.length);
     const times = det.time.slice(0, n);
     const fg = css("--fg");
@@ -480,6 +592,7 @@
     const warn = css("--warn");
     const cut = (a) => a.slice(0, n);
     const sv = (v) => (v == null ? null : +snowNum(v).toFixed(1));
+    const hidden = hiddenModels();
 
     // Snow accumulation: ensemble 10–90% band, each model, and the blend.
     const ds = [];
@@ -489,11 +602,11 @@
     }
     det.models.forEach((m) => {
       const meta = state.data.models.find((x) => x.id === m.id) || { label: m.id, color: "#999" };
-      ds.push({ label: meta.label, data: cut(m.cum).map(sv), borderColor: meta.color, backgroundColor: meta.color, borderWidth: 1.1, pointRadius: 0, tension: 0.2 });
+      ds.push({ label: meta.label, modelId: m.id, hidden: hidden.has(m.id), data: cut(m.cum).map(sv), borderColor: meta.color, backgroundColor: meta.color, borderWidth: 1.2, pointRadius: 0, tension: 0.2 });
     });
     let run = 0;
-    ds.push({ label: "Upslope blend", data: cut(det.summit.snow).map((s) => +snowNum((run += s || 0)).toFixed(1)), borderColor: fg, backgroundColor: fg, borderWidth: 2.5, pointRadius: 0, tension: 0.2 });
-    state.charts.push(new Chart($("#chart-snow"), { type: "line", data: { labels: times, datasets: ds }, options: chartOptions(times, snowUnit()) }));
+    ds.push({ label: "Upslope blend", data: cut(det.summit.snow).map((s) => +snowNum((run += s || 0)).toFixed(1)), borderColor: fg, backgroundColor: fg, borderWidth: 2.75, pointRadius: 0, tension: 0.2 });
+    state.charts.push(new Chart($("#chart-snow"), { type: "line", data: { labels: times, datasets: ds }, options: chartOptions(times, snowUnit()), plugins: [decor] }));
 
     // Temperatures at summit and base, with the freezing and snowmaking lines.
     const temps = (arr) => cut(arr).map((t) => (t == null ? null : +tempNum(t).toFixed(1)));
@@ -505,11 +618,13 @@
     ];
     if (!operating(row)) {
       tds.splice(2, 0, { label: "Snowmaking temp", data: temps(det.summit.tw), borderColor: "#0aa2c0", backgroundColor: "#0aa2c0", borderWidth: 1.25, borderDash: [2, 2], pointRadius: 0, tension: 0.2 });
-      tds.push({ label: "Snowmaking", data: flat(27), borderColor: "#6b7280", backgroundColor: "#6b7280", borderDash: [1, 3], borderWidth: 1, pointRadius: 0 });
+      tds.push({ label: "Snowmaking line", data: flat(27), borderColor: "#6b7280", backgroundColor: "#6b7280", borderDash: [1, 3], borderWidth: 1, pointRadius: 0 });
     }
     const o2 = chartOptions(times, metric() ? "°C" : "°F");
     o2.scales.y.beginAtZero = false;
-    state.charts.push(new Chart($("#chart-temp"), { type: "line", data: { labels: times, datasets: tds }, options: o2 }));
+    state.charts.push(new Chart($("#chart-temp"), { type: "line", data: { labels: times, datasets: tds }, options: o2, plugins: [decor] }));
+    $("#temp-legend").innerHTML = tds.map((d) => `<span><i style="background:${d.borderColor}${d.borderDash ? ";opacity:.7" : ""}"></i>${d.label}</span>`).join("");
+    renderReadout(det, null);
   }
 
   // Hour-by-hour precipitation type at summit and base.
@@ -859,8 +974,10 @@
     if (!det) return `<div class="skeleton sk-row"></div><div class="skeleton sk-row"></div>`;
     return `${windPanel(row, det)}
       <section class="panel">
-        <div class="block-head"><h3>Snow accumulation, summit</h3><span class="label">${snowUnit()} · running total</span></div>
-        <p class="hint">Thin lines are individual models. The black line is the Upslope blend. The shaded band holds the middle 80% of ${state.data.ensembles.members} ensemble runs: the wider it is, the less certain the forecast.</p>
+        <div class="block-head"><h3>Snow piling up at the summit</h3><span class="label">${snowUnit()} · running total</span></div>
+        <p class="hint">The thick black line is the Upslope blend. Thin lines are single models; tap a name to hide or show it. The blue band is where 80% of ${state.data.ensembles.members} ensemble runs land: the wider it is, the less certain the forecast. Weekends are shaded.</p>
+        ${modelChips()}
+        <p class="readout" id="chart-readout"></p>
         <div class="chart"><canvas id="chart-snow"></canvas></div>
       </section>
       ${ptypePanel(row, det)}
@@ -872,6 +989,7 @@
             : "Snow guns go by the snowmaking temp (dotted blue): air temperature adjusted for humidity. Below the gray line, guns can run. Dry air helps, which is why they can sometimes run above freezing."
         }</p>
         <div class="chart"><canvas id="chart-temp"></canvas></div>
+        <div class="legend label" id="temp-legend"></div>
       </section>
       ${modelTable(row, det)}`;
   }
@@ -990,6 +1108,18 @@
         $("#radar-toggle").setAttribute("aria-pressed", String(state.radar));
         if (map) state.radar ? radarLayer.addTo(map) : map.removeLayer(radarLayer);
         return;
+      }
+      const mchip = e.target.closest("[data-model]");
+      if (mchip) {
+        const h = hiddenModels();
+        h.has(mchip.dataset.model) ? h.delete(mchip.dataset.model) : h.add(mchip.dataset.model);
+        store.set("ups-hidden-models", [...h]);
+        return applyModelVisibility();
+      }
+      const mset = e.target.closest("[data-mset]");
+      if (mset) {
+        store.set("ups-hidden-models", MODEL_SETS[mset.dataset.mset]());
+        return applyModelVisibility();
       }
       const dayBtn = e.target.closest("[data-day]");
       if (dayBtn && state.selected) return selectDay(state.rows.find((x) => x.resort.id === state.selected), Number(dayBtn.dataset.day));
