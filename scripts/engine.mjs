@@ -334,19 +334,31 @@ function blend(models, timeIndex, leads, dates) {
 }
 
 // ---------- ensembles ----------
-function memberSnow(m) {
+// Ensemble members carry only surface data, so precipitation type and snow ratio
+// come from the deterministic blend where it has precipitation (that includes the
+// warm layer aloft), and from member temperature otherwise.
+function memberSnow(m, H) {
   return m.p.map((p, k) => {
     const t = m.t[k];
     if (p == null || t == null || p < 0.004) return 0;
-    const frac = t <= 32 ? 1 : t >= 35 ? 0 : (35 - t) / 3;
-    return p * frac * surfaceRatio(t);
+    const det = H.snowW[k] + H.rain[k] + H.ice[k];
+    let frac;
+    let slr;
+    if (det >= 0.003) {
+      frac = H.snowW[k] / det;
+      slr = H.snowW[k] > 0.001 ? H.snow[k] / H.snowW[k] : surfaceRatio(t);
+    } else {
+      frac = H.t850[k] != null && H.t850[k] > 1 ? 0 : t <= 32 ? 1 : t >= 35 ? 0 : (35 - t) / 3;
+      slr = surfaceRatio(t);
+    }
+    return p * frac * slr;
   });
 }
 
 // Pooled ensemble: each ensemble system gets equal say regardless of size.
-function ensembleStats(systems) {
+function ensembleStats(systems, H) {
   const members = [];
-  systems.forEach((sys) => sys.members.forEach((m) => members.push({ w: 1 / sys.members.length, snow: memberSnow(m) })));
+  systems.forEach((sys) => sys.members.forEach((m) => members.push({ w: 1 / sys.members.length, snow: memberSnow(m, H) })));
   return members.length ? members : null;
 }
 
@@ -510,7 +522,7 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
   const dayKs = (d) => timeIndex.map((t, k) => (t.startsWith(d) ? k : -1)).filter((k) => k >= 0);
 
   // Ensemble members at the summit.
-  const ens = ensembles && ensembles.length ? ensembleStats(ensembles) : null;
+  const ens = ensembles && ensembles.length ? ensembleStats(ensembles, H) : null;
   const TH = [1, 3, 6, 12, 18];
 
   // ---- days ----
@@ -778,7 +790,7 @@ function insights(c) {
     if (flakes) {
       const main = flakes;
       const after = afterStorm(c, main);
-      const rainFirst = main.rain >= 0.25 ? ` It starts as rain (${Lq(main.rain)}) before cold air arrives.` : "";
+      const rainFirst = "";
       const stick = after.maxT != null && after.maxT >= 40 ? ` It won't last: highs reach ${T(after.maxT)} ${after.when}.` : after.maxT != null ? ` Highs stay near ${T(after.maxT)} afterward, so some of it should stick up high.` : "";
       add(10, `${main.total >= 3 ? "Accumulating snow" : "First flakes"}: about ${S(main.total)} at the summit ${span(main.start, main.end)} (models ${R(main.lo, main.hi)}).${rainFirst}${snowLine(c, main)}${stick}`, "storm");
     }
@@ -868,8 +880,13 @@ function snowLine(c, s) {
   const fzl = median(ks.filter((k) => wet(HB, k) + HB.snowW[k] > 0.01).map((k) => H.fzl[k]));
   const level = fzl != null ? Math.max(0, fzl - 1000) : null;
   if (summitRainKs.length >= 2) {
+    const snowKs = ks.filter((k) => H.snowW[k] >= 0.01 && H.snowW[k] >= H.rain[k]);
+    if (snowKs.length >= 2 && median(snowKs) > median(summitRainKs)) {
+      const firstSnow = snowKs.find((k) => k > summitRainKs[Math.floor(summitRainKs.length / 2)]) ?? snowKs[0];
+      return ` It starts as rain (${Lq(s.rain)}), even at the summit, then changes to snow ${when(timeIndex[firstSnow])} as colder air arrives.`;
+    }
     const first = timeIndex[summitRainKs[0]];
-    return ` Rain reaches the summit ${when(first)}${level != null ? ` as the snow level climbs to about ${E(Math.max(level, resort.summit))}` : ""}.`;
+    return ` Rain reaches the summit ${when(first)}${level != null && level < 7000 ? ` as the snow level climbs to about ${E(Math.max(level, resort.summit))}` : ""}.`;
   }
   if (baseRainKs.length >= 2 && s.total >= 1) {
     const first = timeIndex[baseRainKs[0]];
