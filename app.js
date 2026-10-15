@@ -621,6 +621,20 @@
     </section>`;
   }
 
+  // Outbound links: the resort's own pages, the NWS point forecast and, near
+  // Mount Washington, the avalanche center.
+  function linksPanel(r) {
+    const L = { site: r.site, ...(state.data?.links?.[r.id] || {}) };
+    const items = [];
+    if (L.report) items.push([L.report, "Snow report"]);
+    if (L.cams) items.push([L.cams, "Webcams"]);
+    if (L.map) items.push([L.map, "Trail map"]);
+    if (L.site) items.push([L.site, `${r.name} website`]);
+    items.push([`https://forecast.weather.gov/MapClick.php?lat=${r.lat}&lon=${r.lon}`, "NWS forecast"]);
+    if (["wildcat", "attitash", "bretton", "cannon"].includes(r.id)) items.push(["https://www.mountwashingtonavalanchecenter.org/", "Mt Washington avalanche advisory"]);
+    return `<nav class="links-row" aria-label="${esc(r.name)} links"><span class="label">Links</span>${items.map(([u, t]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join("")}</nav>`;
+  }
+
   const flags = (row) => [...alertsFor(row.resort.id).map((a) => ({ cls: "alert", text: a.event })), ...row.flags].slice(0, 3).map((f) => `<span class="f-${f.cls}">${fmt(f.text)}</span>`).join("");
 
   function spark(row) {
@@ -1369,6 +1383,7 @@
         <p class="day-why" id="day-why" aria-live="polite">${dayWhy(row, sel)}</p>
         <div id="day-hours">${skiDay(row, det, sel)}</div>
         ${top.length ? `<h3 class="sub-h">What to Know</h3><ul class="insights">${top.map((x) => `<li data-kind="${x.kind}">${fmt(x.text)}</li>`).join("")}</ul>` : ""}
+        ${linksPanel(r)}
         ${forecasterPanel(id)}
         <div class="d-kpis">${kpiHtml}</div>
         ${qualityBlock(q, ratio)}

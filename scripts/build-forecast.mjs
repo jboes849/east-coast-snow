@@ -170,6 +170,7 @@ async function main() {
     headline: headline(resorts, RESORTS),
     skill: skillSummary(skill),
     nws,
+    links: fs.existsSync(path.join(OUT, "links.json")) ? JSON.parse(fs.readFileSync(path.join(OUT, "links.json"), "utf8")) : null,
     writeups: writeups(resorts, RESORTS, { nws, setups: SETUPS }),
     resorts,
   };

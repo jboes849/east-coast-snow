@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["scripts/verify.mjs", "scripts/stations.json", ".github/workflows/verify.yml"]
+    paths: ["scripts/verify.mjs", "scripts/check-links.mjs", "scripts/stations.json", ".github/workflows/verify.yml"]
 permissions:
   contents: write
 concurrency:
@@ -21,11 +21,13 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/verify.mjs
+      - run: node scripts/check-links.mjs || true
       - name: Commit scores
         run: |
           git config user.name "upslope-bot"
           git config user.email "upslope-bot@users.noreply.github.com"
           git add data/skill.json data/obs.json data/verify-log.txt
+          git add data/links.json data/links-log.txt 2>/dev/null || true
           git commit -m "Model scores $(date -u +%Y-%m-%d)" || exit 0
           for i in 1 2 3; do git pull --rebase origin main && git push && exit 0; sleep 5; done
           exit 1

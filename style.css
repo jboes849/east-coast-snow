@@ -547,3 +547,8 @@ button.day.snowy[aria-pressed="true"] { box-shadow: inset 0 2px 0 var(--accent),
 .wu h3 { margin: 14px 0 8px; font: 600 20px/1.3 var(--sans); letter-spacing: -0.015em; }
 .wu p { margin: 0 0 10px; font-size: 15.5px; line-height: 1.65; color: var(--fg-2); }
 .wu p.hint { margin-top: 12px; }
+
+/* Outbound links */
+.links-row { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+.links-row .label { margin-right: 4px; }
+.links-row a::after { content: " ↗"; font-size: 11px; color: var(--muted); }
