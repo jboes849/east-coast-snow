@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <base href="../../">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bretton Woods snow forecast · Upslope</title>
+  <meta name="description" content="Bretton Woods (NH) 7-day snow forecast from 8 weather models and 82 ensemble runs. Snow guns can run Saturday morning to Sunday morning: about 27 hours cold enough at the summit, getting down to 18°F once humidity is factored in. The base is cold enough for 13 of those hours.">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M1 18 8 5l4 7 2.5-4L19 18Z' fill='%230b0d10'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="canonical" href="https://jboes849.github.io/east-coast-snow/resorts/bretton/">
+  <meta property="og:title" content="Bretton Woods snow forecast · Upslope">
+  <meta property="og:description" content="Bretton Woods (NH) 7-day snow forecast from 8 weather models and 82 ensemble runs. Snow guns can run Saturday morning to Sunday morning: about 27 hours cold enough at the summit, getting down to 18°F once humidity is factored in. The base is cold enough for 13 of those hours.">
+  <meta property="og:url" content="https://jboes849.github.io/east-coast-snow/resorts/bretton/">
+</head>
+<body data-resort="bretton">
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="./">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M1 18 8 5l4 7 2.5-4L19 18Z" fill="currentColor"/></svg>
+        Upslope
+      </a>
+      <nav class="navlinks">
+        <a href="#map-block">Map</a>
+        <a href="#picks-block">Powder</a>
+        <a href="#resorts">Resorts</a>
+        <a href="#how">Method</a>
+      </nav>
+      <div class="seg" role="group" aria-label="Units">
+        <button data-units="in" aria-pressed="true">in °F</button>
+        <button data-units="cm" aria-pressed="false">cm °C</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="resort-page" class="resort-page"></section>
+    <section class="hero">
+      <div class="meta label"><span>East Coast snow outlook</span><span id="asof">Loading…</span></div>
+      <div id="headline" class="headline">
+        <div class="skeleton sk-h1"></div>
+        <div class="skeleton sk-line"></div>
+        <div class="skeleton sk-line" style="width:60%"></div>
+      </div>
+      <div id="stats" class="kpis">
+        <div class="kpi"><span class="label">Most snow · 7d</span><span class="kpi-value skeleton">00</span></div>
+        <div class="kpi"><span class="label">Best first chair</span><span class="kpi-value skeleton">00</span></div>
+        <div class="kpi"><span class="label">Coldest summit</span><span class="kpi-value skeleton">00</span></div>
+      </div>
+      <p id="status" class="status label">Loading the latest forecast</p>
+    </section>
+
+    <section id="map-block" class="block">
+      <div class="block-head">
+        <h2>Snow map</h2>
+        <div class="block-tools">
+          <div class="seg" role="group" aria-label="Map time range">
+            <button data-range="3" aria-pressed="true">3 days</button>
+            <button data-range="7" aria-pressed="false">7 days</button>
+          </div>
+          <button id="radar-toggle" class="toggle" aria-pressed="false"><span id="radar-icon"></span>Radar</button>
+        </div>
+      </div>
+      <div id="map" class="map"></div>
+      <div id="map-legend" class="legend label"></div>
+    </section>
+
+    <section id="picks-block" class="block">
+      <div class="block-head">
+        <h2>Powder mornings</h2>
+        <span class="label">Next 72 h · score 0–100</span>
+      </div>
+      <div id="picks" class="picks">
+        <div class="skeleton sk-row"></div><div class="skeleton sk-row"></div>
+      </div>
+    </section>
+
+    <section id="signup-home" class="block" hidden></section>
+
+    <section id="resorts" class="block">
+      <div class="block-head">
+        <h2>All resorts</h2>
+        <div class="block-tools">
+          <label class="search"><span id="search-icon"></span><input id="search" type="search" placeholder="Search" autocomplete="off" aria-label="Search resorts"></label>
+          <select id="sort" class="select" aria-label="Sort">
+            <option value="7d">Most snow · 7d</option>
+            <option value="3d">Most snow · 3d</option>
+            <option value="powder">Powder score</option>
+            <option value="grade">Best ski day</option>
+            <option value="az">A–Z</option>
+          </select>
+          <div class="seg" role="group" aria-label="View">
+            <button data-view="rows" aria-pressed="true" aria-label="Chart rows" id="view-rows"></button>
+            <button data-view="table" aria-pressed="false" aria-label="Number table" id="view-table"></button>
+          </div>
+        </div>
+      </div>
+      <div id="filters" class="filters" role="group" aria-label="Filter by state"></div>
+      <div id="list">
+        <div class="skeleton sk-row"></div><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div>
+      </div>
+    </section>
+
+    <section id="how" class="block">
+      <div class="block-head">
+        <h2>Method</h2>
+        <span class="label">Built for skiers</span>
+      </div>
+      <div class="how-grid">
+        <article><span class="label">01</span><h3>Eight models, weighted by range</h3><p>Every six hours we pull eight models at each summit and base: high-resolution HRRR, NAM and Canadian HRDPS, plus the NWS Blend, GFS, ECMWF, Canadian GEM and German ICON. The high-resolution models see the terrain best, so they carry the most weight for the first two days.</p></article>
+        <article><span class="label">02</span><h3>Real odds from 82 ensemble runs</h3><p>The GFS and European ensembles rerun their models dozens of times with small changes. We count how many runs reach 3, 6 or 12 inches, so "70% chance of 6 inches" means something.</p></article>
+        <article><span class="label">03</span><h3>Snow, sleet or rain</h3><p>Snow, sleet or rain is decided by humidity-adjusted temperature at the summit and base plus the air a mile up, where warm layers turn snow into sleet. How fluffy the snow is comes from the warmest air the flakes fall through, and the wind.</p></article>
+        <article><span class="label">04</span><h3>Season aware</h3><p>Before opening day there are no ski grades. Instead we track snowmaking windows and first natural snow. Once lifts turn, every day gets an A–F grade for fresh snow, rain, refrozen surfaces, wind holds and cold.</p></article>
+      </div>
+      <details class="glossary">
+        <summary>Glossary</summary>
+        <dl>
+          <dt>Range</dt><dd>The lowest and highest total among the weather models. A wide range means the forecast is uncertain.</dd>
+          <dt>Snow feel</dt><dd>How dense the new snow is. Cold air makes light, fluffy snow (an inch of water becomes 15+ inches of snow); air near freezing makes heavy, wet snow (under 8 inches).</dd>
+          <dt>Snow level</dt><dd>The elevation where rain turns to snow, roughly 1,000 ft below the freezing level.</dd>
+          <dt>Overnight snow</dt><dd>Snow that falls from 4pm to 9am, so it's waiting for you on the first chair.</dd>
+          <dt>Wind hold</dt><dd>When gusts get too strong (often above 45 mph) resorts stop upper lifts for safety.</dd>
+          <dt>Snowmaking temp</dt><dd>Also called wet bulb: the air temperature adjusted for humidity, which is what snow guns care about. Dry air at 32°F can have a wet bulb in the 20s, which is why snow guns can run above freezing and why snow can fall at 36°F.</dd>
+          <dt>Snowmaking window</dt><dd>Hours with a summit snowmaking temp at or below 27°F. Below about 22°F the guns run at full output.</dd>
+          <dt>Ensemble</dt><dd>One model run dozens of times with slightly different starting conditions. The spread of results shows how sure the forecast is.</dd>
+          <dt>Sleet and freezing rain</dt><dd>Snow melts in a warm layer aloft, then refreezes into pellets (sleet) or freezes on contact with the cold ground (freezing rain).</dd>
+          <dt>Day grade</dt><dd>A quick A–F rating for skiing that day. A: fresh snow or a bluebird day. C: a normal groomer day. F: rain or lifts likely closed.</dd>
+          <dt>Nor'easter</dt><dd>A coastal storm tracking up the Atlantic with northeast winds. The classic big-dump setup for southern New England, the Catskills and Maine.</dd>
+          <dt>Lake effect</dt><dd>Narrow, intense snow bands off the Great Lakes on cold westerly winds. Huge totals for Tug Hill and western New York.</dd>
+          <dt>Upslope snow</dt><dd>Snow squeezed out as moist air is forced up the mountains. It's why the northern Greens and Adirondacks often beat the forecast.</dd>
+        </dl>
+      </details>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p><strong>Upslope</strong> is free and built by skiers. Forecasts can be wrong; check resort reports and avalanche advisories before you go.</p>
+      <p class="muted">Weather data by <a href="https://open-meteo.com/">Open-Meteo.com</a> (CC BY 4.0) from NOAA, ECMWF, Environment Canada and DWD models. Radar from Iowa Environmental Mesonet. Map © OpenStreetMap contributors, © CARTO.</p>
+    </div>
+  </footer>
+
+  <dialog id="detail" class="detail" aria-label="Resort forecast">
+    <div id="detail-body"></div>
+  </dialog>
+
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="vendor/chart.umd.js"></script>
+  <script src="config.js"></script>
+  <script src="icons.js"></script>
+  <script src="resorts.js"></script>
+  <script src="guides.js"></script>
+  <script>
+    document.getElementById("search-icon").innerHTML = Icon("search");
+    document.getElementById("view-rows").innerHTML = Icon("bars");
+    document.getElementById("view-table").innerHTML = Icon("table");
+    document.getElementById("radar-icon").innerHTML = Icon("radar");
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>
