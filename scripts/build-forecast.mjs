@@ -166,6 +166,7 @@ async function main() {
 
   const generated = new Date().toISOString();
   addSeason(resorts, now.slice(0, 10));
+  const stormReports = buildStormReports(now.slice(0, 10));
   addTrend(resorts, Date.parse(`${now.slice(0, 13)}:00:00-05:00`));
   const members = ens.reduce((a, e) => a + (parseEnsemble(e.blocks[0], timeIndex).length || 0), 0);
   const summary = {
@@ -177,6 +178,7 @@ async function main() {
     headline: headline(resorts, RESORTS),
     skill: skillSummary(skill),
     nws,
+    stormReports,
     links: fs.existsSync(path.join(OUT, "links.json")) ? JSON.parse(fs.readFileSync(path.join(OUT, "links.json"), "utf8")) : null,
     writeups: writeups(resorts, RESORTS, { nws, setups: SETUPS }),
     resorts,
@@ -231,6 +233,56 @@ function addSeason(resorts, today) {
     r.seasonSnow = { since, start, total: Math.round(total * 10) / 10, normal: normal != null ? Math.round(normal * 10) / 10 : null, avg: avg || null };
   }
   fs.writeFileSync(file, JSON.stringify(season));
+}
+
+// Storm report cards: for each finished storm, what we forecast two days ahead
+// next to what fell (the models' own after-the-fact estimate, which is what
+// season totals use too). Built from data/season.json and data/archive/.
+function buildStormReports(today) {
+  const seasonFile = path.join(OUT, "season.json");
+  if (!fs.existsSync(seasonFile)) return [];
+  const season = JSON.parse(fs.readFileSync(seasonFile, "utf8")).resorts || {};
+  const dates = [...new Set(Object.values(season).flatMap((d) => Object.keys(d)))].sort();
+  const yesterday = new Date(Date.parse(today + "T12:00:00Z") - 86400000).toISOString().slice(0, 10);
+  const events = [];
+  let cur = null;
+  for (const d of dates) {
+    const hit = Object.entries(season).filter(([, days]) => (days[d] || 0) >= 1).length >= 3;
+    if (hit) {
+      if (cur && Date.parse(d) - Date.parse(cur.end) <= 86400000) cur.end = d;
+      else events.push((cur = { start: d, end: d }));
+    }
+  }
+  const dir = path.join(OUT, "archive");
+  const archives = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => /^\d{4}-\d{2}-\d{2}-\d{2}\.json$/.test(f)).sort() : [];
+  const cards = [];
+  for (const ev of events.filter((e) => e.end < yesterday).slice(-4).reverse()) {
+    const want = new Date(Date.parse(ev.start + "T12:00:00Z") - 2 * 86400000).toISOString().slice(0, 10);
+    const file = archives.filter((f) => f.startsWith(want)).sort((a, b) => Math.abs(Number(a.slice(11, 13)) - 6) - Math.abs(Number(b.slice(11, 13)) - 6))[0];
+    if (!file) continue;
+    let arch;
+    try {
+      arch = JSON.parse(fs.readFileSync(path.join(dir, file), "utf8"));
+    } catch (e) {
+      continue;
+    }
+    const inEv = (d) => d >= ev.start && d <= ev.end;
+    const rows = Object.entries(season)
+      .map(([id, days]) => {
+        const est = Object.entries(days).filter(([d]) => inEv(d)).reduce((a, [, v]) => a + v, 0);
+        const old = arch.resorts?.[id]?.days?.filter((x) => inEv(x[0]));
+        if (!old?.length) return null;
+        return { id, est: Math.round(est * 10) / 10, fc: Math.round(old.reduce((a, x) => a + x[1], 0) * 10) / 10, lo: Math.round(old.reduce((a, x) => a + x[2], 0) * 10) / 10, hi: Math.round(old.reduce((a, x) => a + x[3], 0) * 10) / 10 };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.est - a.est);
+    if (!rows.length || rows[0].est < 3) continue;
+    const top = rows.slice(0, 8);
+    const mae = top.reduce((a, r) => a + Math.abs(r.fc - r.est), 0) / top.length;
+    const bias = top.reduce((a, r) => a + r.fc, 0) / Math.max(0.1, top.reduce((a, r) => a + r.est, 0));
+    cards.push({ start: ev.start, end: ev.end, from: file.replace(".json", ""), mae: Math.round(mae * 10) / 10, bias: Math.round(bias * 100) / 100, rows: top });
+  }
+  return cards;
 }
 
 // How the forecast moved since the run about a day ago, over the days both runs cover.

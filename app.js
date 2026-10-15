@@ -437,6 +437,36 @@
       </article>`;
   }
 
+  // ---------- storm report cards ----------
+  function renderReports() {
+    const el = $("#reports-block");
+    const cards = state.data.stormReports || [];
+    if (!el) return;
+    if (!cards.length) {
+      el.hidden = true;
+      return;
+    }
+    el.hidden = false;
+    const name = (id) => RESORTS.find((r) => r.id === id)?.name || id;
+    const span = (a, b) => (a === b ? dayNum(a) : `${dayNum(a)}–${dayNum(b).replace(/^\w+ /, a.slice(5, 7) === b.slice(5, 7) ? "" : "$&")}`);
+    el.innerHTML = `<div class="block-head"><h2>Storm Report Cards${qlink("report-cards", "How storms are graded")}</h2><span class="label">Forecast two days ahead vs what fell</span></div>
+      <div class="cards">${cards
+        .map((c) => {
+          const max = Math.max(...c.rows.flatMap((r) => [r.est, r.fc, r.hi]), 1);
+          const verdictTxt = c.bias >= 1.2 ? `We ran high (${Math.round((c.bias - 1) * 100)}% over)` : c.bias <= 0.83 ? `We ran low (${Math.round((1 - c.bias) * 100)}% under)` : "Close overall";
+          return `<article class="rc">
+            <header><b>${esc(span(c.start, c.end))} storm</b><span class="label">${esc(verdictTxt)} · avg miss ${snowTxt(c.mae)}</span></header>
+            ${c.rows
+              .map((r) => `<div class="rc-row"><span class="rc-name">${esc(name(r.id))}</span>
+                <span class="rc-bars"><i class="rc-range" style="left:${(r.lo / max) * 100}%;width:${Math.max(0.5, ((r.hi - r.lo) / max) * 100)}%"></i><i class="rc-fc" style="left:${(r.fc / max) * 100}%"></i><i class="rc-est" style="width:${(r.est / max) * 100}%"></i></span>
+                <span class="rc-num">${snowTxt(r.fc)} → <b>${snowTxt(r.est)}</b></span></div>`)
+              .join("")}
+          </article>`;
+        })
+        .join("")}</div>
+      <p class="hint small">Blue bar: what fell at the summit (the models' after-the-fact estimate). Black tick: our forecast two days before. Gray: the range across models then.</p>`;
+  }
+
   // ---------- first-visit tips and help links ----------
   const qlink = (anchor, what) => `<a class="qlink" href="faq/#${anchor}" aria-label="Help: ${what}" title="${what}">?</a>`;
   function renderTips() {
@@ -1560,6 +1590,7 @@
     renderStormWatch();
     renderStormTimeline();
     renderCompare();
+    renderReports();
     renderSkill();
   }
 
