@@ -250,6 +250,7 @@ function processModel(raw, siteFt, fill850, fill700, timeIndex) {
       dir: raw.dir[i] ?? null,
       dir850: raw.dir850[i] ?? null,
       cloud: raw.cloud[i] ?? null,
+      rh: raw.rh[i] ?? null,
       sd: raw.sd[i] ?? null,
       ...pt,
     });
@@ -264,7 +265,7 @@ function processModel(raw, siteFt, fill850, fill700, timeIndex) {
 function blend(models, timeIndex, leads, dates, factors = {}) {
   const wt = (id, lead) => weight(id, lead) * (factors[id] ?? 1);
   const n = timeIndex.length;
-  const H = { snow: [], snowW: [], rain: [], ice: [], t: [], tw: [], t850: [], fzl: [], gust: [], wind: [], dir: [], dir850: [], cloud: [], sd: [], type: [] };
+  const H = { snow: [], snowW: [], rain: [], ice: [], t: [], tw: [], t850: [], fzl: [], gust: [], wind: [], dir: [], dir850: [], cloud: [], rh: [], sd: [], type: [] };
   for (let k = 0; k < n; k++) {
     const hs = models.map((m) => m.hours[k]);
     const ws = models.map((m, j) => (hs[j] ? wt(m.id, leads[k]) : 0));
@@ -273,7 +274,7 @@ function blend(models, timeIndex, leads, dates, factors = {}) {
     H.snowW.push(wmean(pick("snowW"), ws) ?? 0);
     H.rain.push(wmean(pick("rainW"), ws) ?? 0);
     H.ice.push(wmean(pick("iceW"), ws) ?? 0);
-    for (const f of ["t", "tw", "t850", "fzl", "gust", "wind", "cloud", "sd"]) H[f].push(wmedian(pick(f), ws));
+    for (const f of ["t", "tw", "t850", "fzl", "gust", "wind", "cloud", "rh", "sd"]) H[f].push(wmedian(pick(f), ws));
     H.dir.push(meanDir(hs.map((h, j) => (h && h.dir != null ? { dir: h.dir, w: (h.wind || 1) * ws[j] } : null))));
     H.dir850.push(meanDir(hs.map((h, j) => (h && h.dir850 != null ? { dir: h.dir850, w: ws[j] } : null))));
   }
@@ -584,6 +585,8 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
       bMin: btemps.length ? round(Math.min(...btemps), 0) : null,
       gustMax: gusts.length ? round(Math.max(...gusts), 0) : null,
       cloud: clouds.length ? round(median(clouds), 0) : null,
+      // Summit in the clouds during lift hours: near-saturated air under overcast.
+      fog: ks.filter((k) => { const h = Number(timeIndex[k].slice(11, 13)); return h >= 9 && h <= 16 && (H.rh[k] ?? 0) >= 96 && (H.cloud[k] ?? 0) >= 90; }).length,
       overnight: round(sum(onKs.map((k) => H.snow[k]))),
       smHours: sm27,
       smBase: bm27,
@@ -772,7 +775,7 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
   };
   res.detail = {
     time: timeIndex.slice(k0),
-    summit: { snow: slice(H.snow, 2), rain: slice(H.rain, 2), ice: slice(H.ice, 2), t: slice(H.t, 0), tw: slice(H.tw, 0), gust: slice(H.gust, 0), wind: slice(H.wind, 0), dir: slice(H.dir, 0), fzl: slice(H.fzl, -2), type: H.type.slice(k0), t850: slice(H.t850, 1) },
+    summit: { fog: H.rh.slice(k0).map((v, i) => (v ?? 0) >= 96 && (H.cloud[k0 + i] ?? 0) >= 90 ? 1 : 0), cloud: slice(H.cloud, -1), snow: slice(H.snow, 2), rain: slice(H.rain, 2), ice: slice(H.ice, 2), t: slice(H.t, 0), tw: slice(H.tw, 0), gust: slice(H.gust, 0), wind: slice(H.wind, 0), dir: slice(H.dir, 0), fzl: slice(H.fzl, -2), type: H.type.slice(k0), t850: slice(H.t850, 1) },
     base: { snow: slice(HB.snow, 2), rain: slice(HB.rain, 2), t: slice(HB.t, 0), tw: slice(HB.tw, 0), type: HB.type.slice(k0) },
     mid: { snow: slice(HM.snow, 2), t: slice(HM.t, 0) },
     models: sm.map((m) => ({ id: m.id, cum: cum(m.hours.map((h) => (h ? h.snow : null))) })),

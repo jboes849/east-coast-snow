@@ -370,6 +370,48 @@
       </div>`;
   }
 
+  // ---------- crowds, daylight ----------
+  // Busy days: holiday weekends and the Northeast school vacation weeks.
+  function nthWeekday(y, m, wd, n) {
+    const d = new Date(Date.UTC(y, m, 1));
+    const shift = (wd - d.getUTCDay() + 7) % 7;
+    return new Date(Date.UTC(y, m, 1 + shift + 7 * (n - 1)));
+  }
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const plusDays = (d, n) => new Date(d.getTime() + n * 86400000);
+  function crowdFor(date) {
+    const y = Number(date.slice(0, 4));
+    const inRange = (a, b) => date >= iso(a) && date <= iso(b);
+    const thx = nthWeekday(y, 10, 4, 4);
+    if (inRange(thx, plusDays(thx, 3))) return "Thanksgiving weekend";
+    if (date >= `${y}-12-24` || date <= `${y}-01-01`) return "Holiday week";
+    const mlk = nthWeekday(y, 0, 1, 3);
+    if (inRange(plusDays(mlk, -2), mlk)) return "MLK weekend";
+    const pres = nthWeekday(y, 1, 1, 3);
+    if (inRange(plusDays(pres, -2), plusDays(pres, 6))) return "February vacation";
+    const patriots = nthWeekday(y, 3, 1, 3);
+    if (inRange(plusDays(patriots, -2), plusDays(patriots, 6))) return "April vacation";
+    return null;
+  }
+
+  // Sunrise and sunset (NOAA's simple solar formula), in local clock time.
+  function sunTimes(date, lat, lon) {
+    const d = new Date(`${date}T12:00:00Z`);
+    const n = Math.floor((d - Date.UTC(d.getUTCFullYear(), 0, 0)) / 86400000);
+    const g = ((2 * Math.PI) / 365) * (n - 1);
+    const eq = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g) - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g));
+    const decl = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g);
+    const rad = (x) => (x * Math.PI) / 180;
+    const ha = Math.acos(Math.cos(rad(90.833)) / (Math.cos(rad(lat)) * Math.cos(decl)) - Math.tan(rad(lat)) * Math.tan(decl));
+    const noonUtcMin = 720 - 4 * lon - eq;
+    const toTime = (mins) => {
+      const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, Math.round(mins)));
+      return t.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
+    };
+    const span = (4 * ha * 180) / Math.PI;
+    return { rise: toTime(noonUtcMin - span), set: toTime(noonUtcMin + span) };
+  }
+
   // ---------- daily write-up ----------
   function renderWriteup() {
     const el = $("#writeup-block");
@@ -484,6 +526,8 @@
       else if (rows.length >= 3) rec += ` Neither day is clearly better across the board.`;
     }
     if (top.best.d.grade.score < 58) rec += ` A rough weekend overall; this is the least bad option.`;
+    const busy = wk.map((x) => crowdFor(x.d)).find(Boolean);
+    if (busy) rec += ` It's ${busy === "Holiday week" ? "holiday week" : busy}, so expect crowds and go early.`;
     const list = scored.slice(0, scope === "all" ? 8 : 31);
     el.innerHTML = `${head}${controls}
       <p class="pl-rec">${rec}</p>
@@ -1268,6 +1312,10 @@
     if (d.rain + d.ice > 0.05) bits.push(`${d.ice > 0.05 ? "Sleet or freezing rain" : "Rain"} at the summit.`);
     else if (d.baseRain > 0.1) bits.push("Rain at the base.");
     bits.push(`High ${tempTxtU(d.tMax)}, low ${tempTxtU(d.tMin)} up top${d.gustMax != null ? `, gusts to ${windTxt(d.gustMax)}` : ""}.`);
+    if (d.fog >= 4) bits.push(`The summit is in the clouds much of the day, so expect flat light up top.`);
+    else if (d.fog >= 2) bits.push(`Some fog up top at times.`);
+    const busy = crowdFor(d.date);
+    if (busy && operating(row)) bits.push(`${busy}: expect crowds and longer lift lines.`);
     return fmt(bits.join(" ")).replace(/&lt;(\/?)b&gt;/g, "<$1b>");
   }
 
@@ -1277,7 +1325,8 @@
   function skiDay(row, det, k) {
     if (!det) return "";
     const d = row.days[k];
-    const hours = [8, 9, 10, 11, 12, 13, 14, 15, 16];
+    const night = row.resort.night && state.skiNight;
+    const hours = night ? [15, 16, 17, 18, 19, 20, 21] : [8, 9, 10, 11, 12, 13, 14, 15, 16];
     const idx = hours.map((h) => det.time.findIndex((t) => t.startsWith(d.date) && Number(t.slice(11, 13)) === h));
     if (idx.every((i) => i < 0)) return "";
     const label = (h) => (h === 12 ? "12p" : h > 12 ? `${h - 12}p` : `${h}a`);
@@ -1286,7 +1335,7 @@
     const op = operating(row);
     const tnum = (x) => (x == null ? "–" : `${Math.round(tempNum(x))}°`);
     const rows = [
-      ["Sky", cell((i) => (S.type[i] ? PSHORT[S.type[i]] || "–" : "–"), (i) => (S.type[i] === "sn" ? "h-snow" : S.type[i] ? "h-wet" : ""))],
+      ["Sky", cell((i) => (S.type[i] ? PSHORT[S.type[i]] || "–" : S.fog?.[i] ? "Fog" : S.cloud?.[i] != null ? (S.cloud[i] <= 30 ? "Sun" : S.cloud[i] >= 80 ? "Gray" : "Mix") : "–"), (i) => (S.type[i] === "sn" ? "h-snow" : S.type[i] ? "h-wet" : S.fog?.[i] ? "h-fog" : ""))],
       ["Summit", cell((i) => tnum(S.t[i]))],
       ...(det.mid ? [["Mid", cell((i) => tnum(det.mid.t[i]))]] : []),
       ["Base", cell((i) => tnum(det.base.t[i]))],
@@ -1297,7 +1346,7 @@
       rows.splice(1, 0, ["New snow", cell((i) => (S.snow[i] >= 0.05 ? (metric() ? (S.snow[i] * 2.54).toFixed(1) : S.snow[i].toFixed(1)) : "–"), (i) => (S.snow[i] >= 0.05 ? "h-snow" : ""))]);
     if (!op) rows.push(["Snow guns", cell((i) => (S.tw[i] != null && S.tw[i] <= 27 ? "On" : "–"), (i) => (S.tw[i] != null && S.tw[i] <= 27 ? "h-snow" : ""))]);
     return `<div class="skiday">
-      <div class="skiday-head"><span class="label">${k === 0 ? "Today" : dayLong(d.date)} · 8am–4pm</span><span class="label">${metric() ? "°C · km/h · cm" : "°F · mph · in"}</span></div>
+      <div class="skiday-head"><span class="label">${k === 0 ? "Today" : dayLong(d.date)} · ${night ? "3pm–9pm" : "8am–4pm"}${(() => { const st = sunTimes(d.date, row.resort.lat, row.resort.lon); return ` · Sunrise ${st.rise} · Sunset ${st.set}`; })()}</span>${row.resort.night ? `<span class="seg mini skiday-seg"><button data-skinight="0" aria-pressed="${!night}">Day</button><button data-skinight="1" aria-pressed="${!!night}">Night</button></span>` : `<span class="label">${metric() ? "°C · km/h · cm" : "°F · mph · in"}</span>`}</div>
       <div class="scroll"><table class="hourly">
         <thead><tr><th></th>${hours.map((h) => `<th>${label(h)}</th>`).join("")}</tr></thead>
         <tbody>${rows.map(([n, c]) => `<tr${n === "Sky" ? ` class="sky"` : ""}><th scope="row">${n}</th>${c}</tr>`).join("")}</tbody>
@@ -1316,7 +1365,9 @@
             ? `<span class="day-flag rain">${d.ice > 0.05 ? "Ice" : "Rain"}</span>`
             : !operating(row) && d.smHours
               ? `<span class="day-flag cold">Guns ${d.smHours}h</span>`
-              : `<span class="day-flag">&nbsp;</span>`;
+              : operating(row) && crowdFor(d.date)
+                ? `<span class="day-flag busy">Busy</span>`
+                : `<span class="day-flag">&nbsp;</span>`;
         const badge = d.grade ? `<span class="grade g-${d.grade.letter}">${d.grade.letter}</span>` : "";
         return `<button class="day${d.snow >= 0.5 ? " snowy" : ""}" data-day="${k}" aria-pressed="${k === sel}" style="--c:${snowColor(d.snow)}">
           <span class="day-top"><span class="label">${dayShort(d.date)}</span>${badge}</span>
@@ -1536,6 +1587,14 @@
       if (e.target.closest("[data-tips-done]")) {
         store.set("ups-tips-done", true);
         return renderTips();
+      }
+      const sn = e.target.closest("[data-skinight]");
+      if (sn) {
+        state.skiNight = sn.dataset.skinight === "1";
+        const row = state.rows.find((x) => x.resort.id === state.selected);
+        const hrs = $("#day-hours");
+        if (row && hrs) hrs.innerHTML = skiDay(row, state.details[row.resort.id], state.dayK ?? 0);
+        return;
       }
       const wu = e.target.closest("[data-wu]");
       if (wu) {

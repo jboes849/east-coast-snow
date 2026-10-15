@@ -552,3 +552,6 @@ button.day.snowy[aria-pressed="true"] { box-shadow: inset 0 2px 0 var(--accent),
 .links-row { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
 .links-row .label { margin-right: 4px; }
 .links-row a::after { content: " ↗"; font-size: 11px; color: var(--muted); }
+.day-flag.busy { color: var(--caution); }
+.hourly .h-fog { color: var(--muted); font-style: italic; }
+.skiday-seg button { padding: 2px 8px; }
