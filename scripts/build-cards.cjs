@@ -44,9 +44,9 @@ const page = (title, sub, meta) => `<!doctype html><html><head><meta charset="ut
     await p.evaluate(() => document.fonts.ready);
     await p.screenshot({ path: path.join(OUT, file), type: "png" });
   };
-  await shoot("home.png", page("East Coast snow forecasts", "Free 7-day forecasts for 31 ski areas from Maine to West Virginia.", `<span><b>8 models</b> · 82 ensemble runs</span><span>Updated 4× a day</span>`));
+  await shoot("home.png", page("East Coast Snow Forecasts", "Free 7-day forecasts for 31 ski areas from Maine to West Virginia.", `<span><b>8 models</b> · 82 ensemble runs</span><span>Updated 4× a day</span>`));
   for (const r of RESORTS) {
-    await shoot(`${r.id}.png`, page(r.name, `7-day snow forecast · ${r.region}, ${r.state}`, `<span>Summit <b>${ft(r.summit)}</b> · Base ${ft(r.base)}</span><span>Updated 4× a day</span>`));
+    await shoot(`${r.id}.png`, page(r.name, `7-Day Snow Forecast · ${r.region}, ${r.state}`, `<span>Summit <b>${ft(r.summit)}</b> · Base ${ft(r.base)}</span><span>Updated 4× a day</span>`));
   }
   await browser.close();
   console.log(`Wrote ${RESORTS.length + 1} cards to img/og/`);

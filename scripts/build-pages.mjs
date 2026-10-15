@@ -25,7 +25,7 @@ export function buildPages({ root, resorts, forecast, siteUrl }) {
   const urls = [siteUrl];
   for (const r of resorts) {
     const f = byId[r.id];
-    const title = `${r.name} snow forecast · Upslope`;
+    const title = `${r.name} Snow Forecast · Upslope`;
     const lead = f ? plain(f.insights.slice(0, 2).map((x) => x.text).join(" ")) : "";
     const desc = `${r.name} (${r.state}) 7-day snow forecast from 8 weather models and 82 ensemble runs. ${lead}`.slice(0, 300).replace(/(\.)[^.]*$/, "$1");
     const url = `${siteUrl}resorts/${r.id}/`;

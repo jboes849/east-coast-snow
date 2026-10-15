@@ -179,7 +179,7 @@
     const el = $("#picks");
     const head = $("#picks-block .block-head");
     if (state.open) {
-      head.innerHTML = `<h2>Powder mornings${qlink("powder", "What is a powder morning")}</h2><span class="label">Next 72 h · score 0–100</span>`;
+      head.innerHTML = `<h2>Powder Mornings${qlink("powder", "What is a powder morning")}</h2><span class="label">Next 72 h · score 0–100</span>`;
       $('.navlinks a[href="#picks-block"]').textContent = "Powder";
       const top = state.rows.filter((r) => operating(r) && r.best.score > 0).sort((a, b) => b.best.score - a.best.score || b.total3 - a.total3).slice(0, 4);
       if (!top.length) {
@@ -202,7 +202,7 @@
         .join("");
       return;
     }
-    head.innerHTML = `<h2>Snowmaking windows${qlink("snowmaking", "What is a snowmaking window")}</h2><span class="label">Pre-season · hours cold enough for snow guns</span>`;
+    head.innerHTML = `<h2>Snowmaking Windows${qlink("snowmaking", "What is a snowmaking window")}</h2><span class="label">Pre-season · hours cold enough for snow guns</span>`;
     $('.navlinks a[href="#picks-block"]').textContent = "Snowmaking";
     const wins = state.rows
       .flatMap((r) => r.snowmaking.windows.map((w) => ({ ...w, row: r })))
@@ -282,7 +282,7 @@
     const sb = compareSummary(b);
     const win = (x, y, m = 0) => (x != null && y != null && x > y + m ? " win" : "");
     const dayScore = (row, k) => (row.days[k].grade ? row.days[k].grade.score : row.days[k].snow * 10 + (row.days[k].smHours || 0));
-    el.innerHTML = `<div class="block-head"><h2>Compare two mountains</h2><span class="label">Side by side · 7 days</span></div>
+    el.innerHTML = `<div class="block-head"><h2>Compare Two Mountains</h2><span class="label">Side by side · 7 days</span></div>
       <div class="cmp">
         <div class="cmp-row cmp-pick"><span></span>
           <select class="select" data-cmp="0" aria-label="First mountain">${opts(a.resort.id)}</select>
@@ -308,9 +308,9 @@
       <ol>
         <li>Tap any mountain for its week at a glance. Tap a day to see why it got its grade and the lift day hour by hour.</li>
         <li>Star your mountains. They stay on top and the weekend planner can compare just those.</li>
-        <li>Want the nerdy stuff? Open <b>Forecast details</b> on any mountain for charts, lift wind and every model.</li>
+        <li>Want the nerdy stuff? Open <b>Forecast Details</b> on any mountain for charts, lift wind and every model.</li>
       </ol>
-      <div class="tips-actions"><button data-tips-done>Got it</button><a href="faq/">All tips and questions</a></div>
+      <div class="tips-actions"><button data-tips-done>Got it</button><a href="faq/">All Tips and Questions</a></div>
     </div>`;
   }
 
@@ -352,7 +352,7 @@
       return;
     }
     el.hidden = false;
-    const head = `<div class="block-head"><h2>Weekend planner${qlink("weekend", "How the planner chooses")}</h2><span class="label">${wk.map((x) => dayLong(x.d)).join(" and ")}</span></div>`;
+    const head = `<div class="block-head"><h2>Weekend Planner${qlink("weekend", "How the planner chooses")}</h2><span class="label">${wk.map((x) => dayLong(x.d)).join(" and ")}</span></div>`;
     if (!anyOpen) {
       const first = [...state.rows].filter((r) => r.season.phase === "preseason").sort((a, b) => a.season.daysToOpen - b.season.daysToOpen)[0];
       el.innerHTML = `${head}<p class="hint">The planner turns on once lifts start spinning${first ? `. ${esc(first.resort.name)} usually opens first, around ${dayNum(first.season.open)}` : ""}. Until then, check the snowmaking windows below.</p>`;
@@ -801,7 +801,7 @@
         .map((t, i) => `<i class="pt-${t || "none"}" title="${dayShort(det.time[i].slice(0, 10))} ${hourLabel(det.time[i])}: ${t ? PTYPE[t] : "Dry"}"></i>`)
         .join("");
     return `<section class="panel">
-      <div class="block-head"><h3>Precipitation type</h3><span class="label">Hour by hour</span></div>
+      <div class="block-head"><h3>Precipitation Type</h3><span class="label">Hour by hour</span></div>
       <p class="hint">Based on humidity-adjusted temperature at the summit and base, plus the air about a mile up. A warm layer up there is what turns snow into sleet or freezing rain.</p>
       <div class="ptype"><span class="label">Summit</span><div class="pt-strip" style="--n:${n}">${strip(det.summit.type)}</div>
       <span class="label">Base</span><div class="pt-strip" style="--n:${n}">${strip(det.base.type)}</div>
@@ -823,7 +823,7 @@
     if (!q) return "";
     const deep = Math.round(ratio);
     return `<section class="panel">
-      <div class="block-head"><h3>How the snow will feel</h3><span class="label">This week's storms</span></div>
+      <div class="block-head"><h3>How the Snow Will Feel</h3><span class="label">This week's storms</span></div>
       <div class="feel">${FEELS.map((f) => `<div class="feel-step${f.key === q.key ? " on" : ""}"><b>${f.label}</b><span>${f.blurb}</span></div>`).join("")}</div>
       <p class="hint">Colder air makes lighter, fluffier flakes. This week's snow should come out about ${deep} times as deep as the water in it. A typical East Coast storm is about 10 times, so higher means fluffier.</p>
     </section>`;
@@ -844,7 +844,7 @@
           .join("")
       : `<li><span class="mono">7 DAYS</span><span>No snow events in the forecast.</span></li>`;
     return `<section class="panel">
-      <div class="block-head"><h3>Local knowledge</h3><span class="label">What works here</span></div>
+      <div class="block-head"><h3>Local Knowledge</h3><span class="label">What works here</span></div>
       <ul class="notes">${(g.notes || []).map((n) => `<li>${esc(n)}</li>`).join("")}</ul>
       <div class="setups">${(g.setups || []).map((k, i) => `<div class="setup"><span class="label">${i === 0 ? "Best setup" : "Also works"}</span><b>${setupName(k)}</b><p>${esc(SETUPS[k].blurb)}</p></div>`).join("")}</div>
       <div class="label week-label">This week's storms</div>
@@ -879,7 +879,7 @@
       .join("");
     const mid = (g.exposed[0] + ((g.exposed[1] - g.exposed[0] + 360) % 360) / 2) % 360;
     return `<section class="panel">
-      <div class="block-head"><h3>Lift wind, 8am–4pm</h3><span class="label">Summit gusts · ${metric() ? "km/h" : "mph"}</span></div>
+      <div class="block-head"><h3>Lift Wind, 8am–4pm</h3><span class="label">Summit gusts · ${metric() ? "km/h" : "mph"}</span></div>
       <p class="guide-text">${esc(g.wind || "")} Holds get likely here around ${windTxt(g.hold)}, a bit lower when wind comes from the ${compass(mid)}.</p>
       <div class="scroll"><table class="windgrid">
         <thead><tr><th></th>${hours.map((h) => `<th>${label(h)}</th>`).join("")}</tr></thead>
@@ -899,7 +899,7 @@
   function modelTable(row, det) {
     if (!det) return "";
     return `<section class="panel">
-      <div class="block-head"><h3>Model by model</h3><span class="label">Summit snow · ${snowUnit()}</span></div>
+      <div class="block-head"><h3>Model by Model</h3><span class="label">Summit snow · ${snowUnit()}</span></div>
       <p class="hint">High-resolution models (HRRR, NAM, HRDPS) run about two days out and get extra weight while they last. Models with a strong recent track record near ${esc(row.resort.name)} count for more. Blank cells are past a model's range.</p>
       <div class="scroll"><table class="models">
         <thead><tr><th style="text-align:left;padding-left:0">Model</th>${state.dates.map((d) => `<th>${dayShort(d)}</th>`).join("")}<th>Total</th><th title="Recent accuracy near this resort">Track record here</th></tr></thead>
@@ -921,7 +921,7 @@
     const ths = [1, 3, 6, 12, 18];
     const p = (o) => ths.map((t) => `<td><span class="odds" style="--p:${o[t]}%">${o[t]}%</span></td>`).join("");
     return `<section class="panel">
-      <div class="block-head"><h3>Odds of snow${qlink("odds", "What the odds mean")}</h3><span class="label">${state.data.ensembles.members} ensemble runs</span></div>
+      <div class="block-head"><h3>Odds of Snow${qlink("odds", "What the odds mean")}</h3><span class="label">${state.data.ensembles.members} ensemble runs</span></div>
       <p class="hint">The GFS and European ensembles each rerun their model dozens of times with small tweaks. The share of runs reaching each total is a fair read on the odds.${row.ens7 ? ` Middle 80% of runs: ${rangeTxt(row.ens7.p10, row.ens7.p90)} over 7 days.` : ""}</p>
       <div class="scroll"><table class="models odds-table">
         <thead><tr><th style="text-align:left;padding-left:0">At least</th>${ths.map((t) => `<th>${snowTxt(t)}</th>`).join("")}</tr></thead>
@@ -1004,7 +1004,7 @@
     const bestMae = (sk.models[best.id].d1 || sk.models[best.id].d2).mae;
     const worstMae = Math.max(...ms.map((m) => (sk.models[m.id].d1 || sk.models[m.id].d2).mae));
     const bar = (x) => (x ? `<span class="acc"><i style="width:${Math.round(100 - ((x.mae - bestMae) / (worstMae - bestMae || 1)) * 75)}%"></i></span>` : "");
-    el.innerHTML = `<div class="block-head"><h2>Model scoreboard${qlink("how-accurate", "How accurate is it")}</h2><span class="label">Last ${sk.window.days} days · ${sk.stations} weather stations</span></div>
+    el.innerHTML = `<div class="block-head"><h2>Model Scoreboard${qlink("how-accurate", "How accurate is it")}</h2><span class="label">Last ${sk.window.days} days · ${sk.stations} weather stations</span></div>
       <p class="hint">Every morning we check what each model said one to three days earlier against the rain and melted snow actually measured at airports near the resorts. Upslope leans harder on the models doing best in each area. Lately that's the <b>${esc(best.label)}</b>.</p>
       <div class="scroll"><table class="models skill">
         <thead><tr><th style="text-align:left;padding-left:0">Model</th><th>Avg miss<br>1 day out</th><th>Avg miss<br>3 days out</th><th>Tends to run</th><th>Caught<br>wet days</th></tr></thead>
@@ -1183,7 +1183,7 @@
     const sel = defaultDay(row);
     state.dayK = sel;
     const actions = page
-      ? `${favButton(id, "sq fav")}<a class="sq wide" href="./#compare=${id}">Compare</a><a class="sq wide" href="./">All resorts</a>`
+      ? `${favButton(id, "sq fav")}<a class="sq wide" href="./#compare=${id}">Compare</a><a class="sq wide" href="./">All Resorts</a>`
       : `<a class="sq wide" href="#compare=${id}" data-compare="${id}">Compare</a><a class="sq wide" href="resorts/${id}/">Full page</a>${favButton(id, "sq fav")}<button class="sq" data-close aria-label="Close">${Icon("close")}</button>`;
     target.innerHTML = `
       <header class="detail-head">
@@ -1201,11 +1201,11 @@
         <div class="days">${dayCards(row, sel)}</div>
         <p class="day-why" id="day-why" aria-live="polite">${dayWhy(row, sel)}</p>
         <div id="day-hours">${skiDay(row, det, sel)}</div>
-        ${top.length ? `<h3 class="sub-h">What to know</h3><ul class="insights">${top.map((x) => `<li data-kind="${x.kind}">${fmt(x.text)}</li>`).join("")}</ul>` : ""}
+        ${top.length ? `<h3 class="sub-h">What to Know</h3><ul class="insights">${top.map((x) => `<li data-kind="${x.kind}">${fmt(x.text)}</li>`).join("")}</ul>` : ""}
         <div class="d-kpis">${kpiHtml}</div>
         ${qualityBlock(q, ratio)}
         <details class="more" id="more"${state.moreOpen ? " open" : ""}>
-          <summary><span><b>Forecast details</b><span class="hint">Hour-by-hour charts, lift wind, every model and the odds</span></span><span class="more-icon" aria-hidden="true"></span></summary>
+          <summary><span><b>Forecast Details</b><span class="hint">Hour-by-hour charts, lift wind, every model and the odds</span></span><span class="more-icon" aria-hidden="true"></span></summary>
           ${more.length ? `<ul class="insights">${more.map((x) => `<li data-kind="${x.kind}">${fmt(x.text)}</li>`).join("")}</ul>` : ""}
           <div id="detail-hourly">${detailHourly(row, det)}</div>
           ${oddsPanel(row)}
@@ -1234,7 +1234,7 @@
     if (!det) return `<div class="skeleton sk-row"></div><div class="skeleton sk-row"></div>`;
     return `${windPanel(row, det)}
       <section class="panel">
-        <div class="block-head"><h3>Snow piling up at the summit</h3><span class="label">${snowUnit()} · running total</span></div>
+        <div class="block-head"><h3>Snow Piling Up at the Summit</h3><span class="label">${snowUnit()} · running total</span></div>
         <p class="hint">The thick black line is the Upslope blend. Thin lines are single models; tap a name to hide or show it. The blue band is where 80% of ${state.data.ensembles.members} ensemble runs land: the wider it is, the less certain the forecast. Weekends are shaded.</p>
         ${modelChips()}
         <p class="readout" id="chart-readout"></p>
@@ -1242,7 +1242,7 @@
       </section>
       ${ptypePanel(row, det)}
       <section class="panel">
-        <div class="block-head"><h3>Temperature, summit vs base</h3><span class="label">${metric() ? "°C" : "°F"} · hourly</span></div>
+        <div class="block-head"><h3>Temperature, Summit vs Base</h3><span class="label">${metric() ? "°C" : "°F"} · hourly</span></div>
         <p class="hint">${
           operating(row)
             ? "Above the dashed freezing line, snow turns to rain or melts. Base above and summit below means snow up top and slush at the bottom."
