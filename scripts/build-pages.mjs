@@ -39,6 +39,7 @@ export function buildPages({ root, resorts, forecast, siteUrl }) {
     fs.writeFileSync(path.join(root, "resorts", r.id, "index.html"), html);
     urls.push(url);
   }
+  urls.push(`${siteUrl}faq/`);
   const day = new Date().toISOString().slice(0, 10);
   fs.writeFileSync(
     path.join(root, "sitemap.xml"),

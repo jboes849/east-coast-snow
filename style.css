@@ -441,3 +441,28 @@ button.day.snowy[aria-pressed="true"] { box-shadow: inset 0 2px 0 var(--accent),
   .pl-cell { flex-direction: column; align-items: flex-start; gap: 4px; padding: 4px 6px; font-size: 11.5px; line-height: 1.3; }
   .pl-name b { font-size: 14px; }
 }
+
+/* FAQ */
+.faq { padding-top: 24px; }
+.faq h1 { margin: 0; font: 600 22px var(--sans); letter-spacing: -0.02em; }
+.faq-toc { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.faq-h { margin: 28px 0 0; padding-bottom: 8px; border-bottom: 1px solid var(--fg); font: 500 12px var(--mono); text-transform: uppercase; letter-spacing: 0.05em; scroll-margin-top: 72px; }
+.faq-q { border-bottom: 1px solid var(--line); scroll-margin-top: 72px; }
+.faq-q summary { cursor: pointer; padding: 14px 0; font-size: 16px; font-weight: 500; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+.faq-q summary::-webkit-details-marker { display: none; }
+.faq-q summary::after { content: "+"; font: 400 18px var(--mono); color: var(--muted); }
+.faq-q[open] summary::after { content: "–"; }
+.faq-q p { margin: 0 0 14px; max-width: 70ch; color: var(--fg-2); font-size: 15px; line-height: 1.6; }
+.navlinks a[aria-current="page"] { color: var(--fg); }
+
+/* First-visit tips and help links */
+.tips { display: grid; grid-template-columns: auto 1fr auto; gap: 12px 20px; align-items: start; margin-top: 20px; padding: 14px 16px; border: 1px solid var(--fg); }
+.tips ol { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 20px; counter-reset: tip; }
+.tips li { font-size: 14px; color: var(--fg-2); line-height: 1.45; counter-increment: tip; }
+.tips li::before { content: "0" counter(tip); display: block; font: 500 11px var(--mono); color: var(--muted); margin-bottom: 2px; }
+.tips .tips-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; white-space: nowrap; }
+.tips button { font: 500 12px var(--mono); text-transform: uppercase; letter-spacing: 0.04em; padding: 6px 10px; border: 1px solid var(--fg); background: var(--fg); color: #fff; cursor: pointer; }
+.tips a { font-size: 13px; }
+.qlink { display: inline-grid; place-items: center; width: 16px; height: 16px; margin-left: 8px; border: 1px solid var(--line-strong); font: 500 10px var(--mono); color: var(--fg); vertical-align: 2px; text-decoration: none !important; }
+.qlink:hover { background: var(--fg); color: #fff; }
+@media (max-width: 760px) { .tips { grid-template-columns: 1fr; } .tips ol { grid-template-columns: 1fr; } .tips .tips-actions { flex-direction: row; align-items: center; justify-content: space-between; } }

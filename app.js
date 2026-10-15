@@ -179,7 +179,7 @@
     const el = $("#picks");
     const head = $("#picks-block .block-head");
     if (state.open) {
-      head.innerHTML = `<h2>Powder mornings</h2><span class="label">Next 72 h · score 0–100</span>`;
+      head.innerHTML = `<h2>Powder mornings${qlink("powder", "What is a powder morning")}</h2><span class="label">Next 72 h · score 0–100</span>`;
       $('.navlinks a[href="#picks-block"]').textContent = "Powder";
       const top = state.rows.filter((r) => operating(r) && r.best.score > 0).sort((a, b) => b.best.score - a.best.score || b.total3 - a.total3).slice(0, 4);
       if (!top.length) {
@@ -202,7 +202,7 @@
         .join("");
       return;
     }
-    head.innerHTML = `<h2>Snowmaking windows</h2><span class="label">Pre-season · hours cold enough for snow guns</span>`;
+    head.innerHTML = `<h2>Snowmaking windows${qlink("snowmaking", "What is a snowmaking window")}</h2><span class="label">Pre-season · hours cold enough for snow guns</span>`;
     $('.navlinks a[href="#picks-block"]').textContent = "Snowmaking";
     const wins = state.rows
       .flatMap((r) => r.snowmaking.windows.map((w) => ({ ...w, row: r })))
@@ -224,6 +224,22 @@
         </button>`;
       })
       .join("");
+  }
+
+  // ---------- first-visit tips and help links ----------
+  const qlink = (anchor, what) => `<a class="qlink" href="faq/#${anchor}" aria-label="Help: ${what}" title="${what}">?</a>`;
+  function renderTips() {
+    const el = $("#tips");
+    if (!el || store.get("ups-tips-done", false)) return el && (el.innerHTML = "");
+    el.innerHTML = `<div class="tips" role="note">
+      <span class="label">New here?</span>
+      <ol>
+        <li>Tap any mountain for its week at a glance. Tap a day to see why it got its grade and the lift day hour by hour.</li>
+        <li>Star your mountains. They stay on top and the weekend planner can compare just those.</li>
+        <li>Want the nerdy stuff? Open <b>Forecast details</b> on any mountain for charts, lift wind and every model.</li>
+      </ol>
+      <div class="tips-actions"><button data-tips-done>Got it</button><a href="faq/">All tips and questions</a></div>
+    </div>`;
   }
 
   // ---------- weekend planner ----------
@@ -264,7 +280,7 @@
       return;
     }
     el.hidden = false;
-    const head = `<div class="block-head"><h2>Weekend planner</h2><span class="label">${wk.map((x) => dayLong(x.d)).join(" and ")}</span></div>`;
+    const head = `<div class="block-head"><h2>Weekend planner${qlink("weekend", "How the planner chooses")}</h2><span class="label">${wk.map((x) => dayLong(x.d)).join(" and ")}</span></div>`;
     if (!anyOpen) {
       const first = [...state.rows].filter((r) => r.season.phase === "preseason").sort((a, b) => a.season.daysToOpen - b.season.daysToOpen)[0];
       el.innerHTML = `${head}<p class="hint">The planner turns on once lifts start spinning${first ? `. ${esc(first.resort.name)} usually opens first, around ${dayNum(first.season.open)}` : ""}. Until then, check the snowmaking windows below.</p>`;
@@ -815,7 +831,7 @@
     const ths = [1, 3, 6, 12, 18];
     const p = (o) => ths.map((t) => `<td><span class="odds" style="--p:${o[t]}%">${o[t]}%</span></td>`).join("");
     return `<section class="panel">
-      <div class="block-head"><h3>Odds of snow</h3><span class="label">${state.data.ensembles.members} ensemble runs</span></div>
+      <div class="block-head"><h3>Odds of snow${qlink("odds", "What the odds mean")}</h3><span class="label">${state.data.ensembles.members} ensemble runs</span></div>
       <p class="hint">The GFS and European ensembles each rerun their model dozens of times with small tweaks. The share of runs reaching each total is a fair read on the odds.${row.ens7 ? ` Middle 80% of runs: ${rangeTxt(row.ens7.p10, row.ens7.p90)} over 7 days.` : ""}</p>
       <div class="scroll"><table class="models odds-table">
         <thead><tr><th style="text-align:left;padding-left:0">At least</th>${ths.map((t) => `<th>${snowTxt(t)}</th>`).join("")}</tr></thead>
@@ -898,7 +914,7 @@
     const bestMae = (sk.models[best.id].d1 || sk.models[best.id].d2).mae;
     const worstMae = Math.max(...ms.map((m) => (sk.models[m.id].d1 || sk.models[m.id].d2).mae));
     const bar = (x) => (x ? `<span class="acc"><i style="width:${Math.round(100 - ((x.mae - bestMae) / (worstMae - bestMae || 1)) * 75)}%"></i></span>` : "");
-    el.innerHTML = `<div class="block-head"><h2>Model scoreboard</h2><span class="label">Last ${sk.window.days} days · ${sk.stations} weather stations</span></div>
+    el.innerHTML = `<div class="block-head"><h2>Model scoreboard${qlink("how-accurate", "How accurate is it")}</h2><span class="label">Last ${sk.window.days} days · ${sk.stations} weather stations</span></div>
       <p class="hint">Every morning we check what each model said one to three days earlier against the rain and melted snow actually measured at airports near the resorts. Upslope leans harder on the models doing best in each area. Lately that's the <b>${esc(best.label)}</b>.</p>
       <div class="scroll"><table class="models skill">
         <thead><tr><th style="text-align:left;padding-left:0">Model</th><th>Avg miss<br>1 day out</th><th>Avg miss<br>3 days out</th><th>Tends to run</th><th>Caught<br>wet days</th></tr></thead>
@@ -1231,6 +1247,10 @@
       if (rlink && !(e.metaKey || e.ctrlKey || e.shiftKey)) e.preventDefault();
       const signup = e.target.closest("[data-signup]");
       if (signup) return;
+      if (e.target.closest("[data-tips-done]")) {
+        store.set("ups-tips-done", true);
+        return renderTips();
+      }
       const plan = e.target.closest("[data-plan]");
       if (plan) {
         store.set("ups-plan", plan.dataset.plan);
@@ -1348,6 +1368,7 @@
       return openDetail(PAGE);
     }
     renderAll();
+    renderTips();
     renderSignupHome();
     const hash = location.hash.slice(1);
     if (hash && RESORTS.some((r) => r.id === hash)) openDetail(hash);
