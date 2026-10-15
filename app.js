@@ -1247,7 +1247,10 @@
       bits.push(`<b>${name}.</b>`);
       bits.push(d.smHours ? `${d.smHours} hours cold enough for snow guns at the summit${d.smBase ? `, ${d.smBase} at the base` : ""}.` : "Too warm for snowmaking.");
     }
-    if (d.snow >= 0.5) bits.push(`Snow ${snowTxt(d.snow)} at the summit (models ${rangeTxt(d.lo, d.hi)}).`);
+    if (d.snow >= 0.5) {
+      const tiers = d.midSnow != null && (d.snow - d.baseSnow >= 1 || d.baseRain > 0.1) ? `, about ${snowTxt(d.midSnow)} mid-mountain and ${snowTxt(d.baseSnow)} at the base` : "";
+      bits.push(`Snow ${snowTxt(d.snow)} at the summit${tiers} (summit models ${rangeTxt(d.lo, d.hi)}).`);
+    }
     if (d.rain + d.ice > 0.05) bits.push(`${d.ice > 0.05 ? "Sleet or freezing rain" : "Rain"} at the summit.`);
     else if (d.baseRain > 0.1) bits.push("Rain at the base.");
     bits.push(`High ${tempTxtU(d.tMax)}, low ${tempTxtU(d.tMin)} up top${d.gustMax != null ? `, gusts to ${windTxt(d.gustMax)}` : ""}.`);
@@ -1271,13 +1274,14 @@
     const rows = [
       ["Sky", cell((i) => (S.type[i] ? PSHORT[S.type[i]] || "–" : "–"), (i) => (S.type[i] === "sn" ? "h-snow" : S.type[i] ? "h-wet" : ""))],
       ["Summit", cell((i) => tnum(S.t[i]))],
+      ...(det.mid ? [["Mid", cell((i) => tnum(det.mid.t[i]))]] : []),
+      ["Base", cell((i) => tnum(det.base.t[i]))],
       ["Feels like", cell((i) => tnum(feelsF(S.t[i], S.wind?.[i])), (i) => (feelsF(S.t[i], S.wind?.[i]) <= -10 ? "h-cold" : ""))],
       ["Gusts", cell((i) => (S.gust[i] == null ? "–" : Math.round(windNum(S.gust[i]))), (i) => `h-w-${windRisk(row, S.gust[i], S.dir[i])}`)],
-      ["Base", cell((i) => tnum(det.base.t[i]))],
     ];
     if (idx.some((i) => i >= 0 && S.snow[i] >= 0.05))
       rows.splice(1, 0, ["New snow", cell((i) => (S.snow[i] >= 0.05 ? (metric() ? (S.snow[i] * 2.54).toFixed(1) : S.snow[i].toFixed(1)) : "–"), (i) => (S.snow[i] >= 0.05 ? "h-snow" : ""))]);
-    if (!op) rows.splice(2, 0, ["Snow guns", cell((i) => (S.tw[i] != null && S.tw[i] <= 27 ? "On" : "–"), (i) => (S.tw[i] != null && S.tw[i] <= 27 ? "h-snow" : ""))]);
+    if (!op) rows.push(["Snow guns", cell((i) => (S.tw[i] != null && S.tw[i] <= 27 ? "On" : "–"), (i) => (S.tw[i] != null && S.tw[i] <= 27 ? "h-snow" : ""))]);
     return `<div class="skiday">
       <div class="skiday-head"><span class="label">${k === 0 ? "Today" : dayLong(d.date)} · 8am–4pm</span><span class="label">${metric() ? "°C · km/h · cm" : "°F · mph · in"}</span></div>
       <div class="scroll"><table class="hourly">

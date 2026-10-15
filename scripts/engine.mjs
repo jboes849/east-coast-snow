@@ -522,6 +522,23 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
   const B_ = blend(bm, timeIndex, leads, dates, factors);
   const H = S_.H;
   const HB = B_.H;
+  // Mid-mountain, halfway up: interpolated between summit and base, with the
+  // rain/snow split from the halfway snowmaking (wet bulb) temperature.
+  const HM = { t: [], tw: [], snow: [], rain: [] };
+  for (let k = 0; k < timeIndex.length; k++) {
+    const avg = (a, b) => (a == null ? b : b == null ? a : (a + b) / 2);
+    const t = avg(H.t[k], HB.t[k]);
+    const tw = avg(H.tw[k], HB.tw[k]);
+    const liq = ((H.snowW[k] || 0) + (H.rain[k] || 0) + (H.ice[k] || 0) + (HB.snowW?.[k] || 0) + (HB.rain[k] || 0) + (HB.ice[k] || 0)) / 2;
+    const frac = tw == null ? 0 : tw <= 31 ? 1 : tw >= 34 ? 0 : (34 - tw) / 3;
+    const slrS = H.snowW[k] > 0.001 ? H.snow[k] / H.snowW[k] : null;
+    const slrB = HB.snowW?.[k] > 0.001 ? HB.snow[k] / HB.snowW[k] : null;
+    const slr = slrS && slrB ? (slrS + slrB) / 2 : slrS || slrB || 10;
+    HM.t.push(t);
+    HM.tw.push(tw);
+    HM.snow.push(liq * frac * slr);
+    HM.rain.push(liq * (1 - frac));
+  }
   const dayKs = (d) => timeIndex.map((t, k) => (t.startsWith(d) ? k : -1)).filter((k) => k >= 0);
 
   // Ensemble members at the summit.
@@ -558,6 +575,8 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
       ice: round(c.ice, 2),
       baseRain: round(b.rain + b.ice, 2),
       baseSnow: round(b.snow),
+      midSnow: round(sum(ks.map((k) => HM.snow[k]))),
+      midRain: round(sum(ks.map((k) => HM.rain[k])), 2),
       slr: snowW > 0.02 ? round(c.snow / Math.max(snowW, 1e-6), 0) : null,
       tMax: temps.length ? round(Math.max(...temps), 0) : null,
       tMin: temps.length ? round(Math.min(...temps), 0) : null,
@@ -755,6 +774,7 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
     time: timeIndex.slice(k0),
     summit: { snow: slice(H.snow, 2), rain: slice(H.rain, 2), ice: slice(H.ice, 2), t: slice(H.t, 0), tw: slice(H.tw, 0), gust: slice(H.gust, 0), wind: slice(H.wind, 0), dir: slice(H.dir, 0), fzl: slice(H.fzl, -2), type: H.type.slice(k0), t850: slice(H.t850, 1) },
     base: { snow: slice(HB.snow, 2), rain: slice(HB.rain, 2), t: slice(HB.t, 0), tw: slice(HB.tw, 0), type: HB.type.slice(k0) },
+    mid: { snow: slice(HM.snow, 2), t: slice(HM.t, 0) },
     models: sm.map((m) => ({ id: m.id, cum: cum(m.hours.map((h) => (h ? h.snow : null))) })),
     modelDays: sm.map((m, j) => ({ id: m.id, days: res.days.map((d) => (S_.perModelDays[j][d.date] ? round(S_.perModelDays[j][d.date].snow) : null)) })),
     ens: ens
