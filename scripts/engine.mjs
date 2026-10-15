@@ -1130,7 +1130,7 @@ export function writeups(rows, resorts, { nws, setups } = {}) {
       const same = storms.filter((x) => Math.abs(Date.parse(x.s.start) - Date.parse(main.s.start)) < 30 * 3600000);
       const leaders = [];
       for (const x of same) if (!leaders.some((y) => y.r === x.r) && leaders.length < 3) leaders.push(x);
-      let p = `The main event runs ${span(main.s.start, main.s.end)}. ${leaders.map((x) => `${nm(x.r)} ${S(x.s.total)}`).join(", ")} at the summits`;
+      let p = `${main.s.total >= 4 ? "The main event runs" : "Light snow"} ${span(main.s.start, main.s.end)}${main.s.total >= 4 ? "." : ":"} ${leaders.map((x) => `${nm(x.r)} ${S(x.s.total)}`).join(", ")} at the summits`;
       p += main.s.hi - main.s.lo >= 3 ? `, though the models range from ${R(main.s.lo, main.s.hi)} at ${nm(main.r)}.` : ".";
       const setup = setups?.[main.s.setup?.key];
       if (setup && main.s.total >= 2) {
