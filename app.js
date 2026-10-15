@@ -226,35 +226,90 @@
       .join("");
   }
 
-  // ---------- weekend outlook (in season) ----------
+  // ---------- weekend planner ----------
+  // The coming Saturday and Sunday inside the 7-day window (just Sunday on a Sunday).
+  function weekendDays() {
+    const all = state.dates.map((d, k) => ({ d, k, wd: dateObj(d).getDay() }));
+    const firstSat = all.find((x) => x.wd === 6);
+    if (all[0].wd === 0) return [all[0]];
+    return firstSat ? all.filter((x) => x.k === firstSat.k || x.k === firstSat.k + 1) : [];
+  }
+
+  function planScope() {
+    const scope = store.get("ups-plan", "all");
+    const rows = state.rows.filter(operating);
+    if (scope === "mine") return { scope, rows: rows.filter((r) => state.favorites.has(r.resort.id)) };
+    if (scope !== "all") return { scope, rows: rows.filter((r) => r.resort.state === scope) };
+    return { scope, rows };
+  }
+
+  function planCell(row, x, best) {
+    const d = row.days[x.k];
+    const bits = [];
+    if (d.overnight >= 0.5) bits.push(`${snowTxt(d.overnight)} new`);
+    else if (d.snow >= 0.5) bits.push(`${snowTxt(d.snow)} in the day`);
+    if (d.rain + d.ice > 0.05) bits.push(d.ice > 0.05 ? "ice" : "rain");
+    bits.push(`${tempTxtU(d.tMax)}`);
+    if (d.windHold) bits.push("lift holds");
+    else if (d.gustMax >= 35) bits.push(`gusts ${windTxt(d.gustMax)}`);
+    return `<span class="pl-cell${best ? " best" : ""}"><span class="grade g-${d.grade.letter}">${d.grade.letter}</span><span>${esc(bits.join(" · "))}</span></span>`;
+  }
+
   function renderWeekend() {
     const el = $("#weekend-block");
-    const wk = state.dates.map((d, k) => ({ d, k })).filter((x) => [0, 6].includes(dateObj(x.d).getDay()));
-    const open = state.rows.filter(operating);
-    if (!state.open || !wk.length || !open.length) {
+    const wk = weekendDays();
+    const anyOpen = state.rows.some(operating);
+    if (!wk.length) {
       el.hidden = true;
       return;
     }
-    const picks = open
-      .map((row) => {
-        const best = wk.map((x) => ({ ...x, day: row.days[x.k] })).sort((a, b) => b.day.grade.score - a.day.grade.score || b.day.overnight - a.day.overnight)[0];
-        return { row, ...best };
-      })
-      .sort((a, b) => b.day.grade.score - a.day.grade.score || b.day.overnight - a.day.overnight)
-      .slice(0, 3);
     el.hidden = false;
-    el.innerHTML = `<div class="block-head"><h2>This weekend</h2><span class="label">Best bets · ${wk.map((x) => dayLong(x.d)).join(" and ")}</span></div>
-      ${picks[0].day.grade.score < 58 ? `<p class="hint">A rough weekend across the East. These are the least bad options.</p>` : ""}
-      <div class="weekend">${picks
-        .map((p) => {
-          const why = whyList(p.day.grade.why).slice(0, 2).join(", ") || "a solid day";
-          return `<button class="wk" data-open="${p.row.resort.id}">
-            <span class="grade g-${p.day.grade.letter}">${p.day.grade.letter}</span>
-            <span><b>${esc(p.row.resort.name)}</b><span class="wk-day">${dayLong(p.d)}</span></span>
-            <span class="wk-why">${fmt(cap(why))}.</span>
-          </button>`;
-        })
-        .join("")}</div>`;
+    const head = `<div class="block-head"><h2>Weekend planner</h2><span class="label">${wk.map((x) => dayLong(x.d)).join(" and ")}</span></div>`;
+    if (!anyOpen) {
+      const first = [...state.rows].filter((r) => r.season.phase === "preseason").sort((a, b) => a.season.daysToOpen - b.season.daysToOpen)[0];
+      el.innerHTML = `${head}<p class="hint">The planner turns on once lifts start spinning${first ? `. ${esc(first.resort.name)} usually opens first, around ${dayNum(first.season.open)}` : ""}. Until then, check the snowmaking windows below.</p>`;
+      return;
+    }
+    const { scope, rows } = planScope();
+    const states = [...new Set(RESORTS.map((r) => r.state))];
+    const controls = `<div class="pl-controls">
+      <div class="seg mini" role="group" aria-label="Which mountains">
+        <button data-plan="all" aria-pressed="${scope === "all"}">Everywhere</button>
+        <button data-plan="mine" aria-pressed="${scope === "mine"}">${Icon("starFill")}My mountains</button>
+      </div>
+      <select class="select" data-plan-state aria-label="Only one state"><option value="">Any state</option>${states.map((st) => `<option${scope === st ? " selected" : ""}>${st}</option>`).join("")}</select>
+    </div>`;
+    if (!rows.length) {
+      el.innerHTML = `${head}${controls}<p class="empty">${scope === "mine" ? "Tap the star on any resort to add it to your mountains, then plan here." : "None of these mountains are open this weekend."}</p>`;
+      return;
+    }
+    const scored = rows
+      .map((row) => {
+        const opts = wk.map((x) => ({ x, d: row.days[x.k] })).sort((p, q) => q.d.grade.score - p.d.grade.score || q.d.overnight - p.d.overnight);
+        return { row, best: opts[0] };
+      })
+      .sort((p, q) => q.best.d.grade.score - p.best.d.grade.score || q.best.d.overnight - p.best.d.overnight);
+    const top = scored[0];
+    const why = whyList(top.best.d.grade.why).slice(0, 2).join(" and ") || "a solid day";
+    let rec = `<b>Best bet: ${dayLong(top.best.x.d)} at ${esc(top.row.resort.name)}.</b> ${GRADE_WORD[top.best.d.grade.letter]}, ${fmt(why)}.`;
+    if (wk.length === 2) {
+      const satWins = rows.filter((r) => r.days[wk[0].k].grade.score > r.days[wk[1].k].grade.score + 4).length;
+      const sunWins = rows.filter((r) => r.days[wk[1].k].grade.score > r.days[wk[0].k].grade.score + 4).length;
+      if (rows.length >= 3 && satWins >= rows.length * 0.6) rec += ` Saturday beats Sunday at most of these mountains.`;
+      else if (rows.length >= 3 && sunWins >= rows.length * 0.6) rec += ` Sunday beats Saturday at most of these mountains.`;
+      else if (rows.length >= 3) rec += ` Neither day is clearly better across the board.`;
+    }
+    if (top.best.d.grade.score < 58) rec += ` A rough weekend overall; this is the least bad option.`;
+    const list = scored.slice(0, scope === "all" ? 8 : 31);
+    el.innerHTML = `${head}${controls}
+      <p class="pl-rec">${rec}</p>
+      <div class="pl-table" style="--cols:${wk.length}">
+        <div class="pl-row pl-head"><span></span>${wk.map((x) => `<span class="label">${dayShort(x.d)}</span>`).join("")}</div>
+        ${list
+          .map(({ row, best }) => `<button class="pl-row" data-open="${row.resort.id}"><span class="pl-name"><b>${esc(row.resort.name)}</b><span class="label">${row.resort.state}</span></span>${wk.map((x) => planCell(row, x, wk.length > 1 && x.k === best.x.k)).join("")}</button>`)
+          .join("")}
+      </div>
+      ${scope === "all" && scored.length > list.length ? `<p class="hint small">Showing the top ${list.length} of ${scored.length} open mountains. Star your favorites to plan just those.</p>` : ""}`;
   }
 
   // ---------- map ----------
@@ -1141,7 +1196,10 @@
     if (state.favorites.has(id)) state.favorites.delete(id);
     else state.favorites.add(id);
     store.set("ups-favs", [...state.favorites]);
-    if (!PAGE) renderSignupHome();
+    if (!PAGE) {
+      renderSignupHome();
+      if (store.get("ups-plan", "all") === "mine") renderWeekend();
+    }
     const on = state.favorites.has(id);
     document.querySelectorAll(`[data-fav="${id}"]`).forEach((b) => {
       b.setAttribute("aria-pressed", String(on));
@@ -1173,6 +1231,11 @@
       if (rlink && !(e.metaKey || e.ctrlKey || e.shiftKey)) e.preventDefault();
       const signup = e.target.closest("[data-signup]");
       if (signup) return;
+      const plan = e.target.closest("[data-plan]");
+      if (plan) {
+        store.set("ups-plan", plan.dataset.plan);
+        return renderWeekend();
+      }
       const reg = e.target.closest("[data-region]");
       if (reg) {
         state.region = reg.dataset.region;
@@ -1246,6 +1309,11 @@
     $("#search").addEventListener("input", (e) => {
       state.search = e.target.value;
       renderList();
+    });
+    document.addEventListener("change", (e) => {
+      if (!e.target.matches("[data-plan-state]")) return;
+      store.set("ups-plan", e.target.value || "all");
+      renderWeekend();
     });
     $("#sort").addEventListener("change", (e) => {
       state.sort = e.target.value;
