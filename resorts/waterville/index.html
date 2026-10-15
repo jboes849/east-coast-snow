@@ -80,14 +80,24 @@
       <div class="block-head">
         <h2>Snow Map</h2>
         <div class="block-tools">
-          <div class="seg" role="group" aria-label="Map time range">
-            <button data-range="3" aria-pressed="true">3 days</button>
-            <button data-range="7" aria-pressed="false">7 days</button>
-          </div>
+          <select id="map-layer" class="select" aria-label="Map layer">
+            <option value="s3">Snow · next 3 days</option>
+            <option value="s7">Snow · next 7 days</option>
+            <option value="day">Snow · day by day</option>
+            <option value="temp">Summit temps · day by day</option>
+            <option value="wind">Summit gusts · day by day</option>
+            <option value="past">Snow · last 7 days</option>
+            <option value="depth">Natural snow on the ground</option>
+          </select>
           <button id="radar-toggle" class="toggle" aria-pressed="false"><span id="radar-icon"></span>Radar</button>
         </div>
       </div>
       <div id="map" class="map"></div>
+      <div id="map-slider" class="map-slider" hidden>
+        <button id="map-play" class="toggle">Play</button>
+        <input id="map-day" type="range" min="0" max="6" step="1" value="0" aria-label="Day">
+        <span id="map-day-label" class="label"></span>
+      </div>
       <div id="map-legend" class="legend label"></div>
     </section>
 
