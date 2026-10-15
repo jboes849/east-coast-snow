@@ -1,0 +1,142 @@
+{
+ "jay": {
+  "site": "https://jaypeakresort.com",
+  "report": "https://jaypeakresort.com/conditions",
+  "cams": "https://jaypeakresort.com/cams",
+  "map": "https://jaypeakresort.com/trail-map"
+ },
+ "burke": {
+  "site": "https://skiburke.com"
+ },
+ "smuggs": {
+  "site": "https://www.smuggs.com"
+ },
+ "stowe": {
+  "site": "https://www.stowe.com",
+  "report": "https://www.stowe.com/the-mountain/mountain-conditions/snow-and-weather-report.aspx",
+  "cams": "https://www.stowe.com/the-mountain/mountain-conditions/mountain-cams.aspx",
+  "map": "https://www.stowe.com/the-mountain/about-the-mountain/trail-map.aspx"
+ },
+ "bolton": {
+  "site": "https://www.boltonvalley.com",
+  "report": "https://www.boltonvalley.com/the-mountain/snow-report",
+  "map": "https://www.boltonvalley.com/mountain/trail-map"
+ },
+ "mrg": {
+  "site": "https://www.madriverglen.com",
+  "report": "https://www.madriverglen.com/conditions",
+  "map": "https://www.madriverglen.com/trail-map"
+ },
+ "sugarbush": {
+  "site": "https://www.sugarbush.com",
+  "report": "https://www.sugarbush.com/mountain/conditions",
+  "cams": "https://www.sugarbush.com/mountain/webcams"
+ },
+ "killington": {
+  "site": "https://www.killington.com",
+  "report": "https://www.killington.com/mountain-report",
+  "cams": "https://www.killington.com/webcams"
+ },
+ "okemo": {
+  "site": "https://www.okemo.com",
+  "report": "https://www.okemo.com/the-mountain/mountain-conditions/snow-and-weather-report.aspx",
+  "cams": "https://www.okemo.com/the-mountain/mountain-conditions/mountain-cams.aspx"
+ },
+ "stratton": {
+  "site": "https://www.stratton.com",
+  "cams": "https://www.stratton.com/the-mountain/webcams",
+  "map": "https://www.stratton.com/trailmap"
+ },
+ "mountsnow": {
+  "site": "https://www.mountsnow.com",
+  "cams": "https://www.mountsnow.com/the-mountain/mountain-conditions/mountain-cams.aspx"
+ },
+ "cannon": {
+  "site": "https://www.cannonmt.com",
+  "report": "https://www.cannonmt.com/mountain-report",
+  "map": "https://www.cannonmt.com/trail-map"
+ },
+ "bretton": {
+  "site": "https://www.brettonwoods.com"
+ },
+ "wildcat": {
+  "site": "https://www.skiwildcat.com",
+  "report": "https://www.skiwildcat.com/the-mountain/mountain-conditions/snow-and-weather-report.aspx",
+  "cams": "https://www.skiwildcat.com/the-mountain/mountain-conditions/mountain-cams.aspx",
+  "map": "https://www.skiwildcat.com/the-mountain/about-the-mountain/trail-map.aspx"
+ },
+ "attitash": {
+  "site": "https://www.attitash.com",
+  "report": "https://www.attitash.com/the-mountain/mountain-conditions/snow-and-weather-report.aspx",
+  "cams": "https://www.attitash.com/the-mountain/mountain-conditions/mountain-cams.aspx",
+  "map": "https://www.attitash.com/the-mountain/about-the-mountain/trail-map.aspx"
+ },
+ "loon": {
+  "site": "https://www.loonmtn.com",
+  "report": "https://www.loonmtn.com/mountain-report"
+ },
+ "waterville": {
+  "site": "https://www.waterville.com",
+  "cams": "https://www.waterville.com/cams"
+ },
+ "sugarloaf": {
+  "site": "https://www.sugarloaf.com",
+  "report": "https://www.sugarloaf.com/mountain-report"
+ },
+ "saddleback": {
+  "site": "https://www.saddlebackmaine.com",
+  "report": "https://www.saddlebackmaine.com/mountain-report",
+  "cams": "https://www.saddlebackmaine.com/webcams",
+  "map": "https://www.saddlebackmaine.com/trail-map"
+ },
+ "sundayriver": {
+  "site": "https://www.sundayriver.com",
+  "report": "https://www.sundayriver.com/mountain-report"
+ },
+ "whiteface": {
+  "site": "https://whiteface.com"
+ },
+ "gore": {
+  "site": "https://goremountain.com"
+ },
+ "snowridge": {
+  "site": "https://www.snowridge.com",
+  "map": "https://www.snowridge.com/mountain/trail-map"
+ },
+ "holidayvalley": {
+  "site": "https://www.holidayvalley.com",
+  "report": "https://www.holidayvalley.com/snow-report",
+  "cams": "https://www.holidayvalley.com/webcams",
+  "map": "https://www.holidayvalley.com/trailmap"
+ },
+ "hunter": {
+  "site": "https://www.huntermtn.com",
+  "report": "https://www.huntermtn.com/the-mountain/mountain-conditions/snow-and-weather-report.aspx",
+  "cams": "https://www.huntermtn.com/the-mountain/mountain-conditions/mountain-cams.aspx",
+  "map": "https://www.huntermtn.com/the-mountain/about-the-mountain/trail-map.aspx"
+ },
+ "windham": {
+  "site": "https://www.windhammountainclub.com",
+  "report": "https://www.windhammountainclub.com/snow-report"
+ },
+ "belleayre": {
+  "site": "https://www.belleayre.com"
+ },
+ "jiminy": {
+  "site": "https://www.jiminypeak.com",
+  "report": "https://www.jiminypeak.com/snow-report",
+  "cams": "https://www.jiminypeak.com/webcams"
+ },
+ "camelback": {
+  "site": "https://www.skicamelback.com"
+ },
+ "sevensprings": {
+  "site": "https://www.7springs.com",
+  "report": "https://www.7springs.com/the-mountain/mountain-conditions/snow-and-weather-report.aspx",
+  "cams": "https://www.7springs.com/the-mountain/mountain-conditions/mountain-cams.aspx",
+  "map": "https://www.7springs.com/the-mountain/about-the-mountain/trail-map.aspx"
+ },
+ "snowshoe": {
+  "site": "https://www.snowshoemtn.com"
+ }
+}
