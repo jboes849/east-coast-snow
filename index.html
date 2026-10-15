@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>East Coast Snow</title>
+  <meta name="description" content="Free multi-model ski snow forecasts for East Coast resorts, from Vermont to West Virginia.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <h1>East Coast Snow</h1>
+      <p class="tagline">Free ski forecasts for the East. Five weather models, one honest range.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section aria-labelledby="best-h">
+      <h2 id="best-h">Best powder mornings, next 3 days</h2>
+      <div id="best" class="best"><p class="quiet">Loading forecasts…</p></div>
+    </section>
+
+    <section aria-labelledby="grid-h">
+      <div class="grid-head">
+        <h2 id="grid-h">7-day summit snow</h2>
+        <label class="sort">Sort
+          <select id="sort">
+            <option value="72h">Next 3 days</option>
+            <option value="7d">Next 7 days</option>
+            <option value="az">A–Z</option>
+          </select>
+        </label>
+      </div>
+      <div id="filters" class="filters" role="group" aria-label="Filter by state"></div>
+      <p id="status" class="quiet small">Loading…</p>
+      <div class="scroll">
+        <table id="grid" class="grid">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="quiet small">Big number is the middle forecast across models; small numbers are the lowest and highest model. Faded cells mean the models disagree. Tap a resort for details.</p>
+    </section>
+
+    <section id="detail" class="detail" hidden></section>
+
+    <section class="about" aria-labelledby="about-h">
+      <h2 id="about-h">How this forecast works</h2>
+      <p>Most snow apps show one model's number. This site pulls five (GFS/HRRR, ECMWF, Canadian, German ICON, and the National Weather Service blend) and shows where they agree and where they don't.</p>
+      <p>Snow totals use a temperature-based snow-to-liquid ratio at each resort's summit elevation, so cold storms come out fluffier and warm ones heavier, instead of the fixed ratio most models use. The powder score weights snow that falls overnight before first chair, cold temperatures, no rain, and model agreement.</p>
+    </section>
+  </main>
+
+  <footer class="wrap small quiet">
+    Weather data by <a href="https://open-meteo.com/">Open-Meteo.com</a> (CC BY 4.0), from NOAA, ECMWF, Environment Canada and DWD models. Forecasts can be wrong; check resort reports and avalanche advisories before you go.
+  </footer>
+
+  <script src="resorts.js"></script>
+  <script src="forecast.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
