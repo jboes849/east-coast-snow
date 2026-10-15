@@ -1,0 +1,51 @@
+VT_ASOS: 11
+NH_ASOS: 13
+ME_ASOS: 22
+NY_ASOS: 54
+MA_ASOS: 24
+PA_ASOS: 54
+WV_ASOS: 17
+--- IEM daily
+station,day,max_temp_f,min_temp_f,network
+BTV,2026-09-20,58.0,45.0,VT_ASOS
+MPV,2026-09-20,52.0,37.0,VT_ASOS
+BTV,2026-09-21,57.0,45.0,VT_ASOS
+MPV,2026-09-21,58.0,42.0,VT_ASOS
+BTV,2026-09-22,64.0,41.0,VT_ASOS
+MPV,2026-09-22,63.0,37.0,VT_ASOS
+BTV,2026-09-23,68.0,41.0,VT_ASOS
+MPV,2026-09-23,65.0,36.0,VT_ASOS
+BTV,2026-09-24,68.0,41.0,VT_ASOS
+MPV,2026-09-24,67.0,34.0,VT_ASOS
+BTV,2026-09-25,74.0,42.0,VT_ASOS
+MPV,2026-09-25,73.0,37.0,VT_ASOS
+BTV,2026-09-26,72.0,51.0,VT_ASOS
+MPV,2026-09-26,72.0,48.0,VT_ASOS
+BTV,2026-09-27,62.0,53.0,VT_ASOS
+MPV,2026-09-27,61.0,52.0,VT_ASOS
+BTV,2026-09-28,62.0,54.0,VT_ASOS
+MPV,2026-09-28,57.0,52.0,VT_ASOS
+BTV,2026-09-29,56.0,52.0,VT_ASOS
+MPV,2026-09-29,58.0,52.0,VT_ASOS
+BTV,2026-09-30,64.0,54.0,VT_ASOS
+MPV,2026-09-30,62.0,52.0,VT_ASOS
+BTV,2026-10-01,70.0,59.0,VT_ASOS
+MPV,2026-10-01,70.0,48.0,VT_ASOS
+BTV,2026-10-02,69.0,52.0,VT_ASOS
+MPV,2026-10-02,71.0,47.0,VT_ASOS
+BTV,2026-10-03,60.0,42.0,VT_ASOS
+MPV,2026-10-03,59.0,36.0,VT_ASOS
+BTV,2026-10-04,67.0,37.0,VT_ASOS
+--- IEM daily NH (MWN)
+Too many requests from your IP address, slow down.--- previous runs
+ncep_hrrr_conus: {"err":null,"n":768,"d0":768,"d1":768,"d2":0,"d3":0,"d5":0,"sum1":4.062}
+ncep_nam_conus: {"err":null,"n":768,"d0":768,"d1":768,"d2":0,"d3":0,"d5":0,"sum1":3.7660000000000005}
+gem_hrdps_continental: {"err":null,"n":768,"d0":768,"d1":768,"d2":0,"d3":0,"d5":0,"sum1":4.162}
+ncep_nbm_conus: {"err":null,"n":768,"d0":768,"d1":768,"d2":768,"d3":768,"d5":768,"sum1":3.3490000000000015}
+gfs_seamless: {"err":null,"n":768,"d0":768,"d1":768,"d2":768,"d3":768,"d5":768,"sum1":4.062}
+ecmwf_ifs025: {"err":null,"n":768,"d0":768,"d1":768,"d2":768,"d3":768,"d5":768,"sum1":5.099999999999997}
+gem_seamless: {"err":null,"n":768,"d0":768,"d1":768,"d2":768,"d3":768,"d5":768,"sum1":4.162}
+icon_seamless: {"err":null,"n":768,"d0":768,"d1":768,"d2":768,"d3":768,"d5":768,"sum1":4.336}
+--- multi-location previous runs
+[768,768]
+now Thu Oct 15 03:29:57 UTC 2026
