@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-15T03:32:59.774Z",
+ "generated": "2026-10-15T03:35:13.058Z",
  "window": {
   "start": "2026-09-15",
   "end": "2026-10-14",
@@ -19,7 +19,7 @@
    },
    "d2": null,
    "d3": null,
-   "rank": 6
+   "rank": 7
   },
   "ncep_nam_conus": {
    "label": "NAM 3 km",
@@ -77,15 +77,15 @@
    },
    "rank": 1
   },
-  "gfs_seamless": {
+  "gfs_global": {
    "label": "GFS",
    "d1": {
     "n": 743,
     "wetDays": 163,
-    "mae": 0.094,
-    "bias": 1.06,
-    "hitRate": 0.77,
-    "falseAlarms": 21
+    "mae": 0.09,
+    "bias": 1.07,
+    "hitRate": 0.8,
+    "falseAlarms": 27
    },
    "d2": {
     "n": 743,
@@ -103,7 +103,7 @@
     "hitRate": 0.73,
     "falseAlarms": 31
    },
-   "rank": 7
+   "rank": 4
   },
   "ecmwf_ifs025": {
    "label": "ECMWF",
@@ -131,24 +131,24 @@
     "hitRate": 0.91,
     "falseAlarms": 46
    },
-   "rank": 5
+   "rank": 6
   },
-  "gem_seamless": {
+  "gem_global": {
    "label": "Canadian GEM",
    "d1": {
     "n": 743,
     "wetDays": 163,
-    "mae": 0.085,
-    "bias": 1.07,
-    "hitRate": 0.81,
-    "falseAlarms": 26
+    "mae": 0.09,
+    "bias": 1.06,
+    "hitRate": 0.86,
+    "falseAlarms": 34
    },
    "d2": {
     "n": 743,
     "wetDays": 163,
-    "mae": 0.103,
-    "bias": 1.12,
-    "hitRate": 0.86,
+    "mae": 0.095,
+    "bias": 0.99,
+    "hitRate": 0.81,
     "falseAlarms": 45
    },
    "d3": {
@@ -159,7 +159,7 @@
     "hitRate": 0.74,
     "falseAlarms": 59
    },
-   "rank": 3
+   "rank": 5
   },
   "icon_seamless": {
    "label": "German ICON",
@@ -187,7 +187,7 @@
     "hitRate": 0.82,
     "falseAlarms": 51
    },
-   "rank": 4
+   "rank": 3
   }
  },
  "regions": {
@@ -228,14 +228,14 @@
     "falseAlarms": 18,
     "factor": 1.13
    },
-   "gfs_seamless": {
+   "gfs_global": {
     "n": 296,
     "wetDays": 36,
-    "mae": 0.079,
-    "bias": 1.29,
-    "hitRate": 0.69,
-    "falseAlarms": 22,
-    "factor": 1.03
+    "mae": 0.081,
+    "bias": 1.33,
+    "hitRate": 0.78,
+    "falseAlarms": 24,
+    "factor": 1
    },
    "ecmwf_ifs025": {
     "n": 296,
@@ -246,14 +246,14 @@
     "falseAlarms": 33,
     "factor": 0.83
    },
-   "gem_seamless": {
+   "gem_global": {
     "n": 296,
     "wetDays": 36,
-    "mae": 0.093,
-    "bias": 1.38,
+    "mae": 0.09,
+    "bias": 1.37,
     "hitRate": 0.75,
-    "falseAlarms": 26,
-    "factor": 0.87
+    "falseAlarms": 29,
+    "factor": 0.9
    },
    "icon_seamless": {
     "n": 296,
@@ -302,14 +302,14 @@
     "falseAlarms": 2,
     "factor": 1.2
    },
-   "gfs_seamless": {
+   "gfs_global": {
     "n": 238,
     "wetDays": 54,
-    "mae": 0.067,
-    "bias": 0.94,
-    "hitRate": 0.83,
+    "mae": 0.079,
+    "bias": 1.06,
+    "hitRate": 0.8,
     "falseAlarms": 4,
-    "factor": 1.15
+    "factor": 0.97
    },
    "ecmwf_ifs025": {
     "n": 238,
@@ -320,14 +320,14 @@
     "falseAlarms": 8,
     "factor": 1.17
    },
-   "gem_seamless": {
+   "gem_global": {
     "n": 238,
     "wetDays": 54,
-    "mae": 0.083,
-    "bias": 0.99,
-    "hitRate": 0.78,
-    "falseAlarms": 5,
-    "factor": 0.93
+    "mae": 0.087,
+    "bias": 0.96,
+    "hitRate": 0.81,
+    "falseAlarms": 6,
+    "factor": 0.89
    },
    "icon_seamless": {
     "n": 238,
@@ -376,14 +376,14 @@
     "falseAlarms": 10,
     "factor": 1.15
    },
-   "gfs_seamless": {
+   "gfs_global": {
     "n": 230,
     "wetDays": 44,
-    "mae": 0.089,
-    "bias": 1.44,
-    "hitRate": 0.91,
+    "mae": 0.09,
+    "bias": 1.49,
+    "hitRate": 0.93,
     "falseAlarms": 6,
-    "factor": 0.92
+    "factor": 0.91
    },
    "ecmwf_ifs025": {
     "n": 230,
@@ -394,14 +394,14 @@
     "falseAlarms": 9,
     "factor": 1
    },
-   "gem_seamless": {
+   "gem_global": {
     "n": 230,
     "wetDays": 44,
-    "mae": 0.081,
-    "bias": 1.48,
-    "hitRate": 0.93,
-    "falseAlarms": 11,
-    "factor": 1.01
+    "mae": 0.078,
+    "bias": 1.22,
+    "hitRate": 0.86,
+    "falseAlarms": 17,
+    "factor": 1.05
    },
    "icon_seamless": {
     "n": 230,
@@ -421,7 +421,7 @@
     "bias": 0.96,
     "hitRate": 0.85,
     "falseAlarms": 1,
-    "factor": 1.05
+    "factor": 1.02
    },
    "ncep_nam_conus": {
     "n": 70,
@@ -430,7 +430,7 @@
     "bias": 1.28,
     "hitRate": 0.9,
     "falseAlarms": 6,
-    "factor": 0.85
+    "factor": 0.82
    },
    "gem_hrdps_continental": {
     "n": 70,
@@ -439,7 +439,7 @@
     "bias": 0.77,
     "hitRate": 0.9,
     "falseAlarms": 1,
-    "factor": 1.14
+    "factor": 1.11
    },
    "ncep_nbm_conus": {
     "n": 140,
@@ -448,16 +448,16 @@
     "bias": 0.95,
     "hitRate": 1,
     "falseAlarms": 4,
-    "factor": 1.17
+    "factor": 1.13
    },
-   "gfs_seamless": {
+   "gfs_global": {
     "n": 140,
     "wetDays": 40,
-    "mae": 0.097,
-    "bias": 0.98,
-    "hitRate": 0.82,
-    "falseAlarms": 4,
-    "factor": 1
+    "mae": 0.11,
+    "bias": 1.23,
+    "hitRate": 0.8,
+    "falseAlarms": 6,
+    "factor": 0.85
    },
    "ecmwf_ifs025": {
     "n": 140,
@@ -466,16 +466,16 @@
     "bias": 0.99,
     "hitRate": 0.85,
     "falseAlarms": 7,
-    "factor": 0.97
+    "factor": 0.94
    },
-   "gem_seamless": {
+   "gem_global": {
     "n": 140,
     "wetDays": 40,
-    "mae": 0.099,
-    "bias": 0.84,
-    "hitRate": 0.9,
-    "falseAlarms": 5,
-    "factor": 0.98
+    "mae": 0.086,
+    "bias": 0.87,
+    "hitRate": 0.82,
+    "falseAlarms": 6,
+    "factor": 1.09
    },
    "icon_seamless": {
     "n": 140,
@@ -484,7 +484,7 @@
     "bias": 0.9,
     "hitRate": 0.82,
     "falseAlarms": 3,
-    "factor": 1.03
+    "factor": 1
    }
   },
   "Western Maine": {
@@ -495,7 +495,7 @@
     "bias": 1.1,
     "hitRate": 0.75,
     "falseAlarms": 1,
-    "factor": 0.98
+    "factor": 1
    },
    "ncep_nam_conus": {
     "n": 39,
@@ -504,7 +504,7 @@
     "bias": 0.97,
     "hitRate": 0.75,
     "falseAlarms": 1,
-    "factor": 0.9
+    "factor": 0.91
    },
    "gem_hrdps_continental": {
     "n": 39,
@@ -513,7 +513,7 @@
     "bias": 1.03,
     "hitRate": 0.88,
     "falseAlarms": 0,
-    "factor": 1.23
+    "factor": 1.26
    },
    "ncep_nbm_conus": {
     "n": 78,
@@ -522,16 +522,16 @@
     "bias": 0.93,
     "hitRate": 1,
     "falseAlarms": 0,
-    "factor": 1.26
+    "factor": 1.3
    },
-   "gfs_seamless": {
+   "gfs_global": {
     "n": 78,
     "wetDays": 16,
-    "mae": 0.058,
-    "bias": 1.11,
-    "hitRate": 0.88,
+    "mae": 0.061,
+    "bias": 1.14,
+    "hitRate": 1,
     "falseAlarms": 1,
-    "factor": 1.02
+    "factor": 1
    },
    "ecmwf_ifs025": {
     "n": 78,
@@ -540,16 +540,16 @@
     "bias": 1.28,
     "hitRate": 1,
     "falseAlarms": 3,
-    "factor": 1
+    "factor": 1.03
    },
-   "gem_seamless": {
+   "gem_global": {
     "n": 78,
     "wetDays": 16,
-    "mae": 0.05,
-    "bias": 1.15,
-    "hitRate": 0.94,
+    "mae": 0.057,
+    "bias": 1.18,
+    "hitRate": 1,
     "falseAlarms": 1,
-    "factor": 1.18
+    "factor": 1.07
    },
    "icon_seamless": {
     "n": 78,
@@ -558,7 +558,7 @@
     "bias": 1.22,
     "hitRate": 1,
     "falseAlarms": 0,
-    "factor": 0.79
+    "factor": 0.81
    }
   },
   "Adirondacks": {
@@ -598,14 +598,14 @@
     "falseAlarms": 5,
     "factor": 1.1
    },
-   "gfs_seamless": {
+   "gfs_global": {
     "n": 144,
     "wetDays": 38,
-    "mae": 0.099,
-    "bias": 0.77,
-    "hitRate": 0.82,
+    "mae": 0.097,
+    "bias": 0.86,
+    "hitRate": 0.79,
     "falseAlarms": 4,
-    "factor": 0.91
+    "factor": 0.93
    },
    "ecmwf_ifs025": {
     "n": 144,
@@ -616,14 +616,14 @@
     "falseAlarms": 5,
     "factor": 1.05
    },
-   "gem_seamless": {
+   "gem_global": {
     "n": 144,
     "wetDays": 38,
-    "mae": 0.102,
-    "bias": 1.17,
-    "hitRate": 0.84,
-    "falseAlarms": 7,
-    "factor": 0.88
+    "mae": 0.101,
+    "bias": 0.99,
+    "hitRate": 0.79,
+    "falseAlarms": 8,
+    "factor": 0.89
    },
    "icon_seamless": {
     "n": 144,
@@ -652,7 +652,7 @@
     "bias": 1.54,
     "hitRate": 1,
     "falseAlarms": 1,
-    "factor": 0.71
+    "factor": 0.7
    },
    "gem_hrdps_continental": {
     "n": 44,
@@ -661,7 +661,7 @@
     "bias": 1.35,
     "hitRate": 0.93,
     "falseAlarms": 0,
-    "factor": 1.05
+    "factor": 1.03
    },
    "ncep_nbm_conus": {
     "n": 88,
@@ -670,16 +670,16 @@
     "bias": 1.05,
     "hitRate": 0.82,
     "falseAlarms": 0,
-    "factor": 1.03
+    "factor": 1.01
    },
-   "gfs_seamless": {
+   "gfs_global": {
     "n": 88,
     "wetDays": 28,
-    "mae": 0.127,
-    "bias": 1.3,
-    "hitRate": 0.71,
+    "mae": 0.088,
+    "bias": 0.72,
+    "hitRate": 0.79,
     "falseAlarms": 0,
-    "factor": 0.79
+    "factor": 1.11
    },
    "ecmwf_ifs025": {
     "n": 88,
@@ -688,16 +688,16 @@
     "bias": 1.19,
     "hitRate": 0.89,
     "falseAlarms": 1,
-    "factor": 1
+    "factor": 0.98
    },
-   "gem_seamless": {
+   "gem_global": {
     "n": 88,
     "wetDays": 28,
-    "mae": 0.096,
-    "bias": 1.16,
+    "mae": 0.084,
+    "bias": 1.05,
     "hitRate": 0.89,
     "falseAlarms": 1,
-    "factor": 1.04
+    "factor": 1.17
    },
    "icon_seamless": {
     "n": 88,
@@ -706,7 +706,7 @@
     "bias": 0.82,
     "hitRate": 0.82,
     "falseAlarms": 0,
-    "factor": 1.02
+    "factor": 1
    }
   },
   "Western New York": {
@@ -746,14 +746,14 @@
     "falseAlarms": 2,
     "factor": 1
    },
-   "gfs_seamless": {
+   "gfs_global": {
     "n": 60,
     "wetDays": 6,
-    "mae": 0.092,
-    "bias": 1.42,
-    "hitRate": 0.5,
-    "falseAlarms": 2,
-    "factor": 1.07
+    "mae": 0.074,
+    "bias": 1.22,
+    "hitRate": 0.67,
+    "falseAlarms": 3,
+    "factor": 1.2
    },
    "ecmwf_ifs025": {
     "n": 60,
@@ -764,14 +764,14 @@
     "falseAlarms": 2,
     "factor": 1
    },
-   "gem_seamless": {
+   "gem_global": {
     "n": 60,
     "wetDays": 6,
-    "mae": 0.077,
-    "bias": 1.17,
-    "hitRate": 0.5,
+    "mae": 0.092,
+    "bias": 1.85,
+    "hitRate": 0.83,
     "falseAlarms": 2,
-    "factor": 1.18
+    "factor": 1.07
    },
    "icon_seamless": {
     "n": 60,
@@ -791,7 +791,7 @@
     "bias": 0.8,
     "hitRate": 0.91,
     "falseAlarms": 0,
-    "factor": 0.93
+    "factor": 0.8
    },
    "ncep_nam_conus": {
     "n": 61,
@@ -800,7 +800,7 @@
     "bias": 1.06,
     "hitRate": 0.91,
     "falseAlarms": 4,
-    "factor": 1
+    "factor": 0.86
    },
    "gem_hrdps_continental": {
     "n": 61,
@@ -809,7 +809,7 @@
     "bias": 1.28,
     "hitRate": 1,
     "falseAlarms": 3,
-    "factor": 1.42
+    "factor": 1.22
    },
    "ncep_nbm_conus": {
     "n": 122,
@@ -818,16 +818,16 @@
     "bias": 1.04,
     "hitRate": 0.95,
     "falseAlarms": 4,
-    "factor": 1.31
+    "factor": 1.11
    },
-   "gfs_seamless": {
+   "gfs_global": {
     "n": 122,
     "wetDays": 22,
-    "mae": 0.098,
-    "bias": 0.91,
-    "hitRate": 0.95,
+    "mae": 0.078,
+    "bias": 0.89,
+    "hitRate": 1,
     "falseAlarms": 3,
-    "factor": 0.94
+    "factor": 1
    },
    "ecmwf_ifs025": {
     "n": 122,
@@ -836,16 +836,16 @@
     "bias": 1.54,
     "hitRate": 1,
     "falseAlarms": 6,
-    "factor": 0.91
+    "factor": 0.77
    },
-   "gem_seamless": {
+   "gem_global": {
     "n": 122,
     "wetDays": 22,
-    "mae": 0.072,
-    "bias": 1.16,
-    "hitRate": 1,
-    "falseAlarms": 8,
-    "factor": 1.28
+    "mae": 0.062,
+    "bias": 0.85,
+    "hitRate": 0.86,
+    "falseAlarms": 4,
+    "factor": 1.26
    },
    "icon_seamless": {
     "n": 122,
@@ -854,7 +854,7 @@
     "bias": 1.31,
     "hitRate": 0.91,
     "falseAlarms": 2,
-    "factor": 1.28
+    "factor": 1.08
    }
   },
   "Berkshires": {
@@ -894,14 +894,14 @@
     "falseAlarms": 8,
     "factor": 1.17
    },
-   "gfs_seamless": {
+   "gfs_global": {
     "n": 120,
     "wetDays": 24,
-    "mae": 0.097,
-    "bias": 1.56,
-    "hitRate": 0.92,
-    "falseAlarms": 2,
-    "factor": 0.93
+    "mae": 0.091,
+    "bias": 1.53,
+    "hitRate": 1,
+    "falseAlarms": 3,
+    "factor": 0.99
    },
    "ecmwf_ifs025": {
     "n": 120,
@@ -912,14 +912,14 @@
     "falseAlarms": 9,
     "factor": 0.97
    },
-   "gem_seamless": {
+   "gem_global": {
     "n": 120,
     "wetDays": 24,
-    "mae": 0.073,
-    "bias": 1.59,
-    "hitRate": 1,
-    "falseAlarms": 6,
-    "factor": 1.23
+    "mae": 0.075,
+    "bias": 1.29,
+    "hitRate": 0.92,
+    "falseAlarms": 10,
+    "factor": 1.2
    },
    "icon_seamless": {
     "n": 120,
@@ -968,13 +968,13 @@
     "falseAlarms": 2,
     "factor": 0.91
    },
-   "gfs_seamless": {
+   "gfs_global": {
     "n": 60,
     "wetDays": 16,
-    "mae": 0.139,
-    "bias": 0.73,
-    "hitRate": 0.69,
-    "falseAlarms": 1,
+    "mae": 0.138,
+    "bias": 0.72,
+    "hitRate": 0.63,
+    "falseAlarms": 0,
     "factor": 0.83
    },
    "ecmwf_ifs025": {
@@ -986,14 +986,14 @@
     "falseAlarms": 1,
     "factor": 1.05
    },
-   "gem_seamless": {
+   "gem_global": {
     "n": 60,
     "wetDays": 16,
-    "mae": 0.103,
-    "bias": 0.89,
-    "hitRate": 0.75,
+    "mae": 0.113,
+    "bias": 0.9,
+    "hitRate": 0.81,
     "falseAlarms": 0,
-    "factor": 1.12
+    "factor": 1.02
    },
    "icon_seamless": {
     "n": 60,
@@ -1013,7 +1013,7 @@
     "bias": 1.18,
     "hitRate": 0.67,
     "falseAlarms": 0,
-    "factor": 0.94
+    "factor": 0.98
    },
    "ncep_nam_conus": {
     "n": 15,
@@ -1022,7 +1022,7 @@
     "bias": 1.13,
     "hitRate": 0.89,
     "falseAlarms": 1,
-    "factor": 0.8
+    "factor": 0.84
    },
    "gem_hrdps_continental": {
     "n": 15,
@@ -1031,7 +1031,7 @@
     "bias": 0.74,
     "hitRate": 0.67,
     "falseAlarms": 1,
-    "factor": 0.96
+    "factor": 1
    },
    "ncep_nbm_conus": {
     "n": 30,
@@ -1040,16 +1040,16 @@
     "bias": 1.06,
     "hitRate": 0.89,
     "falseAlarms": 4,
-    "factor": 1.26
+    "factor": 1.34
    },
-   "gfs_seamless": {
+   "gfs_global": {
     "n": 30,
     "wetDays": 18,
-    "mae": 0.266,
-    "bias": 0.98,
+    "mae": 0.284,
+    "bias": 0.85,
     "hitRate": 0.72,
-    "falseAlarms": 1,
-    "factor": 1.01
+    "falseAlarms": 2,
+    "factor": 1
    },
    "ecmwf_ifs025": {
     "n": 30,
@@ -1058,16 +1058,16 @@
     "bias": 1.22,
     "hitRate": 0.89,
     "falseAlarms": 1,
-    "factor": 1
+    "factor": 1.06
    },
-   "gem_seamless": {
+   "gem_global": {
     "n": 30,
     "wetDays": 18,
-    "mae": 0.238,
-    "bias": 0.72,
-    "hitRate": 0.72,
-    "falseAlarms": 2,
-    "factor": 1.13
+    "mae": 0.299,
+    "bias": 0.97,
+    "hitRate": 0.83,
+    "falseAlarms": 3,
+    "factor": 0.95
    },
    "icon_seamless": {
     "n": 30,
@@ -1076,7 +1076,7 @@
     "bias": 1.03,
     "hitRate": 0.78,
     "falseAlarms": 2,
-    "factor": 1.09
+    "factor": 1.15
    }
   },
   "West Virginia": {
@@ -1116,14 +1116,14 @@
     "falseAlarms": 3,
     "factor": 1.33
    },
-   "gfs_seamless": {
+   "gfs_global": {
     "n": 60,
     "wetDays": 20,
-    "mae": 0.157,
-    "bias": 0.62,
-    "hitRate": 0.85,
+    "mae": 0.131,
+    "bias": 0.63,
+    "hitRate": 0.8,
     "falseAlarms": 2,
-    "factor": 1.04
+    "factor": 1.24
    },
    "ecmwf_ifs025": {
     "n": 60,
@@ -1134,14 +1134,14 @@
     "falseAlarms": 4,
     "factor": 1.22
    },
-   "gem_seamless": {
+   "gem_global": {
     "n": 60,
     "wetDays": 20,
-    "mae": 0.192,
-    "bias": 0.8,
-    "hitRate": 0.7,
+    "mae": 0.178,
+    "bias": 0.58,
+    "hitRate": 0.8,
     "falseAlarms": 3,
-    "factor": 0.85
+    "factor": 0.92
    },
    "icon_seamless": {
     "n": 60,
