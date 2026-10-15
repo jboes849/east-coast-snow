@@ -1,0 +1,22 @@
+name: probe
+on:
+  push:
+    paths: ["scripts/probe-verify.sh", ".github/workflows/probe.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: forecast
+  cancel-in-progress: false
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: bash scripts/probe-verify.sh > probe-out.txt 2>&1; mkdir -p data/probe; mv probe-out.txt data/probe/out.txt
+      - run: |
+          git config user.name "upslope-bot"
+          git config user.email "upslope-bot@users.noreply.github.com"
+          git add data/probe
+          git commit -m "Verification probe" || exit 0
+          for i in 1 2 3; do git pull --rebase origin main && git push && exit 0; sleep 5; done
