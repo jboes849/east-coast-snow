@@ -21,6 +21,8 @@
     "freezing_level_height",
     "wind_gusts_10m",
     "cloud_cover",
+    "wind_speed_10m",
+    "wind_direction_10m",
   ];
 
   const ftToM = (ft) => Math.round(ft * 0.3048);
@@ -112,6 +114,8 @@
     const fzl = series(hourly, "freezing_level_height", model);
     const gust = series(hourly, "wind_gusts_10m", model);
     const cloud = series(hourly, "cloud_cover", model);
+    const wspd = series(hourly, "wind_speed_10m", model);
+    const wdir = series(hourly, "wind_direction_10m", model);
 
     const days = {};
     const hours = [];
@@ -123,7 +127,7 @@
       const sf = snowfall[i];
       const tf = temp[i];
       if (p == null && sf == null && tf == null) {
-        hours.push({ t, snow: null, mix: null, temp: null, fzlFt: null, gust: null });
+        hours.push({ t, snow: null, mix: null, temp: null, fzlFt: null, gust: null, wind: null, dir: null });
         continue;
       }
 
@@ -135,7 +139,7 @@
       const snow = snowWater * snowRatio(tf);
       const mix = Math.max(0, (p || 0) - snowWater);
 
-      hours.push({ t, snow, mix, temp: tf, fzlFt: fzl[i] != null ? mToFt(fzl[i]) : null, gust: gust[i] ?? null });
+      hours.push({ t, snow, mix, temp: tf, fzlFt: fzl[i] != null ? mToFt(fzl[i]) : null, gust: gust[i] ?? null, wind: wspd[i] ?? null, dir: wdir[i] ?? null });
 
       const d = (days[date] ||= emptyDay());
       d.snow += snow;
@@ -214,7 +218,7 @@
   function hourly(perModel) {
     const n = Math.max(0, ...perModel.map((m) => m.hours.length));
     const ref = perModel.find((m) => m.hours.length === n);
-    const out = { time: [], snow: [], mix: [], temp: [], gust: [], fzlFt: [], cumulative: perModel.map(() => []) };
+    const out = { time: [], snow: [], mix: [], temp: [], gust: [], wind: [], dir: [], fzlFt: [], cumulative: perModel.map(() => []) };
     const totals = perModel.map(() => 0);
     for (let i = 0; i < n; i++) {
       const hs = perModel.map((m) => m.hours[i]);
@@ -224,12 +228,28 @@
       out.temp.push(median(hs.map((h) => h?.temp)));
       out.gust.push(median(hs.map((h) => h?.gust)));
       out.fzlFt.push(median(hs.map((h) => h?.fzlFt)));
+      out.wind.push(median(hs.map((h) => h?.wind)));
+      out.dir.push(meanDir(hs.map((h) => (h?.dir != null ? { dir: h.dir, w: h.wind || 1 } : null))));
       hs.forEach((h, k) => {
         if (h?.snow != null) totals[k] += h.snow;
         out.cumulative[k].push(h?.snow != null ? totals[k] : null);
       });
     }
     return out;
+  }
+
+  // Average wind direction as a vector, so 350° and 10° average to 0°, not 180°.
+  function meanDir(items) {
+    let x = 0;
+    let y = 0;
+    items.forEach((it) => {
+      if (!it) return;
+      const r = (it.dir * Math.PI) / 180;
+      x += Math.sin(r) * it.w;
+      y += Math.cos(r) * it.w;
+    });
+    if (!x && !y) return null;
+    return ((Math.atan2(x, y) * 180) / Math.PI + 360) % 360;
   }
 
   // Snow events: runs of snowy hours, allowing short breaks.
@@ -308,5 +328,5 @@
     return out;
   }
 
-  window.Forecast = { MODELS, loadAll, consensus, hourly, storms, powderScore, forecastDates, snowRatio, quality, median };
+  window.Forecast = { MODELS, loadAll, consensus, hourly, storms, powderScore, forecastDates, snowRatio, quality, median, meanDir };
 })();

@@ -9,6 +9,9 @@ Free ski snow forecasts for East Coast resorts (VT, NH, ME, NY, MA, PA, WV). Liv
 - **Powder mornings:** the best first chairs in the next 3 days, scored 0 to 100 (overnight snow 4pm to 9am, cold, no rain, model agreement).
 - **Resort cards:** 7-day mini bar chart with the model range behind each bar, plus badges for powder, rain, wind holds and snowmaking weather. A table view, search, state filters, and starred "My mountains" (saved in the browser).
 - **Resort detail:** a written summary, 7-day tiles with weather icons, a chart of snow piling up for every model, a snow quality meter, summit vs base temperature, and wind gusts against the lift-hold line.
+- **Day grades:** every day gets an A–F ski grade from fresh snow, rain, icy refreezes, lift-closing wind and wind chill.
+- **Storm guides:** `guides.js` has a write-up per mountain (which storm setups deliver, which lifts are wind-prone, wind-hold threshold). Each forecast storm is classified (northwest upslope, nor'easter, lake effect, southerly, westerly) from its snow-weighted wind direction and flagged when it matches the mountain's best setup.
+- **Lift wind:** hourly 8am–4pm summit gusts with direction arrows and hold risk per mountain.
 - **Units:** inches/°F or cm/°C.
 
 Under the hood it pulls five models from Open-Meteo in the visitor's browser (GFS/HRRR, ECMWF, Canadian GEM, German ICON, NWS National Blend) and recomputes snow from liquid with a temperature-based snow-to-liquid ratio instead of the models' fixed 7:1.
@@ -19,6 +22,7 @@ Under the hood it pulls five models from Open-Meteo in the visitor's browser (GF
 - `app.js`: rendering, map, charts and interaction.
 - `forecast.js`: data fetching and forecast math (consensus, storms, powder score, snow quality).
 - `resorts.js`: resort list. Coordinates and elevations are approximate; correct them as needed.
+- `guides.js`: storm setups and per-mountain guides. Written from general knowledge; edit as local knowledge improves.
 - `icons.js`: inline SVG icons.
 - Fonts: Geist and Geist Mono from Google Fonts.
 - `vendor/`: Leaflet 1.9.4 and Chart.js 4.4.1 (MIT), served from the site so there's no CDN dependency.

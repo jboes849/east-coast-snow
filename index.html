@@ -83,6 +83,7 @@
             <option value="7d">Most snow · 7d</option>
             <option value="3d">Most snow · 3d</option>
             <option value="powder">Powder score</option>
+            <option value="grade">Best ski day</option>
             <option value="az">A–Z</option>
           </select>
           <div class="seg" role="group" aria-label="View">
@@ -106,7 +107,7 @@
         <article><span class="label">01</span><h3>Five models, one range</h3><p>Most apps show one computer model. We pull five (American GFS and HRRR, European ECMWF, Canadian, German ICON and the National Weather Service blend) and show the middle forecast with the lowest and highest.</p></article>
         <article><span class="label">02</span><h3>Snow quality</h3><p>Cold air makes light snow; warm air makes heavy snow. Totals are sized using the temperature at each summit instead of a fixed ratio, so you know whether to expect powder or a dense base builder.</p></article>
         <article><span class="label">03</span><h3>Powder score</h3><p>A 0–100 score for each morning. It rewards snow that falls overnight before first chair, cold temperatures, no rain, and models that agree with each other.</p></article>
-        <article><span class="label">04</span><h3>Rain, wind, snowmaking</h3><p>East Coast storms often mix with rain and bring strong wind. We flag rain days, gusts strong enough to close upper lifts, and cold stretches that are good for snowmaking.</p></article>
+        <article><span class="label">04</span><h3>Day grades, wind and storm setups</h3><p>Every day gets an A–F ski grade that weighs fresh snow, rain, icy refreezes, lift-closing wind and cold. Each mountain has a storm guide, and we flag when this week's storm matches the setup that works best there.</p></article>
       </div>
       <details class="glossary">
         <summary>Glossary</summary>
@@ -117,6 +118,9 @@
           <dt>Overnight snow</dt><dd>Snow that falls from 4pm to 9am, so it's waiting for you on the first chair.</dd>
           <dt>Wind hold</dt><dd>When gusts get too strong (often above 45 mph) resorts stop upper lifts for safety.</dd>
           <dt>Snowmaking weather</dt><dd>Several hours at or below about 26°F, cold enough for snow guns to work well.</dd>
+          <dt>Day grade</dt><dd>A quick A–F rating for skiing that day. A: fresh snow or a bluebird day. C: a normal groomer day. F: rain or lifts likely closed.</dd>
+          <dt>Nor'easter</dt><dd>A coastal storm tracking up the Atlantic with northeast winds. The classic big-dump setup for southern New England, the Catskills and Maine.</dd>
+          <dt>Lake effect</dt><dd>Narrow, intense snow bands off the Great Lakes on cold westerly winds. Huge totals for Tug Hill and western New York.</dd>
           <dt>Upslope snow</dt><dd>Snow squeezed out as moist air is forced up the mountains. It's why the northern Greens and Adirondacks often beat the forecast.</dd>
         </dl>
       </details>
@@ -138,6 +142,7 @@
   <script src="vendor/chart.umd.js"></script>
   <script src="icons.js"></script>
   <script src="resorts.js"></script>
+  <script src="guides.js"></script>
   <script src="forecast.js"></script>
   <script>
     document.getElementById("search-icon").innerHTML = Icon("search");
