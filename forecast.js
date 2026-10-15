@@ -7,11 +7,11 @@
   const FORECAST_DAYS = 7;
 
   const MODELS = [
-    { id: "gfs_seamless", label: "GFS / HRRR", color: "#ef4444" },
-    { id: "ecmwf_ifs025", label: "ECMWF", color: "#22c55e" },
-    { id: "gem_seamless", label: "Canadian", color: "#f59e0b" },
-    { id: "icon_seamless", label: "German ICON", color: "#a855f7" },
-    { id: "ncep_nbm_conus", label: "NWS Blend", color: "#06b6d4" },
+    { id: "gfs_seamless", label: "GFS / HRRR", color: "#d4380d" },
+    { id: "ecmwf_ifs025", label: "ECMWF", color: "#0b8a5f" },
+    { id: "gem_seamless", label: "Canadian", color: "#c08a00" },
+    { id: "icon_seamless", label: "German ICON", color: "#7a4fd1" },
+    { id: "ncep_nbm_conus", label: "NWS Blend", color: "#0aa2c0" },
   ];
 
   const HOURLY = [

@@ -1,6 +1,6 @@
-# East Coast Snow
+# Upslope
 
-Free ski snow forecasts for East Coast resorts (VT, NH, ME, NY, MA, PA, WV).
+Free ski snow forecasts for East Coast resorts (VT, NH, ME, NY, MA, PA, WV). Live at https://jboes849.github.io/east-coast-snow/
 
 ## What it does
 
@@ -20,6 +20,7 @@ Under the hood it pulls five models from Open-Meteo in the visitor's browser (GF
 - `forecast.js`: data fetching and forecast math (consensus, storms, powder score, snow quality).
 - `resorts.js`: resort list. Coordinates and elevations are approximate; correct them as needed.
 - `icons.js`: inline SVG icons.
+- Fonts: Geist and Geist Mono from Google Fonts.
 - `vendor/`: Leaflet 1.9.4 and Chart.js 4.4.1 (MIT), served from the site so there's no CDN dependency.
 
 No build step and no server. Any static host works (GitHub Pages, Cloudflare Pages, Netlify).

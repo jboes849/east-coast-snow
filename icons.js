@@ -25,6 +25,7 @@ window.Icon = (function () {
     mountain: wrap(`<path d="m3 20 6.5-11 3.5 5.5L15.5 11 21 20H3Z"/><path d="m8 11.5 1.5 1 1.5-1"/>`),
     info: wrap(`<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>`),
     gauge: wrap(`<path d="M4 16a8 8 0 1 1 16 0"/><path d="m12 16 4-5"/>`),
+    bars: wrap(`<path d="M4 20V12M9 20V6M14 20v-9M19 20V9M3 20h18"/>`),
     layers: wrap(`<path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/>`),
   };
   return (name, cls) => (cls ? icons[name].replace('class="icon ', `class="icon ${cls} `) : icons[name]);

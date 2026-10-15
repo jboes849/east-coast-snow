@@ -3,27 +3,28 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>East Coast Snow · Free ski snow forecasts</title>
-  <meta name="description" content="Free ski snow forecasts for East Coast resorts from Maine to West Virginia. Five weather models, plain-English summaries, powder scores and snow maps.">
-  <meta name="theme-color" content="#0b1a33">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 2v20M4.9 6.5l14.2 11M19.1 6.5 4.9 17.5'/%3E%3C/svg%3E">
+  <title>Upslope · Snow forecasts for East Coast skiers</title>
+  <meta name="description" content="Free ski snow forecasts for East Coast resorts from Maine to West Virginia. Five weather models, plain-English summaries, powder scores and a live snow map.">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M1 18 8 5l4 7 2.5-4L19 18Z' fill='%230b0d10'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="loading">
-  <header class="topbar">
-    <div class="wrap topbar-inner">
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
       <a class="brand" href="./">
-        <span class="brand-mark" id="brand-mark"></span>
-        <span>East Coast Snow</span>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M1 18 8 5l4 7 2.5-4L19 18Z" fill="currentColor"/></svg>
+        Upslope
       </a>
-      <nav class="topnav">
-        <a href="#map-section">Map</a>
+      <nav class="navlinks">
+        <a href="#map-block">Map</a>
+        <a href="#picks-block">Powder</a>
         <a href="#resorts">Resorts</a>
-        <a href="#how">How it works</a>
+        <a href="#how">Method</a>
       </nav>
       <div class="seg" role="group" aria-label="Units">
         <button data-units="in" aria-pressed="true">in °F</button>
@@ -32,91 +33,91 @@
     </div>
   </header>
 
-  <section class="hero">
-    <div class="snowfall" aria-hidden="true"></div>
-    <div class="wrap hero-inner">
-      <div class="hero-text">
-        <p class="eyebrow">This week's snow story</p>
-        <div id="headline" class="headline">
-          <h2 class="skeleton-line wide"></h2>
-          <p class="skeleton-line"></p>
-          <p class="skeleton-line short"></p>
-        </div>
-        <div id="stats" class="stats">
-          <div class="stat skeleton"></div><div class="stat skeleton"></div><div class="stat skeleton"></div>
-        </div>
-        <p id="status" class="status">Loading forecasts from 5 weather models…</p>
+  <main class="wrap">
+    <section class="hero">
+      <div class="meta label"><span>East Coast snow outlook</span><span id="asof">Loading…</span></div>
+      <div id="headline" class="headline">
+        <div class="skeleton sk-h1"></div>
+        <div class="skeleton sk-line"></div>
+        <div class="skeleton sk-line" style="width:60%"></div>
       </div>
-      <div class="hero-map" id="map-section">
-        <div class="map-toolbar">
-          <div class="seg small" role="group" aria-label="Map time range">
-            <button data-range="3" aria-pressed="true">Next 3 days</button>
+      <div id="stats" class="kpis">
+        <div class="kpi"><span class="label">Most snow · 7d</span><span class="kpi-value skeleton">00</span></div>
+        <div class="kpi"><span class="label">Best first chair</span><span class="kpi-value skeleton">00</span></div>
+        <div class="kpi"><span class="label">Coldest summit</span><span class="kpi-value skeleton">00</span></div>
+      </div>
+      <p id="status" class="status label">Loading forecasts from 5 weather models</p>
+    </section>
+
+    <section id="map-block" class="block">
+      <div class="block-head">
+        <h2>Snow map</h2>
+        <div class="block-tools">
+          <div class="seg" role="group" aria-label="Map time range">
+            <button data-range="3" aria-pressed="true">3 days</button>
             <button data-range="7" aria-pressed="false">7 days</button>
           </div>
-          <button id="radar-toggle" class="toggle" aria-pressed="false"><span class="toggle-icon"></span>Live radar</button>
+          <button id="radar-toggle" class="toggle" aria-pressed="false"><span id="radar-icon"></span>Radar</button>
         </div>
-        <div id="map" class="map"></div>
-        <div id="map-legend" class="legend"></div>
       </div>
-    </div>
-  </section>
+      <div id="map" class="map"></div>
+      <div id="map-legend" class="legend label"></div>
+    </section>
 
-  <main class="wrap">
-    <section aria-labelledby="picks-h">
-      <div class="section-head">
-        <h2 id="picks-h">Powder mornings</h2>
-        <p class="muted">The best first chairs in the next three days, scored 0 to 100.</p>
+    <section id="picks-block" class="block">
+      <div class="block-head">
+        <h2>Powder mornings</h2>
+        <span class="label">Next 72 h · score 0–100</span>
       </div>
       <div id="picks" class="picks">
-        <div class="pick skeleton"></div><div class="pick skeleton"></div><div class="pick skeleton"></div>
+        <div class="skeleton sk-row"></div><div class="skeleton sk-row"></div>
       </div>
     </section>
 
-    <section id="resorts" aria-labelledby="resorts-h">
-      <div class="section-head">
-        <h2 id="resorts-h">Every resort</h2>
-        <p class="muted">Summit snow for the next 7 days. Tap a resort for charts and details.</p>
-      </div>
-      <div class="toolbar">
-        <label class="search"><span class="search-icon" id="search-icon"></span><input id="search" type="search" placeholder="Find a resort" autocomplete="off"></label>
-        <label class="sort">Sort
-          <select id="sort">
-            <option value="7d">Most snow, 7 days</option>
-            <option value="3d">Most snow, 3 days</option>
+    <section id="resorts" class="block">
+      <div class="block-head">
+        <h2>All resorts</h2>
+        <div class="block-tools">
+          <label class="search"><span id="search-icon"></span><input id="search" type="search" placeholder="Search" autocomplete="off" aria-label="Search resorts"></label>
+          <select id="sort" class="select" aria-label="Sort">
+            <option value="7d">Most snow · 7d</option>
+            <option value="3d">Most snow · 3d</option>
             <option value="powder">Powder score</option>
-            <option value="az">A to Z</option>
+            <option value="az">A–Z</option>
           </select>
-        </label>
-        <div class="seg small" role="group" aria-label="View">
-          <button data-view="cards" aria-pressed="true" aria-label="Cards" id="view-cards"></button>
-          <button data-view="table" aria-pressed="false" aria-label="Table" id="view-table"></button>
+          <div class="seg" role="group" aria-label="View">
+            <button data-view="rows" aria-pressed="true" aria-label="Chart rows" id="view-rows"></button>
+            <button data-view="table" aria-pressed="false" aria-label="Number table" id="view-table"></button>
+          </div>
         </div>
       </div>
       <div id="filters" class="filters" role="group" aria-label="Filter by state"></div>
       <div id="list">
-        <div class="cards"><div class="card skeleton"></div><div class="card skeleton"></div><div class="card skeleton"></div></div>
+        <div class="skeleton sk-row"></div><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div>
       </div>
     </section>
 
-    <section id="how" class="how" aria-labelledby="how-h">
-      <div class="section-head">
-        <h2 id="how-h">How it works</h2>
-        <p class="muted">Built for skiers, not meteorologists.</p>
+    <section id="how" class="block">
+      <div class="block-head">
+        <h2>Method</h2>
+        <span class="label">Built for skiers</span>
       </div>
       <div class="how-grid">
-        <article><span class="how-icon" data-icon="layers"></span><h3>Five models, one honest range</h3><p>Most apps show one computer model. We pull five (American GFS and HRRR, European ECMWF, Canadian, German ICON and the National Weather Service blend) and show the middle forecast plus the lowest and highest.</p></article>
-        <article><span class="how-icon" data-icon="flake"></span><h3>Snow quality</h3><p>Cold air makes fluffy snow; warm air makes heavy cement. We size up snow totals using the temperature at each summit instead of a fixed ratio, then tell you whether to expect blower powder or a dense base builder.</p></article>
-        <article><span class="how-icon" data-icon="gauge"></span><h3>Powder score</h3><p>A 0 to 100 score for each morning. It rewards snow that falls overnight before first chair, cold temperatures, no rain, and models that agree with each other.</p></article>
-        <article><span class="how-icon" data-icon="wind"></span><h3>Rain, wind and snowmaking</h3><p>East Coast storms often mix with rain and bring big wind. We flag rain days, gusts strong enough to close upper lifts, and cold stretches that are good for snowmaking.</p></article>
+        <article><span class="label">01</span><h3>Five models, one range</h3><p>Most apps show one computer model. We pull five (American GFS and HRRR, European ECMWF, Canadian, German ICON and the National Weather Service blend) and show the middle forecast with the lowest and highest.</p></article>
+        <article><span class="label">02</span><h3>Snow quality</h3><p>Cold air makes light snow; warm air makes heavy snow. Totals are sized using the temperature at each summit instead of a fixed ratio, so you know whether to expect powder or a dense base builder.</p></article>
+        <article><span class="label">03</span><h3>Powder score</h3><p>A 0–100 score for each morning. It rewards snow that falls overnight before first chair, cold temperatures, no rain, and models that agree with each other.</p></article>
+        <article><span class="label">04</span><h3>Rain, wind, snowmaking</h3><p>East Coast storms often mix with rain and bring strong wind. We flag rain days, gusts strong enough to close upper lifts, and cold stretches that are good for snowmaking.</p></article>
       </div>
       <details class="glossary">
         <summary>Glossary</summary>
         <dl>
           <dt>Range</dt><dd>The lowest and highest total among the weather models. A wide range means the forecast is uncertain.</dd>
+          <dt>SLR</dt><dd>Snow-to-liquid ratio: inches of snow per inch of water. 8:1 is heavy and wet, 15:1 and up is light powder.</dd>
           <dt>Snow level</dt><dd>The elevation where rain turns to snow, roughly 1,000 ft below the freezing level.</dd>
           <dt>Overnight snow</dt><dd>Snow that falls from 4pm to 9am, so it's waiting for you on the first chair.</dd>
           <dt>Wind hold</dt><dd>When gusts get too strong (often above 45 mph) resorts stop upper lifts for safety.</dd>
           <dt>Snowmaking weather</dt><dd>Several hours at or below about 26°F, cold enough for snow guns to work well.</dd>
+          <dt>Upslope snow</dt><dd>Snow squeezed out as moist air is forced up the mountains. It's why the northern Greens and Adirondacks often beat the forecast.</dd>
         </dl>
       </details>
     </section>
@@ -124,7 +125,7 @@
 
   <footer class="footer">
     <div class="wrap">
-      <p><strong>East Coast Snow</strong> is free and built by skiers. Forecasts can be wrong; check resort reports and avalanche advisories before you go.</p>
+      <p><strong>Upslope</strong> is free and built by skiers. Forecasts can be wrong; check resort reports and avalanche advisories before you go.</p>
       <p class="muted">Weather data by <a href="https://open-meteo.com/">Open-Meteo.com</a> (CC BY 4.0) from NOAA, ECMWF, Environment Canada and DWD models. Radar from Iowa Environmental Mesonet. Map © OpenStreetMap contributors, © CARTO.</p>
     </div>
   </footer>
@@ -139,13 +140,10 @@
   <script src="resorts.js"></script>
   <script src="forecast.js"></script>
   <script>
-    // Fill static icon slots.
-    document.getElementById("brand-mark").innerHTML = Icon("flake");
     document.getElementById("search-icon").innerHTML = Icon("search");
-    document.getElementById("view-cards").innerHTML = Icon("grid");
+    document.getElementById("view-rows").innerHTML = Icon("bars");
     document.getElementById("view-table").innerHTML = Icon("table");
-    document.querySelector("#radar-toggle .toggle-icon").innerHTML = Icon("radar");
-    document.querySelectorAll("[data-icon]").forEach((el) => (el.innerHTML = Icon(el.dataset.icon)));
+    document.getElementById("radar-icon").innerHTML = Icon("radar");
   </script>
   <script src="app.js"></script>
 </body>
