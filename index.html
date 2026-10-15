@@ -34,6 +34,7 @@
   </header>
 
   <main class="wrap">
+    <section id="resort-page" class="resort-page"></section>
     <section class="hero">
       <div class="meta label"><span>East Coast snow outlook</span><span id="asof">Loading…</span></div>
       <div id="headline" class="headline">
@@ -74,6 +75,8 @@
       </div>
     </section>
 
+    <section id="signup-home" class="block" hidden></section>
+
     <section id="resorts" class="block">
       <div class="block-head">
         <h2>All resorts</h2>
@@ -106,19 +109,19 @@
       <div class="how-grid">
         <article><span class="label">01</span><h3>Eight models, weighted by range</h3><p>Every six hours we pull eight models at each summit and base: high-resolution HRRR, NAM and Canadian HRDPS, plus the NWS Blend, GFS, ECMWF, Canadian GEM and German ICON. The high-resolution models see the terrain best, so they carry the most weight for the first two days.</p></article>
         <article><span class="label">02</span><h3>Real odds from 82 ensemble runs</h3><p>The GFS and European ensembles rerun their models dozens of times with small changes. We count how many runs reach 3, 6 or 12 inches, so "70% chance of 6 inches" means something.</p></article>
-        <article><span class="label">03</span><h3>Snow, sleet or rain</h3><p>Precipitation type comes from the wet-bulb temperature at each elevation and the warm layer near 5,000 ft, which is how sleet and freezing rain happen. Snow ratios use the warmest air between the summit and 10,000 ft plus the wind.</p></article>
+        <article><span class="label">03</span><h3>Snow, sleet or rain</h3><p>Snow, sleet or rain is decided by humidity-adjusted temperature at the summit and base plus the air a mile up, where warm layers turn snow into sleet. How fluffy the snow is comes from the warmest air the flakes fall through, and the wind.</p></article>
         <article><span class="label">04</span><h3>Season aware</h3><p>Before opening day there are no ski grades. Instead we track snowmaking windows and first natural snow. Once lifts turn, every day gets an A–F grade for fresh snow, rain, refrozen surfaces, wind holds and cold.</p></article>
       </div>
       <details class="glossary">
         <summary>Glossary</summary>
         <dl>
           <dt>Range</dt><dd>The lowest and highest total among the weather models. A wide range means the forecast is uncertain.</dd>
-          <dt>SLR</dt><dd>Snow-to-liquid ratio: inches of snow per inch of water. 8:1 is heavy and wet, 15:1 and up is light powder.</dd>
+          <dt>Snow feel</dt><dd>How dense the new snow is. Cold air makes light, fluffy snow (an inch of water becomes 15+ inches of snow); air near freezing makes heavy, wet snow (under 8 inches).</dd>
           <dt>Snow level</dt><dd>The elevation where rain turns to snow, roughly 1,000 ft below the freezing level.</dd>
           <dt>Overnight snow</dt><dd>Snow that falls from 4pm to 9am, so it's waiting for you on the first chair.</dd>
           <dt>Wind hold</dt><dd>When gusts get too strong (often above 45 mph) resorts stop upper lifts for safety.</dd>
-          <dt>Wet bulb</dt><dd>The temperature air cools to when water evaporates into it. Dry air at 32°F can have a wet bulb in the 20s, which is why snow guns can run above freezing and why snow can fall at 36°F.</dd>
-          <dt>Snowmaking window</dt><dd>Hours with a summit wet bulb at or below 27°F. Below about 22°F the guns run at full output.</dd>
+          <dt>Snowmaking temp</dt><dd>Also called wet bulb: the air temperature adjusted for humidity, which is what snow guns care about. Dry air at 32°F can have a wet bulb in the 20s, which is why snow guns can run above freezing and why snow can fall at 36°F.</dd>
+          <dt>Snowmaking window</dt><dd>Hours with a summit snowmaking temp at or below 27°F. Below about 22°F the guns run at full output.</dd>
           <dt>Ensemble</dt><dd>One model run dozens of times with slightly different starting conditions. The spread of results shows how sure the forecast is.</dd>
           <dt>Sleet and freezing rain</dt><dd>Snow melts in a warm layer aloft, then refreezes into pellets (sleet) or freezes on contact with the cold ground (freezing rain).</dd>
           <dt>Day grade</dt><dd>A quick A–F rating for skiing that day. A: fresh snow or a bluebird day. C: a normal groomer day. F: rain or lifts likely closed.</dd>
@@ -143,6 +146,7 @@
 
   <script src="vendor/leaflet/leaflet.js"></script>
   <script src="vendor/chart.umd.js"></script>
+  <script src="config.js"></script>
   <script src="icons.js"></script>
   <script src="resorts.js"></script>
   <script src="guides.js"></script>

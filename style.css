@@ -315,3 +315,29 @@ thead th .sub { display: block; font-size: 10px; color: #9ca3af; }
 .legend i.pt-sn, .legend i.pt-mx, .legend i.pt-ra, .legend i.pt-pl, .legend i.pt-zr { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; }
 .odds-table td { text-align: left; }
 .odds { display: inline-block; min-width: 46px; padding: 2px 4px; font: 500 12px var(--mono); background: linear-gradient(90deg, rgba(0, 87, 255, 0.16) var(--p), transparent var(--p)); }
+
+/* ---------- resort pages and sign-up ---------- */
+.resort-page { display: none; }
+.page-mode .resort-page { display: block; margin: 24px 0 40px; border: 1px solid var(--line); }
+.page-mode .hero, .page-mode #map-block, .page-mode #picks-block, .page-mode #signup-home, .page-mode #resorts { display: none; }
+.page-mode .resort-page .detail-head { top: 57px; }
+.sq.wide { width: auto; padding: 0 10px; font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: 0.04em; color: var(--fg); text-decoration: none; display: inline-flex; align-items: center; }
+.r-link { color: inherit; text-decoration: none; }
+.r-link:hover b, a.r-link.name:hover { text-decoration: underline; text-underline-offset: 3px; }
+.signup { display: grid; grid-template-columns: 1fr minmax(280px, 420px); gap: 16px 32px; align-items: center; border: 1px solid var(--fg); padding: 18px 20px; margin-top: 28px; }
+.signup h3 { margin: 0; font-size: 17px; font-weight: 600; }
+.signup .hint { margin: 6px 0 0; }
+.signup-row { display: flex; }
+.signup input { flex: 1; min-width: 0; height: 40px; border: 1px solid var(--fg); border-right: 0; padding: 0 12px; font: 400 15px var(--sans); background: var(--bg); color: var(--fg); }
+.signup .btn { height: 40px; padding: 0 16px; border: 1px solid var(--fg); background: var(--fg); color: var(--bg); font: 500 13px var(--sans); cursor: pointer; }
+.signup-msg { grid-column: 1 / -1; margin: 0; min-height: 0; }
+.signup-msg:empty { display: none; }
+@media (max-width: 640px) { .signup { grid-template-columns: 1fr; } }
+.feel { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); margin-top: 14px; }
+.feel-step { padding: 12px 14px; border-left: 1px solid var(--line); color: var(--muted); }
+.feel-step:first-child { border-left: 0; }
+.feel-step b { display: block; font-size: 14px; font-weight: 600; color: var(--fg-2); margin-bottom: 4px; }
+.feel-step span { font-size: 13px; line-height: 1.45; }
+.feel-step.on { background: var(--fg); color: #d1d5db; }
+.feel-step.on b { color: #fff; }
+@media (max-width: 640px) { .feel { grid-template-columns: 1fr 1fr; } .feel-step:nth-child(3) { border-left: 0; } .feel-step:nth-child(n+3) { border-top: 1px solid var(--line); } }

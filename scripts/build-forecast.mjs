@@ -6,6 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import { buildPages } from "./build-pages.mjs";
 import { MODELS, ENSEMBLES, HOURLY, ENS_HOURLY, parseBlock, parseEnsemble, forecastResort, headline } from "./engine.mjs";
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
@@ -20,6 +21,7 @@ function loadBrowserGlobal(file) {
 }
 const { RESORTS } = loadBrowserGlobal("resorts.js");
 const { GUIDES } = loadBrowserGlobal("guides.js");
+const { UPSLOPE_CONFIG } = loadBrowserGlobal("config.js");
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function liveFetch(url) {
@@ -163,6 +165,7 @@ async function main() {
     ),
   };
   fs.writeFileSync(path.join(OUT, "archive", `${now.slice(0, 13).replace("T", "-")}.json`), JSON.stringify(archive));
+  buildPages({ root: ROOT, resorts: RESORTS, forecast: summary, siteUrl: UPSLOPE_CONFIG.siteUrl });
   console.log(`Built ${resorts.length} resorts from ${results.length} models and ${members} ensemble members in ${((Date.now() - started) / 1000).toFixed(1)}s`);
 }
 

@@ -776,15 +776,15 @@ function insights(c) {
     if (w.length) {
       const top = w[0];
       const more = w.length > 1 ? ` ${w.length - 1} more ${w.length === 2 ? "window follows" : "windows follow"} this week.` : "";
-      add(9, `Snowmaking window ${span(top.start, top.end)}: ${top.hours} hours with summit wet-bulb temps at or below ${T(27)}, bottoming out near ${T(top.minTw)}${top.baseHours >= 3 ? ` (the base gets ${top.baseHours} of those hours)` : ", but the base stays too warm"}.${more}`, "snowmaking");
+      add(9, `Snow guns can run ${span(top.start, top.end)}: about ${top.hours} hours cold enough at the summit, getting down to ${T(top.minTw)} once humidity is factored in${top.baseHours >= 3 ? `. The base is cold enough for ${top.baseHours} of those hours` : ". The base stays too warm"}.${more}`, "snowmaking");
     } else {
       const minTw = Math.min(...days.map((d, i) => {
         const ks = timeIndex.map((t, k) => (t.startsWith(d.date) ? k : -1)).filter((k) => k >= 0);
         return Math.min(...ks.map((k) => H.tw[k] ?? 99));
       }));
       add(8, minTw <= 27
-        ? `No real snowmaking window this week: the summit wet bulb only dips to ${T(minTw)} for a few hours. Guns need several hours at ${T(27)} or colder.`
-        : `No snowmaking weather this week. Guns need a wet-bulb temperature around ${T(27)} or colder; the coldest the summit gets is about ${T(minTw)}.`, "snowmaking");
+        ? `No real snowmaking window this week: the summit only gets cold enough for a few hours. Snow guns need several hours around ${T(27)} or colder (factoring in humidity).`
+        : `Too warm for snowmaking this week. Snow guns need about ${T(27)} or colder once humidity is factored in; the summit only gets to about ${T(minTw)}.`, "snowmaking");
     }
     const flakes = [...storms].filter((x) => x.total >= 0.5).sort((a, b) => b.total - a.total)[0];
     if (flakes) {
@@ -806,7 +806,7 @@ function insights(c) {
     if (s.prob) {
       const ths = [3, 6, 12, 18].filter((t) => s.prob[t] >= 10);
       const pick = ths.slice(-2);
-      if (pick.length) text += ` Ensembles: ${pick.map((t) => `${s.prob[t]}% chance of ${S(t)}+`).join(", ")}.`;
+      if (pick.length) text += ` Odds: ${pick.map((t) => `${s.prob[t]}% chance of ${S(t)} or more`).join(", ")}.`;
     }
     add(pri, text, "storm");
     const line = snowLine(c, s);
@@ -815,8 +815,8 @@ function insights(c) {
     if (nose) add(pri - 0.5, nose, "ice");
     if (isMain && s.peakRate >= 0.5) add(5, `Heaviest snow ${when(s.peakTime)}, near ${S(s.peakRate)} an hour.`, "rate");
     if (isMain && s.slr != null) {
-      if (s.slr >= 15) add(5, `Cold column (about ${T(cToF(s.setup.t850 ?? -12))} at 5,000 ft) means light, dry snow around ${s.slr}:1.`, "quality");
-      else if (s.slr <= 9) add(5, `Dense, wet snow around ${s.slr}:1: a great base builder, heavy to ski.`, "quality");
+      if (s.slr >= 15) add(5, `It's cold all the way up (about ${T(cToF(s.setup.t850 ?? -12))} a mile overhead), so expect light, fluffy snow that skis deep.`, "quality");
+      else if (s.slr <= 9) add(5, `Expect heavy, wet snow: great for building a base, but tiring to ski.`, "quality");
     }
     if (isMain) {
       const o = outlier(s, label);
@@ -905,7 +905,7 @@ function warmNose(c, s) {
   if (iceKs.length < 2) return null;
   const zr = iceKs.some((k) => H.type[k] === "zr" || HB.type[k] === "zr");
   const warm = Math.max(...iceKs.map((k) => H.t850[k] ?? -99));
-  return `${zr ? "Freezing rain" : "Sleet"} risk ${when(timeIndex[iceKs[0]])}: air near 5,000 ft warms to about ${T(cToF(warm))} while the slopes stay below freezing. Expect ${zr ? "a glaze" : "pellets"} rather than snow for part of the storm.`;
+  return `${zr ? "Freezing rain" : "Sleet"} risk ${when(timeIndex[iceKs[0]])}: air about a mile up warms to ${T(cToF(warm))} while the slopes stay below freezing. Expect ${zr ? "a glaze" : "pellets"} rather than snow for part of the storm.`;
 }
 
 function afterStorm(c, s) {
@@ -963,17 +963,17 @@ function setupInsight(c, s, isMain) {
       const endT = timeIndex[tail[tail.length - 1]];
       const t850 = median(tail.map((k) => H.t850[k]));
       if (inArc(meanDir(tail.map((k) => ({ dir: H.dir850[k] ?? H.dir[k], w: 1 }))), guide.upslope))
-        return `Winds turn ${compass(meanDir(tail.map((k) => ({ dir: H.dir850[k] ?? H.dir[k], w: 1 }))))} behind the storm${t850 != null ? ` with ${T(cToF(t850))} at 5,000 ft` : ""}, and upslope snow keeps going until ${when(endT)}, adding about ${S(tailSnow)}. Global models often undercount this part.`;
+        return `Winds turn ${compass(meanDir(tail.map((k) => ({ dir: H.dir850[k] ?? H.dir[k], w: 1 }))))} behind the storm${t850 != null ? ` with ${T(cToF(t850))} a mile up` : ""}, and upslope snow keeps going until ${when(endT)}, adding about ${S(tailSnow)}. Global models often undercount this part.`;
       if (inArc(meanDir(tail.map((k) => ({ dir: H.dir850[k] ?? H.dir[k], w: 1 }))), guide.shadow))
         return `The northwest-flow snow behind the storm mostly falls upwind of ${resort.name}; expect little after the main storm.`;
     }
   }
   const t850F = st.t850 != null ? T(cToF(st.t850)) : null;
   if (st.key === "lake") {
-    return `Flow from the ${compass(st.dir)} (${st.dir}°) lines up with the lake band${st.lakeDelta != null ? `, and the lake is about ${st.lakeDelta}°C warmer than the air at 5,000 ft, plenty for heavy bands` : ""}. Band placement is the big uncertainty: totals can be double or half the forecast.`;
+    return `Flow from the ${compass(st.dir)} (${st.dir}°) lines up with the lake band${st.lakeDelta != null ? `, and the lake is far warmer than the air a mile up, which fuels heavy bands` : ""}. Band placement is the big uncertainty: totals can be double or half the forecast.`;
   }
   if (st.key === "upslope" && inArc(st.dir, guide.upslope)) {
-    return `${isMain ? "This one comes" : "It comes"} on ${compass(st.dir)} flow${t850F ? ` with ${t850F} at 5,000 ft` : ""}, ${resort.name}'s upslope setup. Coarse global models tend to undercount these, so the high end of the range is in play.`;
+    return `${isMain ? "This one comes" : "It comes"} on ${compass(st.dir)} flow${t850F ? ` with ${t850F} a mile up` : ""}, ${resort.name}'s upslope setup. Coarse global models tend to undercount these, so the high end of the range is in play.`;
   }
   if (inArc(st.dir, guide.shadow)) {
     return `Flow from the ${compass(st.dir)} puts ${resort.name} downwind of higher terrain, so expect the low end of the range.`;
@@ -1031,7 +1031,7 @@ export function headline(rows, resorts) {
     }
     text += sm.length
       ? ` ${sm.length} of ${rows.length} resorts get cold enough nights for snow guns this week, mostly in ${listTxt(topRegions)}.`
-      : ` No resort gets a wet-bulb temperature cold enough for snowmaking this week.`;
+      : ` No resort gets cold enough for snowmaking this week.`;
     if (firstOpen) text += ` ${byId[firstOpen.id].name} typically opens first, around ${fmtDate(firstOpen.season.open)}.`;
     return { title, text: text.trim() };
   }
