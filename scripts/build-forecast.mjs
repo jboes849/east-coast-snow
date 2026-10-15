@@ -108,6 +108,8 @@ async function main() {
     }
   }
   console.log(log.join("\n"));
+  fs.mkdirSync(OUT, { recursive: true });
+  fs.writeFileSync(path.join(OUT, "build-log.txt"), `${new Date().toISOString()}\n${log.join("\n")}\n`);
   if (results.length < 3) throw new Error("Too few models responded; keeping the previous forecast.");
 
   // Shared hourly time axis: the longest one any model returned.

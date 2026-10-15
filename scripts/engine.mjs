@@ -770,12 +770,17 @@ function insights(c) {
         const ks = timeIndex.map((t, k) => (t.startsWith(d.date) ? k : -1)).filter((k) => k >= 0);
         return Math.min(...ks.map((k) => H.tw[k] ?? 99));
       }));
-      add(8, `No snowmaking weather this week. Guns need a wet-bulb temperature around ${T(27)} or colder; the coldest the summit gets is about ${T(minTw)}.`, "snowmaking");
+      add(8, minTw <= 27
+        ? `No real snowmaking window this week: the summit wet bulb only dips to ${T(minTw)} for a few hours. Guns need several hours at ${T(27)} or colder.`
+        : `No snowmaking weather this week. Guns need a wet-bulb temperature around ${T(27)} or colder; the coldest the summit gets is about ${T(minTw)}.`, "snowmaking");
     }
-    if (main) {
+    const flakes = [...storms].filter((x) => x.total >= 0.5).sort((a, b) => b.total - a.total)[0];
+    if (flakes) {
+      const main = flakes;
       const after = afterStorm(c, main);
+      const rainFirst = main.rain >= 0.25 ? ` It starts as rain (${Lq(main.rain)}) before cold air arrives.` : "";
       const stick = after.maxT != null && after.maxT >= 40 ? ` It won't last: highs reach ${T(after.maxT)} ${after.when}.` : after.maxT != null ? ` Highs stay near ${T(after.maxT)} afterward, so some of it should stick up high.` : "";
-      add(10, `${main.total >= 3 ? "Accumulating snow" : "First flakes"}: about ${S(main.total)} at the summit ${span(main.start, main.end)} (models ${R(main.lo, main.hi)}).${snowLine(c, main)}${stick}`, "storm");
+      add(10, `${main.total >= 3 ? "Accumulating snow" : "First flakes"}: about ${S(main.total)} at the summit ${span(main.start, main.end)} (models ${R(main.lo, main.hi)}).${rainFirst}${snowLine(c, main)}${stick}`, "storm");
     }
     if (sea.phase === "preseason") add(2, `Typically opens around ${fmtDate(sea.open)}, ${sea.daysToOpen} days out. Openings depend on snowmaking nights, not the calendar.`, "season");
     return out.sort((a, b) => b.pri - a.pri);
@@ -966,7 +971,7 @@ function flags(c) {
   if (!sea.operating) {
     const w = [...res.snowmaking.windows].sort((a, b) => b.hours - a.hours)[0];
     if (w) f.push({ cls: "cold", text: `Snowmaking ${WD(w.start.slice(0, 10))} ${w.hours}h` });
-    const s = storms.find((x) => x.total >= 1);
+    const s = storms.find((x) => x.total >= 0.5);
     if (s) f.push({ cls: "powder", text: `Snow ${WD(s.start.slice(0, 10))}` });
     if (sea.phase === "preseason") f.push({ cls: "muted", text: `Opens ~${fmtDate(sea.open)}` });
     else f.push({ cls: "muted", text: "Closed" });
