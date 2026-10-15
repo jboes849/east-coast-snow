@@ -1,11 +1,11 @@
-2026-10-15T03:33:16.747Z
+2026-10-15T03:34:11.996Z
 ncep_hrrr_conus: ok
 ncep_nam_conus: ok
 gem_hrdps_continental: ok
 ncep_nbm_conus: ok
-gfs_seamless: ok
+gfs_global: ok
 ecmwf_ifs025: ok
-gem_seamless: ok
+gem_global: ok
 icon_seamless: ok
 ens gfs025: ok
 ens ecmwf_ifs025: ok
