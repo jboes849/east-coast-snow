@@ -153,7 +153,7 @@
       const bestSki = [...open].sort((a, b) => b.bestDay.score - a.bestDay.score || b.total3 - a.total3)[0];
       stats.push(
         powder.best.score > 0
-          ? { label: "Best first chair", value: dayShort(powder.days[powder.best.k].date), sub: `${powder.resort.name} · ${powder.best.score}`, id: powder.resort.id }
+          ? { label: "Best first chair", value: dayShort(powder.days[powder.best.k].date), sub: `${powder.resort.name} · powder score ${powder.best.score}`, id: powder.resort.id }
           : { label: "Best first chair", value: "–", sub: "None in 3 days" },
         { label: "Best ski day", value: `${dayShort(bestSki.days[bestSki.bestDay.k].date)}<i>${bestSki.bestDay.letter}</i>`, sub: bestSki.resort.name, id: bestSki.resort.id }
       );
@@ -224,6 +224,37 @@
         </button>`;
       })
       .join("");
+  }
+
+  // ---------- weekend outlook (in season) ----------
+  function renderWeekend() {
+    const el = $("#weekend-block");
+    const wk = state.dates.map((d, k) => ({ d, k })).filter((x) => [0, 6].includes(dateObj(x.d).getDay()));
+    const open = state.rows.filter(operating);
+    if (!state.open || !wk.length || !open.length) {
+      el.hidden = true;
+      return;
+    }
+    const picks = open
+      .map((row) => {
+        const best = wk.map((x) => ({ ...x, day: row.days[x.k] })).sort((a, b) => b.day.grade.score - a.day.grade.score || b.day.overnight - a.day.overnight)[0];
+        return { row, ...best };
+      })
+      .sort((a, b) => b.day.grade.score - a.day.grade.score || b.day.overnight - a.day.overnight)
+      .slice(0, 3);
+    el.hidden = false;
+    el.innerHTML = `<div class="block-head"><h2>This weekend</h2><span class="label">Best bets · ${wk.map((x) => dayLong(x.d)).join(" and ")}</span></div>
+      ${picks[0].day.grade.score < 58 ? `<p class="hint">A rough weekend across the East. These are the least bad options.</p>` : ""}
+      <div class="weekend">${picks
+        .map((p) => {
+          const why = whyList(p.day.grade.why).slice(0, 2).join(", ") || "a solid day";
+          return `<button class="wk" data-open="${p.row.resort.id}">
+            <span class="grade g-${p.day.grade.letter}">${p.day.grade.letter}</span>
+            <span><b>${esc(p.row.resort.name)}</b><span class="wk-day">${dayLong(p.d)}</span></span>
+            <span class="wk-why">${fmt(cap(why))}.</span>
+          </button>`;
+        })
+        .join("")}</div>`;
   }
 
   // ---------- map ----------
@@ -380,7 +411,10 @@
       el.innerHTML = `<p class="empty">${state.region === "★" ? "Tap the star on any resort to add it to your mountains." : "No resorts match."}</p>`;
       return;
     }
-    el.innerHTML = state.view === "table" ? renderTableView(rows) : renderRowsView(rows);
+    const legend = state.open
+      ? `<b>Number</b>: snow at the summit over 7 days, with the range across models under it. <b>Bars</b>: snow each day. <b>Letters</b>: ski grade for each day, A is best. Tap a resort for details.`
+      : `<b>Number</b>: snow at the summit over 7 days. <b>Bars</b>: snow each day. <b>Hours</b>: time cold enough for snow guns each day (pre-season). Tap a resort for details.`;
+    el.innerHTML = `<p class="list-legend">${legend}</p>` + (state.view === "table" ? renderTableView(rows) : renderRowsView(rows));
   }
 
   function renderFilters() {
@@ -652,19 +686,130 @@
     return { html: k.join(""), q, ratio };
   }
 
+  // ---------- plain-language day reasons and the verdict ----------
+  const WHY_PLAIN = {
+    snowing: "snowing during the day",
+    rain: "rain",
+    "rain lower down": "rain at the base",
+    "rain later": "rain later in the day",
+    "refrozen, firm": "firm, icy surfaces",
+    "firm early, softens": "firm early, softening by midday",
+    "firm lower mountain": "firm on the lower mountain",
+    "lift holds likely": "wind may stop upper lifts",
+    breezy: "breezy up top",
+    "brutal wind chill": "dangerous wind chill",
+    "very cold": "very cold",
+    bluebird: "sunny and calm",
+  };
+  const whyList = (why) => why.map((w) => WHY_PLAIN[w] || w);
+  const GRADE_WORD = { A: "Great day", B: "Good day", C: "Average day", D: "Below average", F: "Skip it" };
+
+  function verdict(row) {
+    const s = row.season;
+    const first = row.insights[0] ? row.insights[0].text : "";
+    if (!operating(row)) {
+      if (s.phase === "closed") return { title: "Closed for the season.", sub: first };
+      const w = [...row.snowmaking.windows].sort((a, b) => b.hours - a.hours)[0];
+      const opens = `Not open yet (usually opens around ${dayNum(s.open)}).`;
+      return {
+        title: w ? `${opens} Snow guns get their best run ${whenTxt(w.start)}.` : `${opens} Too warm for snowmaking this week.`,
+        sub: row.insights.find((x) => x.kind === "storm")?.text || "",
+      };
+    }
+    const k = row.bestDay.k;
+    const d = row.days[k];
+    const day = k === 0 ? "today" : dayLong(d.date);
+    const feel = QUALITY(d.slr);
+    const reasons = whyList(d.grade.why.filter((w) => !/fresh/.test(w))).slice(0, 2);
+    let title;
+    if (d.overnight >= 1 && "AB".includes(d.grade.letter)) title = `Go ${day}: about {{s:${d.overnight}}} of ${feel ? feel.label.toLowerCase() : "new"} snow overnight.`;
+    else if ("AB".includes(d.grade.letter)) title = `${cap(day)} is the pick: ${reasons.join(" and ") || "a solid day"}.`;
+    else if (d.grade.letter === "C") title = `An ordinary week. ${cap(day)} is the best of it${reasons.length ? `: ${reasons.join(" and ")}` : ""}.`;
+    else title = `A rough week. If you go, ${day} is the least bad.`;
+    // A deeper powder day that lost points to wind or cold is worth a mention.
+    const deep = row.days
+      .map((x, i) => ({ x, i }))
+      .filter(({ x, i }) => i !== k && x.overnight >= Math.max(4, d.overnight * 2) && x.grade.score >= 58)
+      .sort((a, b) => b.x.overnight - a.x.overnight)[0];
+    if (deep) {
+      const catchy = whyList(deep.x.grade.why.filter((w) => /hold|cold|chill|breezy|rain/.test(w)));
+      title += ` ${cap(deep.i === 0 ? "today" : dayLong(deep.x.date))} morning has more fresh snow ({{s:${deep.x.overnight}}} overnight)${catchy.length ? `, but ${catchy.join(" and ")}` : ""}.`;
+    }
+    return { title, sub: first };
+  }
+  const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
+
+  function dayWhy(row, k) {
+    const d = row.days[k];
+    const bits = [];
+    const name = k === 0 ? "Today" : dayLong(d.date);
+    if (d.grade) {
+      bits.push(`<b>${name}: ${d.grade.letter} · ${GRADE_WORD[d.grade.letter]}.</b>`);
+      const why = whyList(d.grade.why);
+      bits.push(why.length ? cap(why.join(", ")) + "." : "Nothing special either way.");
+    } else {
+      bits.push(`<b>${name}.</b>`);
+      bits.push(d.smHours ? `${d.smHours} hours cold enough for snow guns at the summit${d.smBase ? `, ${d.smBase} at the base` : ""}.` : "Too warm for snowmaking.");
+    }
+    if (d.snow >= 0.5) bits.push(`Snow ${snowTxt(d.snow)} at the summit (models ${rangeTxt(d.lo, d.hi)}).`);
+    if (d.rain + d.ice > 0.05) bits.push(`${d.ice > 0.05 ? "Sleet or freezing rain" : "Rain"} at the summit.`);
+    else if (d.baseRain > 0.1) bits.push("Rain at the base.");
+    bits.push(`High ${tempTxtU(d.tMax)}, low ${tempTxtU(d.tMin)} up top${d.gustMax != null ? `, gusts to ${windTxt(d.gustMax)}` : ""}.`);
+    return fmt(bits.join(" ")).replace(/&lt;(\/?)b&gt;/g, "<$1b>");
+  }
+
+  function dayCards(row, sel) {
+    return row.days
+      .map((d, k) => {
+        const ic = dayIcon(d);
+        const wet = d.rain + d.ice;
+        const flag = d.windHold
+          ? `<span class="day-flag wind">Windy</span>`
+          : wet > 0.1
+            ? `<span class="day-flag rain">${d.ice > 0.05 ? "Ice" : "Rain"}</span>`
+            : !operating(row) && d.smHours
+              ? `<span class="day-flag cold">Guns ${d.smHours}h</span>`
+              : `<span class="day-flag">&nbsp;</span>`;
+        const badge = d.grade ? `<span class="grade g-${d.grade.letter}">${d.grade.letter}</span>` : "";
+        return `<button class="day${d.snow >= 0.5 ? " snowy" : ""}" data-day="${k}" aria-pressed="${k === sel}" style="--c:${snowColor(d.snow)}">
+          <span class="day-top"><span class="label">${dayShort(d.date)}</span>${badge}</span>
+          <span title="${ic.label}">${Icon(ic.icon)}</span>
+          <span class="day-snow">${d.snow >= 0.5 ? snowTxt(d.snow) : "–"}</span>
+          <span class="day-temp"><b>${tempTxt(d.tMax)}</b> / ${tempTxt(d.tMin)}</span>
+          ${flag}
+        </button>`;
+      })
+      .join("");
+  }
+
+  function defaultDay(row) {
+    if (operating(row)) return row.bestDay.k;
+    const best = row.days.map((d, k) => ({ k, h: d.smHours })).sort((a, b) => b.h - a.h)[0];
+    return best && best.h ? best.k : 0;
+  }
+
+  function selectDay(row, k) {
+    document.querySelectorAll(".days [data-day]").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.day) === k)));
+    const el = $("#day-why");
+    if (el) el.innerHTML = dayWhy(row, k);
+  }
+
   async function openDetail(id) {
     const row = state.rows.find((r) => r.resort.id === id);
     if (!row) return;
     const r = row.resort;
+    if (state.selected !== id) state.moreOpen = false;
     state.selected = id;
     const dlg = $("#detail");
     const page = PAGE === id;
     const target = page ? $("#resort-page") : $("#detail-body");
     const det = state.details[id];
-    const days = row.days;
     const { html: kpiHtml, q, ratio } = kpis(row);
-    const lead = row.insights.slice(0, 2);
-    const rest = row.insights.slice(2);
+    const v = verdict(row);
+    const notes = row.insights.filter((x) => x.text !== v.sub && x.kind !== "best" && x.kind !== "season");
+    const top = notes.slice(0, 3);
+    const more = notes.slice(3);
+    const sel = defaultDay(row);
     const actions = page
       ? `${favButton(id, "sq fav")}<a class="sq wide" href="./">All resorts</a>`
       : `<a class="sq wide" href="resorts/${id}/">Full page</a>${favButton(id, "sq fav")}<button class="sq" data-close aria-label="Close">${Icon("close")}</button>`;
@@ -675,55 +820,39 @@
       </header>
       <div class="d-body">
         <div class="d-title"><h2>${esc(r.name)}</h2><p class="mono">SUMMIT ${elevTxt(r.summit).toUpperCase()} · BASE ${elevTxt(r.base).toUpperCase()}</p></div>
-        <p class="summary">${lead.map((x) => fmt(x.text)).join(" ")}</p>
-        ${rest.length ? `<ul class="insights">${rest.map((x) => `<li data-kind="${x.kind}">${fmt(x.text)}</li>`).join("")}</ul>` : ""}
+        <section class="verdict">
+          <span class="label">This week</span>
+          <p class="verdict-title">${fmt(v.title)}</p>
+          ${v.sub ? `<p class="verdict-sub">${fmt(v.sub)}</p>` : ""}
+        </section>
+        <div class="days">${dayCards(row, sel)}</div>
+        <p class="day-why" id="day-why" aria-live="polite">${dayWhy(row, sel)}</p>
+        ${top.length ? `<h3 class="sub-h">What to know</h3><ul class="insights">${top.map((x) => `<li data-kind="${x.kind}">${fmt(x.text)}</li>`).join("")}</ul>` : ""}
         <div class="d-kpis">${kpiHtml}</div>
-        <div class="days">${days
-          .map((d) => {
-            const ic = dayIcon(d);
-            const wet = d.rain + d.ice;
-            const flag = d.windHold
-              ? `<span class="day-flag wind">Wind ${Math.round(windNum(d.skiGust))}</span>`
-              : wet > 0.1
-                ? `<span class="day-flag rain">${d.ice > 0.05 ? "Ice" : "Rain"}</span>`
-                : d.snow >= 0.5 || d.hi >= 1
-                  ? `<span class="day-flag conf-${d.conf}">${d.conf === "high" ? "Sure" : d.conf === "medium" ? "Likely" : "Unsure"}</span>`
-                  : !operating(row) && d.smHours
-                    ? `<span class="day-flag cold">Guns ${d.smHours}h</span>`
-                    : `<span class="day-flag">&nbsp;</span>`;
-            const badge = d.grade ? `<span class="grade g-${d.grade.letter}">${d.grade.letter}</span>` : "";
-            const title = d.grade ? `${d.grade.letter}: ${fmt(d.grade.why.join(", ") || "typical day")}` : `${d.smHours} snowmaking hours at the summit, ${d.smBase} at the base`;
-            return `<div class="day${d.snow >= 0.5 ? " snowy" : ""}" style="--c:${snowColor(d.snow)}" title="${title}">
-              <span class="day-top"><span class="label">${dayShort(d.date)}</span>${badge}</span>
-              <span title="${ic.label}">${Icon(ic.icon)}</span>
-              <span class="day-snow">${d.snow >= 0.5 ? snowTxt(d.snow) : "–"}</span>
-              <span class="day-range">${d.hi >= 1 ? rangeTxt(d.lo, d.hi) : "&nbsp;"}</span>
-              <span class="day-temp"><b>${tempTxt(d.tMax)}</b> / ${tempTxt(d.tMin)}</span>
-              ${flag}
-            </div>`;
-          })
-          .join("")}</div>
-        <p class="hint grade-key">${
-          operating(row)
-            ? "Day grades A–F weigh fresh snow, rain, refrozen surfaces, lift-closing wind and cold. Tap or hover a day for the reasons."
-            : "Pre-season: no day grades until the lifts turn. \"Guns\" shows the hours cold enough for snowmaking at the summit."
-        }</p>
-        <div id="detail-hourly">${detailHourly(row, det)}</div>
-        ${guidePanel(row)}
-        ${oddsPanel(row)}
         ${qualityBlock(q, ratio)}
+        <details class="more" id="more"${state.moreOpen ? " open" : ""}>
+          <summary><span><b>Forecast details</b><span class="hint">Hour-by-hour charts, lift wind, every model and the odds</span></span><span class="more-icon" aria-hidden="true"></span></summary>
+          ${more.length ? `<ul class="insights">${more.map((x) => `<li data-kind="${x.kind}">${fmt(x.text)}</li>`).join("")}</ul>` : ""}
+          <div id="detail-hourly">${detailHourly(row, det)}</div>
+          ${oddsPanel(row)}
+        </details>
+        ${guidePanel(row)}
         ${signupBlock(row)}
       </div>`;
+    $("#more").addEventListener("toggle", (e) => {
+      state.moreOpen = e.target.open;
+      if (e.target.open && state.details[id]) drawCharts(row, state.details[id]);
+    });
     if (!page) {
       if (!dlg.open) dlg.showModal();
       dlg.scrollTop = 0;
       history.replaceState(null, "", `#${id}`);
     }
-    if (det) return drawCharts(row, det);
+    if (det) return state.moreOpen && drawCharts(row, det);
     const loaded = await loadDetail(id);
     if (state.selected !== id || !loaded) return;
     $("#detail-hourly").innerHTML = detailHourly(row, loaded);
-    drawCharts(row, loaded);
+    if (state.moreOpen) drawCharts(row, loaded);
   }
 
   function detailHourly(row, det) {
@@ -807,6 +936,7 @@
   function renderAll() {
     renderFilters();
     renderHero();
+    renderWeekend();
     renderPicks();
     renderMap();
     renderList();
@@ -861,6 +991,8 @@
         if (map) state.radar ? radarLayer.addTo(map) : map.removeLayer(radarLayer);
         return;
       }
+      const dayBtn = e.target.closest("[data-day]");
+      if (dayBtn && state.selected) return selectDay(state.rows.find((x) => x.resort.id === state.selected), Number(dayBtn.dataset.day));
       const open = e.target.closest("[data-open]");
       if (open && state.rows.length) openDetail(open.dataset.open);
     });

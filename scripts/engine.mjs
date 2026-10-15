@@ -987,24 +987,24 @@ function flags(c) {
   const f = [];
   if (!sea.operating) {
     const w = [...res.snowmaking.windows].sort((a, b) => b.hours - a.hours)[0];
-    if (w) f.push({ cls: "cold", text: `Snowmaking ${WD(w.start.slice(0, 10))} ${w.hours}h` });
+    if (w) f.push({ cls: "cold", text: `Snow guns ${WD(w.start.slice(0, 10))}` });
     const s = storms.find((x) => x.total >= 0.5);
     if (s) f.push({ cls: "powder", text: `Snow ${WD(s.start.slice(0, 10))}` });
-    if (sea.phase === "preseason") f.push({ cls: "muted", text: `Opens ~${fmtDate(sea.open)}` });
+    if (sea.phase === "preseason") f.push({ cls: "muted", text: `Usually opens ${fmtDate(sea.open)}` });
     else f.push({ cls: "muted", text: "Closed" });
     return f;
   }
-  if (res.best && res.best.score >= 40) f.push({ cls: "powder", text: `Pwdr ${WD(days[res.best.k].date)}` });
+  if (res.best && res.best.score >= 40) f.push({ cls: "powder", text: `Powder ${WD(days[res.best.k].date)}` });
   const fav = storms.find((s) => s.setup && s.setup.favored && s.total >= 1);
-  if (fav) f.push({ cls: "setup", text: `${{ noreaster: "Nor'easter", lake: "Lake effect", upslope: "Upslope", southern: "Southerly", west: "Clipper" }[fav.setup.key]} ${WD(fav.start.slice(0, 10))}` });
+  if (fav) f.push({ cls: "setup", text: `${{ noreaster: "Nor'easter", lake: "Lake effect", upslope: "Upslope", southern: "Southern storm", west: "Clipper" }[fav.setup.key]} ${WD(fav.start.slice(0, 10))}` });
   const rainDay = days.find((d) => d.rain + d.ice > 0.1);
   const lowDay = days.find((d) => d.baseRain > 0.2 && d.rain + d.ice <= 0.1);
   if (rainDay) f.push({ cls: "rain", text: `${rainDay.ice > 0.05 ? "Ice" : "Rain"} ${WD(rainDay.date)}` });
-  else if (lowDay) f.push({ cls: "rain", text: `Mix low ${WD(lowDay.date)}` });
+  else if (lowDay) f.push({ cls: "rain", text: `Rain down low ${WD(lowDay.date)}` });
   const windDay = days.find((d) => d.windHold);
-  if (windDay) f.push({ cls: "wind", text: `Wind ${WD(windDay.date)}` });
+  if (windDay) f.push({ cls: "wind", text: `Windy ${WD(windDay.date)}` });
   const iceDay = days.find((d) => d.grade && d.grade.ice);
-  if (iceDay) f.push({ cls: "rain", text: `Firm ${WD(iceDay.date)}` });
+  if (iceDay) f.push({ cls: "rain", text: `Icy ${WD(iceDay.date)}` });
   return f;
 }
 
