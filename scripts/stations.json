@@ -1,0 +1,398 @@
+{
+ "note": "Nearest active ASOS stations (Iowa Environmental Mesonet) to each resort, within 60 km. Used to grade model precipitation.",
+ "stations": [
+  {
+   "id": "1V4",
+   "name": "St Johnsbury",
+   "network": "VT_ASOS",
+   "lat": 44.42,
+   "lon": -72.02,
+   "elevFt": 712
+  },
+  {
+   "id": "6B0",
+   "name": "Middlebury",
+   "network": "VT_ASOS",
+   "lat": 43.9855,
+   "lon": -73.0955,
+   "elevFt": 488
+  },
+  {
+   "id": "BTV",
+   "name": "BURLINGTON INTL",
+   "network": "VT_ASOS",
+   "lat": 44.47,
+   "lon": -73.15,
+   "elevFt": 341
+  },
+  {
+   "id": "CDA",
+   "name": "Lyndonville",
+   "network": "VT_ASOS",
+   "lat": 44.5691,
+   "lon": -72.018,
+   "elevFt": 1188
+  },
+  {
+   "id": "DDH",
+   "name": "Bennington More State",
+   "network": "VT_ASOS",
+   "lat": 42.8935,
+   "lon": -73.2486,
+   "elevFt": 786
+  },
+  {
+   "id": "EFK",
+   "name": "Newport",
+   "network": "VT_ASOS",
+   "lat": 44.8888,
+   "lon": -72.2292,
+   "elevFt": 930
+  },
+  {
+   "id": "MPV",
+   "name": "BARRE-MONTPELIER",
+   "network": "VT_ASOS",
+   "lat": 44.2035,
+   "lon": -72.5623,
+   "elevFt": 1165
+  },
+  {
+   "id": "MVL",
+   "name": "MORRISVILLE",
+   "network": "VT_ASOS",
+   "lat": 44.5346,
+   "lon": -72.614,
+   "elevFt": 768
+  },
+  {
+   "id": "RUT",
+   "name": "RUTLAND STATE(AWOS)",
+   "network": "VT_ASOS",
+   "lat": 43.53,
+   "lon": -72.95,
+   "elevFt": 787
+  },
+  {
+   "id": "VSF",
+   "name": "SPRINGFIELD/HARTNES",
+   "network": "VT_ASOS",
+   "lat": 43.3436,
+   "lon": -72.5173,
+   "elevFt": 577
+  },
+  {
+   "id": "1P1",
+   "name": "Plymouth",
+   "network": "NH_ASOS",
+   "lat": 43.7792,
+   "lon": -71.7537,
+   "elevFt": 505
+  },
+  {
+   "id": "BML",
+   "name": "BERLIN MUNICIPAL",
+   "network": "NH_ASOS",
+   "lat": 44.5761,
+   "lon": -71.1786,
+   "elevFt": 1158
+  },
+  {
+   "id": "HIE",
+   "name": "Whitefield",
+   "network": "NH_ASOS",
+   "lat": 44.3659,
+   "lon": -71.5522,
+   "elevFt": 1047
+  },
+  {
+   "id": "MWN",
+   "name": "Mount Washington",
+   "network": "NH_ASOS",
+   "lat": 44.2708,
+   "lon": -71.3035,
+   "elevFt": 6266
+  },
+  {
+   "id": "8B0",
+   "name": "Rangeley",
+   "network": "ME_ASOS",
+   "lat": 44.9919,
+   "lon": -70.6646,
+   "elevFt": 1813
+  },
+  {
+   "id": "IZG",
+   "name": "FRYEBERG",
+   "network": "ME_ASOS",
+   "lat": 43.9911,
+   "lon": -70.9479,
+   "elevFt": 453
+  },
+  {
+   "id": "GFL",
+   "name": "GLEN FALLS/WARREN",
+   "network": "NY_ASOS",
+   "lat": 43.3412,
+   "lon": -73.6103,
+   "elevFt": 328
+  },
+  {
+   "id": "GTB",
+   "name": "FORT DRUM/WHEELER",
+   "network": "NY_ASOS",
+   "lat": 44.0556,
+   "lon": -75.7195,
+   "elevFt": 679
+  },
+  {
+   "id": "JHW",
+   "name": "JAMESTOWN (AWOS)",
+   "network": "NY_ASOS",
+   "lat": 42.1534,
+   "lon": -79.258,
+   "elevFt": 1722
+  },
+  {
+   "id": "LKP",
+   "name": "Lake Placid",
+   "network": "NY_ASOS",
+   "lat": 44.2645,
+   "lon": -73.9618,
+   "elevFt": 1742
+  },
+  {
+   "id": "MSV",
+   "name": "Monticello",
+   "network": "NY_ASOS",
+   "lat": 41.7016,
+   "lon": -74.795,
+   "elevFt": 1404
+  },
+  {
+   "id": "OLE",
+   "name": "Olean",
+   "network": "NY_ASOS",
+   "lat": 42.2412,
+   "lon": -78.3714,
+   "elevFt": 2130
+  },
+  {
+   "id": "RME",
+   "name": "Griffiss AFB / Rome",
+   "network": "NY_ASOS",
+   "lat": 43.2239,
+   "lon": -75.3953,
+   "elevFt": 471
+  },
+  {
+   "id": "SLK",
+   "name": "SARANAC LAKE/ADIRON",
+   "network": "NY_ASOS",
+   "lat": 44.3853,
+   "lon": -74.2062,
+   "elevFt": 1663
+  },
+  {
+   "id": "AQW",
+   "name": "NORTH ADAMS",
+   "network": "MA_ASOS",
+   "lat": 42.6962,
+   "lon": -73.1702,
+   "elevFt": 1562
+  },
+  {
+   "id": "PSF",
+   "name": "PITTSFIELD MUNI",
+   "network": "MA_ASOS",
+   "lat": 42.4272,
+   "lon": -73.2892,
+   "elevFt": 1194
+  },
+  {
+   "id": "22N",
+   "name": "Lehighton",
+   "network": "PA_ASOS",
+   "lat": 40.8095,
+   "lon": -75.7615,
+   "elevFt": 519
+  },
+  {
+   "id": "2G9",
+   "name": "Somerset",
+   "network": "PA_ASOS",
+   "lat": 40.0389,
+   "lon": -79.015,
+   "elevFt": 2231
+  },
+  {
+   "id": "LBE",
+   "name": "LATROBE/WESTMORLAND",
+   "network": "PA_ASOS",
+   "lat": 40.2759,
+   "lon": -79.4048,
+   "elevFt": 1184
+  },
+  {
+   "id": "MPO",
+   "name": "MT POCONO",
+   "network": "PA_ASOS",
+   "lat": 41.1389,
+   "lon": -75.3794,
+   "elevFt": 1893
+  },
+  {
+   "id": "EKN",
+   "name": "ELKINS/RANDOLPH FLD",
+   "network": "WV_ASOS",
+   "lat": 38.8853,
+   "lon": -79.8528,
+   "elevFt": 1998
+  },
+  {
+   "id": "POU",
+   "name": "POUGHKEEPSIE",
+   "network": "NY_ASOS",
+   "lat": 41.6266,
+   "lon": -73.8842,
+   "elevFt": 167
+  },
+  {
+   "id": "ALB",
+   "name": "ALBANY COUNTY ARPT",
+   "network": "NY_ASOS",
+   "lat": 42.7576,
+   "lon": -73.8036,
+   "elevFt": 292
+  },
+  {
+   "id": "SCH",
+   "name": "SCHENECTADY AIRPORT",
+   "network": "NY_ASOS",
+   "lat": 42.85,
+   "lon": -73.93,
+   "elevFt": 377
+  }
+ ],
+ "resorts": {
+  "jay": [
+   "EFK",
+   "MVL"
+  ],
+  "burke": [
+   "CDA",
+   "1V4"
+  ],
+  "smuggs": [
+   "MVL",
+   "BTV"
+  ],
+  "stowe": [
+   "MVL",
+   "BTV"
+  ],
+  "bolton": [
+   "MVL",
+   "BTV"
+  ],
+  "mrg": [
+   "6B0",
+   "MPV"
+  ],
+  "sugarbush": [
+   "6B0",
+   "MPV"
+  ],
+  "killington": [
+   "RUT",
+   "VSF"
+  ],
+  "okemo": [
+   "VSF",
+   "RUT"
+  ],
+  "stratton": [
+   "DDH",
+   "VSF"
+  ],
+  "mountsnow": [
+   "DDH",
+   "AQW"
+  ],
+  "cannon": [
+   "HIE",
+   "MWN"
+  ],
+  "bretton": [
+   "MWN",
+   "HIE"
+  ],
+  "wildcat": [
+   "MWN",
+   "HIE"
+  ],
+  "attitash": [
+   "MWN",
+   "IZG"
+  ],
+  "loon": [
+   "1P1",
+   "MWN"
+  ],
+  "waterville": [
+   "1P1",
+   "MWN"
+  ],
+  "sugarloaf": [
+   "8B0"
+  ],
+  "saddleback": [
+   "8B0"
+  ],
+  "sundayriver": [
+   "BML",
+   "MWN"
+  ],
+  "whiteface": [
+   "LKP",
+   "SLK"
+  ],
+  "gore": [
+   "GFL"
+  ],
+  "snowridge": [
+   "RME",
+   "GTB"
+  ],
+  "holidayvalley": [
+   "OLE",
+   "JHW"
+  ],
+  "hunter": [
+   "POU",
+   "ALB"
+  ],
+  "windham": [
+   "ALB",
+   "SCH"
+  ],
+  "belleayre": [
+   "MSV"
+  ],
+  "jiminy": [
+   "PSF",
+   "AQW"
+  ],
+  "camelback": [
+   "MPO",
+   "22N"
+  ],
+  "sevensprings": [
+   "2G9",
+   "LBE"
+  ],
+  "snowshoe": [
+   "EKN"
+  ]
+ }
+}
