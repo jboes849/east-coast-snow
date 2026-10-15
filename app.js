@@ -25,7 +25,8 @@
     units: store.get("ups-units", "in"),
     pass: store.get("ups-pass", "any"),
     favorites: new Set(store.get("ups-favs", [])),
-    mapRange: "3",
+    mapLayer: "s3",
+    mapDay: 0,
     radar: false,
     selected: null,
     details: {},
@@ -594,6 +595,22 @@
     map.fitBounds(resortBounds());
   }
 
+  // Map layers. Day-by-day layers use the slider under the map.
+  const TEMP_STEPS = [10, 20, 27, 32, 40];
+  const TEMP_COLORS = ["#00238a", "#0057ff", "#8fb0ec", "#e5e7eb", "#ffd9a8", "#f08a4b"];
+  const WIND_STEPS = [25, 40, 55];
+  const WIND_COLORS = ["#eef3fb", "#ffe7b8", "#f08a4b", "#d4380d"];
+  const stepColor = (steps, colors, v) => colors[steps.filter((x) => v >= x).length];
+  const MAP_LAYERS = {
+    s3: { label: "Snow · next 3 days", val: (r) => r.total3, kind: "snow", tip: (r, v) => `${snowTxt(v)} in the next 3 days` },
+    s7: { label: "Snow · next 7 days", val: (r) => r.total7, kind: "snow", tip: (r, v) => `${snowTxt(v)} in the next 7 days` },
+    day: { label: "Snow · day by day", daily: true, val: (r, k) => r.days[k].snow, kind: "snow", tip: (r, v, k) => `${snowTxt(v)} on ${dayLong(r.days[k].date)}` },
+    temp: { label: "Summit low temp · day by day", daily: true, val: (r, k) => r.days[k].tMin, kind: "temp", tip: (r, v, k) => `Low ${tempTxtU(v)}, high ${tempTxtU(r.days[k].tMax)} on ${dayLong(r.days[k].date)}` },
+    wind: { label: "Summit gusts · day by day", daily: true, val: (r, k) => r.days[k].gustMax, kind: "wind", tip: (r, v, k) => `Gusts to ${windTxt(v)} on ${dayLong(r.days[k].date)}` },
+    past: { label: "Snow · last 7 days", val: (r) => r.recent?.snow7 ?? 0, kind: "snow", tip: (r, v) => `${snowTxt(v)} fell in the last 7 days` },
+    depth: { label: "Natural snow on the ground", val: (r) => r.season.depth ?? 0, kind: "snow", tip: (r, v) => `About ${snowTxt(v)} of natural snow on the ground` },
+  };
+
   function renderMap() {
     if (!map) return;
     if (!mapFitted) {
@@ -601,27 +618,73 @@
       map.fitBounds(resortBounds());
       mapFitted = true;
     }
+    const layer = MAP_LAYERS[state.mapLayer] || MAP_LAYERS.s3;
+    const k = Math.min(state.mapDay || 0, state.dates.length - 1);
     markerLayer.clearLayers();
     passRows().forEach((row) => {
-      const v = state.mapRange === "3" ? row.total3 : row.total7;
+      const v = layer.val(row, k) ?? 0;
+      let color, text, dark;
+      if (layer.kind === "temp") {
+        color = stepColor(TEMP_STEPS, TEMP_COLORS, v);
+        text = `${Math.round(tempNum(v))}°`;
+        dark = v < 20;
+      } else if (layer.kind === "wind") {
+        color = stepColor(WIND_STEPS, WIND_COLORS, v);
+        text = String(Math.round(windNum(v)));
+        dark = v >= 55;
+      } else {
+        color = snowColor(v);
+        text = snowVal(v);
+        dark = snowLevel(v) >= 3;
+      }
       const icon = L.divIcon({
         className: "pin-wrap",
-        html: `<span class="pin" data-level="${snowLevel(v)}" style="--c:${snowColor(v)}">${snowVal(v)}</span>`,
+        html: `<span class="pin${dark ? " dark" : ""}" style="--c:${color}">${text}</span>`,
         iconSize: [32, 20],
         iconAnchor: [16, 10],
       });
-      L.marker([row.resort.lat, row.resort.lon], { icon, title: row.resort.name, riseOnHover: true, zIndexOffset: Math.round(v * 10) })
-        .bindTooltip(`<strong>${esc(row.resort.name)}</strong> · ${snowTxt(v)} in ${state.mapRange} days`, { direction: "top", offset: [0, -10] })
+      L.marker([row.resort.lat, row.resort.lon], { icon, title: row.resort.name, riseOnHover: true, zIndexOffset: Math.round(Math.abs(v) * 10) })
+        .bindTooltip(`<strong>${esc(row.resort.name)}</strong> · ${layer.tip(row, v, k)}`, { direction: "top", offset: [0, -10] })
         .on("click", () => openDetail(row.resort.id))
         .addTo(markerLayer);
     });
-    $("#map-legend").innerHTML =
-      SNOW_COLORS.map((c, i) => {
-        const lo = i === 0 ? 0 : SNOW_STEPS[i - 1];
-        const label = i === 0 ? "0" : i === SNOW_COLORS.length - 1 ? `${snowVal(lo)}+` : `${snowVal(lo)}–${snowVal(SNOW_STEPS[i])}`;
-        return `<span><i style="background:${c}"></i>${label}</span>`;
-      }).join("") + `<span class="unit">${metric() ? "Centimeters" : "Inches"} · summit</span>`;
+    const slider = $("#map-slider");
+    if (slider) {
+      slider.hidden = !layer.daily;
+      if (layer.daily) {
+        $("#map-day").max = String(state.dates.length - 1);
+        $("#map-day").value = String(k);
+        $("#map-day-label").textContent = k === 0 ? `Today, ${dayNum(state.dates[k])}` : `${dayLong(state.dates[k])}, ${dayNum(state.dates[k])}`;
+      }
+    }
+    let legend;
+    if (layer.kind === "temp") legend = TEMP_COLORS.map((c, i) => `<span><i style="background:${c}"></i>${i === 0 ? `<${Math.round(tempNum(TEMP_STEPS[0]))}°` : i === TEMP_COLORS.length - 1 ? `${Math.round(tempNum(TEMP_STEPS[i - 1]))}°+` : `${Math.round(tempNum(TEMP_STEPS[i - 1]))}–${Math.round(tempNum(TEMP_STEPS[i]))}°`}</span>`).join("") + `<span class="unit">Summit low · 27°F and colder is snowmaking weather</span>`;
+    else if (layer.kind === "wind") legend = WIND_COLORS.map((c, i) => `<span><i style="background:${c}"></i>${i === 0 ? `<${Math.round(windNum(WIND_STEPS[0]))}` : i === WIND_COLORS.length - 1 ? `${Math.round(windNum(WIND_STEPS[i - 1]))}+` : `${Math.round(windNum(WIND_STEPS[i - 1]))}–${Math.round(windNum(WIND_STEPS[i]))}`}</span>`).join("") + `<span class="unit">${metric() ? "km/h" : "mph"} · summit gusts</span>`;
+    else
+      legend =
+        SNOW_COLORS.map((c, i) => {
+          const lo = i === 0 ? 0 : SNOW_STEPS[i - 1];
+          const label = i === 0 ? "0" : i === SNOW_COLORS.length - 1 ? `${snowVal(lo)}+` : `${snowVal(lo)}–${snowVal(SNOW_STEPS[i])}`;
+          return `<span><i style="background:${c}"></i>${label}</span>`;
+        }).join("") + `<span class="unit">${metric() ? "Centimeters" : "Inches"} · summit</span>`;
+    $("#map-legend").innerHTML = legend;
   }
+
+  let mapTimer = null;
+  function playMap() {
+    if (mapTimer) {
+      clearInterval(mapTimer);
+      mapTimer = null;
+      $("#map-play").textContent = "Play";
+      return;
+    }
+    $("#map-play").textContent = "Pause";
+    mapTimer = setInterval(() => {
+      state.mapDay = ((state.mapDay || 0) + 1) % state.dates.length;
+      renderMap();
+    }, 1100);
+  }
+
 
   // ---------- resort list ----------
   function renderSortOptions() {
@@ -789,7 +852,6 @@
       .join("");
     document.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === state.view)));
     document.querySelectorAll("[data-units]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.units === state.units)));
-    document.querySelectorAll("[data-range]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.range === state.mapRange)));
   }
 
   // ---------- detail ----------
@@ -1662,12 +1724,7 @@
         if (state.selected) openDetail(state.selected);
         return;
       }
-      const range = e.target.closest("[data-range]");
-      if (range) {
-        state.mapRange = range.dataset.range;
-        renderFilters();
-        return renderMap();
-      }
+      if (e.target.closest("#map-play")) return playMap();
       if (e.target.closest("#radar-toggle")) {
         state.radar = !state.radar;
         $("#radar-toggle").setAttribute("aria-pressed", String(state.radar));
@@ -1714,7 +1771,16 @@
     });
     const passSel = $("#pass");
     if (passSel) passSel.value = state.pass;
+    document.addEventListener("input", (e) => {
+      if (e.target.id !== "map-day") return;
+      state.mapDay = Number(e.target.value);
+      renderMap();
+    });
     document.addEventListener("change", (e) => {
+      if (e.target.id === "map-layer") {
+        state.mapLayer = e.target.value;
+        return renderMap();
+      }
       if (e.target.id === "pass") {
         state.pass = e.target.value;
         store.set("ups-pass", state.pass);
