@@ -8,7 +8,7 @@ import path from "node:path";
 import vm from "node:vm";
 import { buildPages } from "./build-pages.mjs";
 import { fetchNws } from "./nws.mjs";
-import { MODELS, ENSEMBLES, HOURLY, ENS_HOURLY, parseBlock, parseEnsemble, forecastResort, headline } from "./engine.mjs";
+import { MODELS, ENSEMBLES, HOURLY, ENS_HOURLY, parseBlock, parseEnsemble, forecastResort, headline, writeups } from "./engine.mjs";
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const OUT = path.join(ROOT, "data");
@@ -21,7 +21,7 @@ function loadBrowserGlobal(file) {
   return ctx.window;
 }
 const { RESORTS } = loadBrowserGlobal("resorts.js");
-const { GUIDES } = loadBrowserGlobal("guides.js");
+const { GUIDES, SETUPS } = loadBrowserGlobal("guides.js");
 const { UPSLOPE_CONFIG } = loadBrowserGlobal("config.js");
 const SKILL_FILE = path.join(ROOT, "data", "skill.json");
 const skill = fs.existsSync(SKILL_FILE) ? JSON.parse(fs.readFileSync(SKILL_FILE, "utf8")) : null;
@@ -169,6 +169,7 @@ async function main() {
     headline: headline(resorts, RESORTS),
     skill: skillSummary(skill),
     nws,
+    writeups: writeups(resorts, RESORTS, { nws, setups: SETUPS }),
     resorts,
   };
 

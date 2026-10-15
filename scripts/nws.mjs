@@ -59,7 +59,7 @@ function excerpt(text) {
   if (!body) return null;
   body = body.replace(/\n(?!\n)/g, " ").replace(/[ \t]+/g, " ").replace(/\n{2,}/g, "\n").trim();
   if (body === body.toUpperCase()) body = body.toLowerCase().replace(/(^|[.!?]\s+)([a-z])/g, (_, a, b) => a + b.toUpperCase());
-  const paras = body.split("\n").map((p) => p.replace(/^[-*\d.\s]+/, "").trim()).filter(Boolean);
+  const paras = body.split("\n").map((p) => p.replace(/^[-*\d.\s]+/, "").trim()).filter((p) => p && !/^(as of|issued at|update\b)/i.test(p));
   let out = "";
   for (const p of paras) {
     if ((out + " " + p).length > 700 && out) break;

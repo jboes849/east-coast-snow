@@ -1060,3 +1060,103 @@ export function headline(rows, resorts) {
   if (ranked[1] && ranked[1][1].total7 >= 2) text += ` ${ranked[1][0]} follows with up to ${S(ranked[1][1].total7)} at ${byId[ranked[1][1].id].name}.`;
   return { title: `${leadName} leads the week.`, text };
 }
+
+// ---------- daily regional write-ups ----------
+// A short morning story per area, built only from this run's numbers so it never
+// says more than the data does. Uses the same unit tokens as insights.
+export const WRITEUP_AREAS = [
+  { key: "vt", name: "Vermont", states: ["VT"] },
+  { key: "nh", name: "New Hampshire", states: ["NH"] },
+  { key: "me", name: "Maine", states: ["ME"] },
+  { key: "ny", name: "New York", states: ["NY"] },
+  { key: "south", name: "Massachusetts, Pennsylvania and West Virginia", short: "Mass., Pa. and W.Va.", states: ["MA", "PA", "WV"] },
+];
+
+export function writeups(rows, resorts, { nws, setups } = {}) {
+  const byId = Object.fromEntries(resorts.map((r) => [r.id, r]));
+  const nm = (r) => byId[r.id].name;
+  const OFF = { BTV: "Burlington", GYX: "Gray", ALY: "Albany", BUF: "Buffalo", BGM: "Binghamton", PHI: "Mount Holly", CTP: "State College", PBZ: "Pittsburgh", RNK: "Blacksburg", RLX: "Charleston", BOX: "Boston", OKX: "New York" };
+  return WRITEUP_AREAS.map((area) => {
+    const R_ = rows.filter((r) => area.states.includes(byId[r.id].state));
+    if (!R_.length) return null;
+    const open = R_.filter((r) => r.season.operating);
+    const dates = R_[0].days.map((d) => d.date);
+    const paras = [];
+    const by7 = [...R_].sort((a, b) => b.total7 - a.total7);
+    const top = by7[0];
+
+    // The main event: the biggest storm among these mountains.
+    const storms = R_.flatMap((r) => r.storms.filter((s) => s.total >= 0.5).map((s) => ({ r, s }))).sort((a, b) => b.s.total - a.s.total);
+    const main = storms[0];
+    let title;
+    if (main && main.s.total >= 6) title = `${cap(when(main.s.start).replace(/^early /, ""))} storm: up to ${S(main.s.total)} at ${nm(main.r)}.`;
+    else if (main && main.s.total >= 2) title = `Some snow ${when(main.s.start)}, best at ${nm(main.r)}.`;
+    else if (main) title = `Just a coating for the high peaks.`;
+    else if (!open.length) title = R_.some((r) => r.snowmaking.hours7 >= 12) ? "Dry, with snowmaking nights." : "Quiet and too mild for snow guns.";
+    else title = "A dry stretch.";
+
+    if (main) {
+      const same = storms.filter((x) => Math.abs(Date.parse(x.s.start) - Date.parse(main.s.start)) < 30 * 3600000);
+      const leaders = [];
+      for (const x of same) if (!leaders.some((y) => y.r === x.r) && leaders.length < 3) leaders.push(x);
+      let p = `The main event runs ${span(main.s.start, main.s.end)}. ${leaders.map((x) => `${nm(x.r)} ${S(x.s.total)}`).join(", ")} at the summits`;
+      p += main.s.hi - main.s.lo >= 3 ? `, though the models range from ${R(main.s.lo, main.s.hi)} at ${nm(main.r)}.` : ".";
+      const setup = setups?.[main.s.setup?.key];
+      if (setup && main.s.total >= 2) {
+        const fav = same.filter((x) => x.s.setup?.favored).map((x) => nm(x.r));
+        p += ` It's a ${setup.label.toLowerCase()} setup${fav.length ? `, one that usually favors ${listTxt(fav.slice(0, 3))}` : ""}.`;
+      }
+      const wet = same.filter((x) => x.s.baseRain >= 0.2 || x.s.rain >= 0.2);
+      if (wet.length) p += ` Rain mixes in ${wet.some((x) => x.s.rain >= 0.2) ? "even up high at times" : "at the bases"}.`;
+      const p6 = main.s.prob?.[6];
+      if (p6 != null && main.s.total >= 4) p += p6 >= 70 ? ` Confidence is high: ${p6}% of ensemble runs give ${nm(main.r)} ${S(6)} or more.` : p6 >= 35 ? ` Confidence is moderate (${p6}% odds of ${S(6)}+).` : ` Confidence is low so far (${p6}% odds of ${S(6)}+), so expect changes.`;
+      paras.push(p);
+    }
+
+    // The next two days at a glance.
+    const d2 = (r) => r.days.slice(0, 2);
+    const hi = Math.max(...R_.flatMap((r) => d2(r).map((d) => d.tMax ?? -99)));
+    const lo = Math.min(...R_.flatMap((r) => d2(r).map((d) => d.tMin ?? 99)));
+    const gust = Math.max(...R_.flatMap((r) => d2(r).map((d) => d.gustMax ?? 0)));
+    const snow2 = Math.max(...R_.map((r) => sum(d2(r).map((d) => d.snow))));
+    const rain2 = Math.max(...R_.map((r) => sum(d2(r).map((d) => d.rain + d.ice))));
+    let p2 = `Next two days: summit temperatures from ${T(lo)} to ${T(hi)}`;
+    if (snow2 >= 0.5) p2 += `, with up to ${S(snow2)} of snow`;
+    else if (rain2 >= 0.1) p2 += `, with rain at times`;
+    else p2 += ", mostly dry";
+    p2 += gust >= 40 ? ` and gusts near ${W(gust)} up top.` : ".";
+    paras.push(p2);
+
+    // Skiing or snowmaking.
+    if (open.length) {
+      const best = [...open].sort((a, b) => b.bestDay.score - a.bestDay.score || b.total3 - a.total3)[0];
+      const d = best.days[best.bestDay.k];
+      paras.push(`Best ski day: ${WEEKDAY(d.date)} at ${nm(best)} (${best.bestDay.letter}).${d.overnight >= 1 ? ` About ${S(d.overnight)} falls overnight before first chair.` : ""}`);
+    } else {
+      const sm = [...R_].sort((a, b) => b.snowmaking.hours7 - a.snowmaking.hours7);
+      const firstOpen = [...R_].filter((r) => r.season.phase === "preseason").sort((a, b) => a.season.daysToOpen - b.season.daysToOpen)[0];
+      let p = sm[0].snowmaking.hours7 >= 4 ? `Snowmaking: ${nm(sm[0])} gets the most hours cold enough for snow guns this week (${sm[0].snowmaking.hours7}).` : "Snowmaking: too warm for snow guns this week.";
+      if (firstOpen) p += ` ${nm(firstOpen)} usually opens first here, around ${fmtDate(firstOpen.season.open)}.`;
+      paras.push(p);
+    }
+
+    // How the forecast has moved.
+    const trends = R_.filter((r) => r.trend && Math.abs(r.trend.now - r.trend.was) >= 1.5);
+    if (trends.length) {
+      const up = trends.filter((r) => r.trend.now > r.trend.was);
+      paras.push(up.length >= trends.length / 2 ? `Trend: totals have gone up since yesterday, led by ${nm(up[0])} (${S(up[0].trend.was)} to ${S(up[0].trend.now)}).` : `Trend: totals have come down since yesterday.`);
+    }
+
+    // What the NWS forecasters and warnings say.
+    const offices = [...new Set(R_.map((r) => nws?.resortOffice?.[r.id]).filter(Boolean))];
+    const warned = R_.filter((r) => (nws?.alerts?.[r.id] || []).length);
+    if (warned.length) paras.push(`The NWS has a ${nws.alerts[warned[0].id][0].event} for ${listTxt(warned.slice(0, 4).map(nm))}.`);
+    const afd = offices.map((o) => ({ o, a: nws?.offices?.[o] })).find((x) => x.a?.excerpt);
+    if (afd) {
+      const first = afd.a.excerpt.split("\n").find((l) => l.length > 30 && !/^as of|^issued/i.test(l));
+      if (first) paras.push(`NWS ${OFF[afd.o] || afd.o} forecasters: "${first.replace(/\s+/g, " ").trim()}"`);
+    }
+
+    return { key: area.key, name: area.name, short: area.short || area.name, title, paras, top: top ? top.id : null };
+  }).filter(Boolean);
+}

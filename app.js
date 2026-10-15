@@ -369,6 +369,30 @@
       </div>`;
   }
 
+  // ---------- daily write-up ----------
+  function renderWriteup() {
+    const el = $("#writeup-block");
+    const ws = state.data.writeups || [];
+    if (!el || !ws.length) {
+      if (el) el.hidden = true;
+      return;
+    }
+    el.hidden = false;
+    const fav = [...state.favorites].map((id) => RESORTS.find((r) => r.id === id)).find(Boolean);
+    const favKey = fav && ws.find((w) => (w.key === "south" ? ["MA", "PA", "WV"] : [w.key.toUpperCase()]).includes(fav.state))?.key;
+    const key = ws.some((w) => w.key === state.writeup) ? state.writeup : favKey || ws[0].key;
+    const w = ws.find((x) => x.key === key);
+    const gen = new Date(state.data.generated);
+    const when = gen.toLocaleString("en-US", { weekday: "long", hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
+    el.innerHTML = `<div class="block-head"><h2>Daily Write-Up</h2><span class="label">${esc(when)} ET</span></div>
+      <div class="wu-tabs" role="tablist">${ws.map((x) => `<button role="tab" data-wu="${x.key}" aria-selected="${x.key === key}">${esc(x.short)}</button>`).join("")}</div>
+      <article class="wu">
+        <h3>${fmt(w.title)}</h3>
+        ${w.paras.map((p) => `<p>${fmt(p)}</p>`).join("")}
+        <p class="hint small">Written automatically from this run's models, ensembles and NWS products. Tap a mountain below for its full forecast.</p>
+      </article>`;
+  }
+
   // ---------- first-visit tips and help links ----------
   const qlink = (anchor, what) => `<a class="qlink" href="faq/#${anchor}" aria-label="Help: ${what}" title="${what}">?</a>`;
   function renderTips() {
@@ -1444,6 +1468,7 @@
     renderPicks();
     renderMap();
     renderList();
+    renderWriteup();
     renderStormWatch();
     renderStormTimeline();
     renderCompare();
@@ -1475,6 +1500,11 @@
       if (e.target.closest("[data-tips-done]")) {
         store.set("ups-tips-done", true);
         return renderTips();
+      }
+      const wu = e.target.closest("[data-wu]");
+      if (wu) {
+        state.writeup = wu.dataset.wu;
+        return renderWriteup();
       }
       const plan = e.target.closest("[data-plan]");
       if (plan) {
