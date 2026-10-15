@@ -33,7 +33,11 @@ export function buildPages({ root, resorts, forecast, siteUrl }) {
       .replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`)
       .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${esc(desc)}">`)
       .replace("<meta charset=\"utf-8\">", `<meta charset="utf-8">\n  <base href="../../">`)
-      .replace("</head>", `  <link rel="canonical" href="${url}">\n  <meta property="og:title" content="${esc(title)}">\n  <meta property="og:description" content="${esc(desc)}">\n  <meta property="og:url" content="${url}">\n</head>`)
+      .replace(/<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${url}">`)
+      .replace(/<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${esc(title)}">`)
+      .replace(/<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${esc(desc)}">`)
+      .replace(/<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${url}">`)
+      .replace(/<meta property="og:image" content="[^"]*">/, `<meta property="og:image" content="${siteUrl}img/og/${r.id}.png">`)
       .replace("<body>", `<body data-resort="${r.id}">`);
     fs.mkdirSync(path.join(root, "resorts", r.id), { recursive: true });
     fs.writeFileSync(path.join(root, "resorts", r.id, "index.html"), html);
