@@ -432,6 +432,7 @@
       <article class="wu">
         <h3>${fmt(w.title)}</h3>
         ${w.paras.map((p) => `<p>${fmt(p)}</p>`).join("")}
+        ${w.outlook ? `<p class="wu-outlook"><span class="label">Further out</span>${fmt(w.outlook)}</p>` : ""}
         <p class="hint small">Written automatically from this run's models, ensembles and NWS products. Tap a mountain below for its full forecast.</p>
       </article>`;
   }

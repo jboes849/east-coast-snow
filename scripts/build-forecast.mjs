@@ -7,8 +7,8 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { buildPages } from "./build-pages.mjs";
-import { fetchNws } from "./nws.mjs";
-import { MODELS, ENSEMBLES, HOURLY, ENS_HOURLY, parseBlock, parseEnsemble, forecastResort, headline, writeups } from "./engine.mjs";
+import { fetchNws, fetchCpc } from "./nws.mjs";
+import { MODELS, ENSEMBLES, HOURLY, ENS_HOURLY, parseBlock, parseEnsemble, forecastResort, headline, writeups, WRITEUP_AREAS } from "./engine.mjs";
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const OUT = path.join(ROOT, "data");
@@ -126,6 +126,13 @@ async function main() {
     const r = await fetchNws({ resorts: RESORTS, root: ROOT });
     nws = r.nws;
     log.push(...r.log);
+    const areas = WRITEUP_AREAS.map((a) => {
+      const rs = RESORTS.filter((x) => a.states.includes(x.state));
+      return { key: a.key, lat: rs.reduce((s, x) => s + x.lat, 0) / rs.length, lon: rs.reduce((s, x) => s + x.lon, 0) / rs.length };
+    });
+    const c = await fetchCpc(areas);
+    nws.cpc = c.cpc;
+    log.push(...c.log);
   }
   console.log(log.join("\n"));
   fs.mkdirSync(OUT, { recursive: true });

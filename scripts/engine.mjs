@@ -1188,6 +1188,26 @@ export function writeups(rows, resorts, { nws, setups } = {}) {
       if (first) paras.push(`NWS ${OFF[afd.o] || afd.o} forecasters: "${first.replace(/\s+/g, " ").trim()}"`);
     }
 
-    return { key: area.key, name: area.name, short: area.short || area.name, title, paras, top: top ? top.id : null };
+    // Days 8–14 from the Climate Prediction Center.
+    let outlook = null;
+    const cpc = nws?.cpc?.areas?.[area.key];
+    if (cpc?.temp || cpc?.precip) {
+      const word = (c, kind) => {
+        const x = String(c || "").toLowerCase();
+        if (x.startsWith("a")) return kind === "temp" ? "warmer than normal" : "wetter than normal";
+        if (x.startsWith("b")) return kind === "temp" ? "colder than normal" : "drier than normal";
+        if (x.startsWith("n")) return "near normal";
+        return null;
+      };
+      const parts = ["temp", "precip"].map((k) => cpc[k] && word(cpc[k].cat, k) && `${word(cpc[k].cat, k)}${cpc[k].prob ? ` (${Math.round(cpc[k].prob)}% odds)` : ""}`).filter(Boolean);
+      outlook = parts.length ? `Days 8 to 14: the NOAA outlook leans ${listTxt(parts)}.` : "Days 8 to 14: the NOAA outlook shows no clear lean either way.";
+      const t = String(cpc.temp?.cat || "").toLowerCase();
+      const pr = String(cpc.precip?.cat || "").toLowerCase();
+      if (t.startsWith("b") && pr.startsWith("a")) outlook += " Cold and stormy is the combination powder chasers want.";
+      else if (t.startsWith("a") && pr.startsWith("a")) outlook += " Wet and mild often means rain below the summits.";
+      else if (t.startsWith("b")) outlook += " Good news for snowmaking.";
+    }
+
+    return { key: area.key, name: area.name, short: area.short || area.name, title, paras, outlook, top: top ? top.id : null };
   }).filter(Boolean);
 }

@@ -123,3 +123,42 @@ export async function fetchNws({ resorts, root }) {
 }
 
 export { excerpt };
+
+// Climate Prediction Center 8–14 day outlook: odds of a warmer/colder and
+// wetter/drier than normal pattern, sampled at one point per area.
+const CPC = "https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/cpc_8_14_day_outlk/MapServer";
+export async function fetchCpc(areas) {
+  const log = [];
+  const out = { areas: {} };
+  try {
+    const meta = await fetch(`${CPC}?f=json`, { headers: UA, signal: AbortSignal.timeout(30000) }).then((r) => r.json());
+    const layers = meta.layers || [];
+    const pick = (re) => layers.find((l) => re.test(l.name))?.id;
+    const ids = { temp: pick(/temp/i) ?? 0, precip: pick(/prec/i) ?? 1 };
+    log.push(`cpc layers: ${layers.map((l) => `${l.id}=${l.name}`).join("; ")}`);
+    for (const a of areas) {
+      const res = {};
+      for (const [kind, id] of Object.entries(ids)) {
+        const q = new URLSearchParams({ geometry: `${a.lon},${a.lat}`, geometryType: "esriGeometryPoint", inSR: "4326", spatialRel: "esriSpatialRelIntersects", outFields: "*", returnGeometry: "false", f: "json" });
+        const j = await fetch(`${CPC}/${id}/query?${q}`, { headers: UA, signal: AbortSignal.timeout(30000) }).then((r) => r.json());
+        const attrs = j.features?.[0]?.attributes;
+        if (!attrs) continue;
+        if (!out.fields) {
+          out.fields = Object.keys(attrs);
+          log.push(`cpc fields: ${JSON.stringify(attrs)}`);
+        }
+        const key = (re) => Object.keys(attrs).find((k) => re.test(k));
+        const cat = attrs[key(/^cat/i)];
+        const prob = Number(attrs[key(/^prob/i)]);
+        const start = attrs[key(/start|valid|fcst_date|idp_filedate/i)];
+        res[kind] = { cat: cat ?? null, prob: Number.isFinite(prob) ? prob : null };
+        if (start && !out.valid) out.valid = String(start);
+      }
+      out.areas[a.key] = res;
+    }
+    log.push(`cpc areas: ${Object.keys(out.areas).length}`);
+  } catch (e) {
+    log.push(`cpc: FAILED ${e.message}`);
+  }
+  return { cpc: out, log };
+}
