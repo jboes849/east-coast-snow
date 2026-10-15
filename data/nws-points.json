@@ -1,0 +1,188 @@
+{
+ "jay": {
+  "office": "BTV",
+  "zone": "VTZ003",
+  "county": "VTC019",
+  "fire": "VTZ031"
+ },
+ "burke": {
+  "office": "BTV",
+  "zone": "VTZ007",
+  "county": "VTC005",
+  "fire": "VTZ031"
+ },
+ "smuggs": {
+  "office": "BTV",
+  "zone": "VTZ006",
+  "county": "VTC015",
+  "fire": "VTZ032"
+ },
+ "stowe": {
+  "office": "BTV",
+  "zone": "VTZ006",
+  "county": "VTC015",
+  "fire": "VTZ032"
+ },
+ "bolton": {
+  "office": "BTV",
+  "zone": "VTZ017",
+  "county": "VTC007",
+  "fire": "VTZ032"
+ },
+ "mrg": {
+  "office": "BTV",
+  "zone": "VTZ008",
+  "county": "VTC023",
+  "fire": "VTZ032"
+ },
+ "sugarbush": {
+  "office": "BTV",
+  "zone": "VTZ008",
+  "county": "VTC023",
+  "fire": "VTZ032"
+ },
+ "killington": {
+  "office": "BTV",
+  "zone": "VTZ019",
+  "county": "VTC021",
+  "fire": "VTZ034"
+ },
+ "okemo": {
+  "office": "BTV",
+  "zone": "VTZ020",
+  "county": "VTC027",
+  "fire": "VTZ034"
+ },
+ "stratton": {
+  "office": "ALY",
+  "zone": "VTZ014",
+  "county": "VTC025",
+  "fire": "VTZ037"
+ },
+ "mountsnow": {
+  "office": "ALY",
+  "zone": "VTZ014",
+  "county": "VTC025",
+  "fire": "VTZ037"
+ },
+ "cannon": {
+  "office": "GYX",
+  "zone": "NHZ003",
+  "county": "NHC009",
+  "fire": "NHZ022"
+ },
+ "bretton": {
+  "office": "GYX",
+  "zone": "NHZ002",
+  "county": "NHC007",
+  "fire": "NHZ021"
+ },
+ "wildcat": {
+  "office": "GYX",
+  "zone": "NHZ002",
+  "county": "NHC007",
+  "fire": "NHZ021"
+ },
+ "attitash": {
+  "office": "GYX",
+  "zone": "NHZ004",
+  "county": "NHC003",
+  "fire": "NHZ022"
+ },
+ "loon": {
+  "office": "GYX",
+  "zone": "NHZ003",
+  "county": "NHC009",
+  "fire": "NHZ022"
+ },
+ "waterville": {
+  "office": "GYX",
+  "zone": "NHZ003",
+  "county": "NHC009",
+  "fire": "NHZ022"
+ },
+ "sugarloaf": {
+  "office": "GYX",
+  "zone": "MEZ008",
+  "county": "MEC007",
+  "fire": "MEZ104"
+ },
+ "saddleback": {
+  "office": "GYX",
+  "zone": "MEZ008",
+  "county": "MEC007",
+  "fire": "MEZ104"
+ },
+ "sundayriver": {
+  "office": "GYX",
+  "zone": "MEZ012",
+  "county": "MEC017",
+  "fire": "MEZ104"
+ },
+ "whiteface": {
+  "office": "BTV",
+  "zone": "NYZ034",
+  "county": "NYC031",
+  "fire": "NYZ204"
+ },
+ "gore": {
+  "office": "ALY",
+  "zone": "NYZ042",
+  "county": "NYC113",
+  "fire": "NYZ207"
+ },
+ "snowridge": {
+  "office": "BUF",
+  "zone": "NYZ008",
+  "county": "NYC049",
+  "fire": "NYZ201"
+ },
+ "holidayvalley": {
+  "office": "BUF",
+  "zone": "NYZ020",
+  "county": "NYC009",
+  "fire": "NYZ200"
+ },
+ "hunter": {
+  "office": "ALY",
+  "zone": "NYZ058",
+  "county": "NYC039",
+  "fire": "NYZ209"
+ },
+ "windham": {
+  "office": "ALY",
+  "zone": "NYZ058",
+  "county": "NYC039",
+  "fire": "NYZ209"
+ },
+ "belleayre": {
+  "office": "ALY",
+  "zone": "NYZ063",
+  "county": "NYC111",
+  "fire": "NYZ209"
+ },
+ "jiminy": {
+  "office": "ALY",
+  "zone": "MAZ001",
+  "county": "MAC003",
+  "fire": "MAZ001"
+ },
+ "camelback": {
+  "office": "PHI",
+  "zone": "PAZ055",
+  "county": "PAC089",
+  "fire": "PAZ055"
+ },
+ "sevensprings": {
+  "office": "CTP",
+  "zone": "PAZ033",
+  "county": "PAC111",
+  "fire": "PAZ033"
+ },
+ "snowshoe": {
+  "office": "RLX",
+  "zone": "WVZ523",
+  "county": "WVC075",
+  "fire": "WVZ523"
+ }
+}
