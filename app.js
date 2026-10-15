@@ -932,6 +932,39 @@
     return fmt(bits.join(" ")).replace(/&lt;(\/?)b&gt;/g, "<$1b>");
   }
 
+  // Hour by hour over the lift day for the picked day: what you'd feel on the chair.
+  const feelsF = (t, v) => (t != null && v != null && t <= 50 && v >= 3 ? 35.74 + 0.6215 * t - 35.75 * v ** 0.16 + 0.4275 * t * v ** 0.16 : t);
+  const PSHORT = { sn: "Snow", mx: "Mix", ra: "Rain", pl: "Sleet", zr: "Ice" };
+  function skiDay(row, det, k) {
+    if (!det) return "";
+    const d = row.days[k];
+    const hours = [8, 9, 10, 11, 12, 13, 14, 15, 16];
+    const idx = hours.map((h) => det.time.findIndex((t) => t.startsWith(d.date) && Number(t.slice(11, 13)) === h));
+    if (idx.every((i) => i < 0)) return "";
+    const label = (h) => (h === 12 ? "12p" : h > 12 ? `${h - 12}p` : `${h}a`);
+    const cell = (fn, cls) => idx.map((i) => (i < 0 ? `<td></td>` : `<td${cls ? ` class="${cls(i) || ""}"` : ""}>${fn(i)}</td>`)).join("");
+    const S = det.summit;
+    const op = operating(row);
+    const tnum = (x) => (x == null ? "–" : `${Math.round(tempNum(x))}°`);
+    const rows = [
+      ["Sky", cell((i) => (S.type[i] ? PSHORT[S.type[i]] || "–" : "–"), (i) => (S.type[i] === "sn" ? "h-snow" : S.type[i] ? "h-wet" : ""))],
+      ["Summit", cell((i) => tnum(S.t[i]))],
+      ["Feels like", cell((i) => tnum(feelsF(S.t[i], S.wind?.[i])), (i) => (feelsF(S.t[i], S.wind?.[i]) <= -10 ? "h-cold" : ""))],
+      ["Gusts", cell((i) => (S.gust[i] == null ? "–" : Math.round(windNum(S.gust[i]))), (i) => `h-w-${windRisk(row, S.gust[i], S.dir[i])}`)],
+      ["Base", cell((i) => tnum(det.base.t[i]))],
+    ];
+    if (idx.some((i) => i >= 0 && S.snow[i] >= 0.05))
+      rows.splice(1, 0, ["New snow", cell((i) => (S.snow[i] >= 0.05 ? (metric() ? (S.snow[i] * 2.54).toFixed(1) : S.snow[i].toFixed(1)) : "–"), (i) => (S.snow[i] >= 0.05 ? "h-snow" : ""))]);
+    if (!op) rows.splice(2, 0, ["Snow guns", cell((i) => (S.tw[i] != null && S.tw[i] <= 27 ? "On" : "–"), (i) => (S.tw[i] != null && S.tw[i] <= 27 ? "h-snow" : ""))]);
+    return `<div class="skiday">
+      <div class="skiday-head"><span class="label">${k === 0 ? "Today" : dayLong(d.date)} · 8am–4pm</span><span class="label">${metric() ? "°C · km/h · cm" : "°F · mph · in"}</span></div>
+      <div class="scroll"><table class="hourly">
+        <thead><tr><th></th>${hours.map((h) => `<th>${label(h)}</th>`).join("")}</tr></thead>
+        <tbody>${rows.map(([n, c]) => `<tr${n === "Sky" ? ` class="sky"` : ""}><th scope="row">${n}</th>${c}</tr>`).join("")}</tbody>
+      </table></div>
+    </div>`;
+  }
+
   function dayCards(row, sel) {
     return row.days
       .map((d, k) => {
@@ -966,6 +999,9 @@
     document.querySelectorAll(".days [data-day]").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.day) === k)));
     const el = $("#day-why");
     if (el) el.innerHTML = dayWhy(row, k);
+    state.dayK = k;
+    const hrs = $("#day-hours");
+    if (hrs) hrs.innerHTML = skiDay(row, state.details[row.resort.id], k);
   }
 
   async function openDetail(id) {
@@ -984,6 +1020,7 @@
     const top = notes.slice(0, 3);
     const more = notes.slice(3);
     const sel = defaultDay(row);
+    state.dayK = sel;
     const actions = page
       ? `${favButton(id, "sq fav")}<a class="sq wide" href="./">All resorts</a>`
       : `<a class="sq wide" href="resorts/${id}/">Full page</a>${favButton(id, "sq fav")}<button class="sq" data-close aria-label="Close">${Icon("close")}</button>`;
@@ -1002,6 +1039,7 @@
         </section>
         <div class="days">${dayCards(row, sel)}</div>
         <p class="day-why" id="day-why" aria-live="polite">${dayWhy(row, sel)}</p>
+        <div id="day-hours">${skiDay(row, det, sel)}</div>
         ${top.length ? `<h3 class="sub-h">What to know</h3><ul class="insights">${top.map((x) => `<li data-kind="${x.kind}">${fmt(x.text)}</li>`).join("")}</ul>` : ""}
         <div class="d-kpis">${kpiHtml}</div>
         ${qualityBlock(q, ratio)}
@@ -1027,6 +1065,7 @@
     const loaded = await loadDetail(id);
     if (state.selected !== id || !loaded) return;
     $("#detail-hourly").innerHTML = detailHourly(row, loaded);
+    $("#day-hours").innerHTML = skiDay(row, loaded, state.dayK ?? sel);
     if (state.moreOpen) drawCharts(row, loaded);
   }
 
