@@ -1,4 +1,4 @@
-2026-10-15T10:19:45.323Z
+2026-10-16T10:12:26.356Z
 jay: report=yes cams=yes map=yes
 burke: report=no cams=no map=no
 smuggs: report=no cams=no map=no
@@ -21,12 +21,12 @@ saddleback: report=yes cams=yes map=yes
 sundayriver: report=yes cams=no map=no
 whiteface: report=no cams=no map=no
 gore: report=no cams=no map=no
-snowridge: report=no cams=no map=yes
+snowridge: report=yes cams=no map=yes
 holidayvalley: report=yes cams=yes map=yes
 hunter: report=yes cams=yes map=yes
 windham: report=yes cams=no map=no
 belleayre: report=no cams=no map=no
-jiminy: report=no cams=no map=no
+jiminy: report=yes cams=yes map=no
 camelback: report=no cams=no map=no
 sevensprings: report=yes cams=yes map=yes
 snowshoe: report=no cams=no map=no

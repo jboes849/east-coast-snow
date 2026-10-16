@@ -101,6 +101,7 @@
  },
  "snowridge": {
   "site": "https://www.snowridge.com",
+  "report": "https://www.snowridge.com/snow-report",
   "map": "https://www.snowridge.com/mountain/trail-map"
  },
  "holidayvalley": {
@@ -123,7 +124,9 @@
   "site": "https://www.belleayre.com"
  },
  "jiminy": {
-  "site": "https://www.jiminypeak.com"
+  "site": "https://www.jiminypeak.com",
+  "report": "https://www.jiminypeak.com/snow-report",
+  "cams": "https://www.jiminypeak.com/webcams"
  },
  "camelback": {
   "site": "https://www.skicamelback.com"
