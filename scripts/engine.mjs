@@ -571,8 +571,8 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
     return {
       date: d,
       snow: round(c.snow),
-      lo: round(c.lo),
-      hi: round(c.hi),
+      lo: round(Math.min(c.lo, c.snow)),
+      hi: round(Math.max(c.hi, c.snow)),
       conf,
       models: c.models,
       rain: round(c.rain, 2),
@@ -587,6 +587,10 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
       bMax: btemps.length ? round(Math.max(...btemps), 0) : null,
       bMin: btemps.length ? round(Math.min(...btemps), 0) : null,
       gustMax: gusts.length ? round(Math.max(...gusts), 0) : null,
+      // Snow at the base during typical travel hours: Friday-style evening and Sunday-style afternoon.
+      drive: { eve: round(sum(ks.filter((k) => Number(timeIndex[k].slice(11, 13)) >= 15).map((k) => HB.snow[k] || 0))), pm: round(sum(ks.filter((k) => { const h = Number(timeIndex[k].slice(11, 13)); return h >= 12 && h <= 20; }).map((k) => HB.snow[k] || 0))) },
+      // Peak gust while lifts run (8am to 4pm), which is what skiers feel.
+      liftGust: (() => { const g = ks.filter((k) => { const h = Number(timeIndex[k].slice(11, 13)); return h >= 8 && h <= 16; }).map((k) => H.gust[k]).filter((v) => v != null); return g.length ? round(Math.max(...g), 0) : null; })(),
       cloud: clouds.length ? round(median(clouds), 0) : null,
       // Summit in the clouds during lift hours: near-saturated air under overcast.
       fog: ks.filter((k) => { const h = Number(timeIndex[k].slice(11, 13)); return h >= 9 && h <= 16 && (H.rh[k] ?? 0) >= 96 && (H.cloud[k] ?? 0) >= 90; }).length,
@@ -609,8 +613,8 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
       end: timeIndex[st.end],
       _ks: st.ks,
       total: round(st.snow),
-      lo: round(perModel.length ? Math.min(...perModel.map((x) => x.total)) : st.snow),
-      hi: round(perModel.length ? Math.max(...perModel.map((x) => x.total)) : st.snow),
+      lo: round(Math.min(st.snow, ...perModel.map((x) => x.total))),
+      hi: round(Math.max(st.snow, ...perModel.map((x) => x.total))),
       rain: round(st.rain, 2),
       ice: round(st.ice, 2),
       baseRain: round(sum(st.ks.map((k) => HB.rain[k] + HB.ice[k])), 2),
@@ -749,8 +753,9 @@ export function forecastResort({ resort, guide, timeIndex, nowK, summitModels, b
     })(),
     total3: round(total3),
     total7: round(total7),
-    lo7: round(full.length ? Math.min(...full.map((x) => x.total)) : total7),
-    hi7: round(full.length ? Math.max(...full.map((x) => x.total)) : total7),
+    // The range always includes the blend itself, which also leans on the short-range models.
+    lo7: round(Math.min(total7, ...full.map((x) => x.total))),
+    hi7: round(Math.max(total7, ...full.map((x) => x.total))),
     prob3,
     prob7,
     ens7: pct,
@@ -1059,7 +1064,9 @@ export function headline(rows, resorts) {
     if (snowiest && snowiest.total7 >= 1) {
       const s = [...snowiest.storms].sort((a, b) => b.total - a.total)[0];
       title = `First flakes for ${byId[snowiest.id].region}.`;
-      text = `Up to ${S(snowiest.total7)} on the summit of ${byId[snowiest.id].name}${s ? ` ${span(s.start, s.end)}` : ""}.`;
+      text = s && s.total >= 0.5
+        ? `Up to ${S(s.total)} on the summit of ${byId[snowiest.id].name} ${span(s.start, s.end)}${snowiest.total7 >= s.total + 1 ? `, and ${S(snowiest.total7)} for the week` : ""}.`
+        : `Up to ${S(snowiest.total7)} on the summit of ${byId[snowiest.id].name} this week.`;
     } else {
       title = !near.length ? "Pre-season: waiting on winter." : sm.length ? "Pre-season: cold nights ahead." : "Pre-season: still too mild.";
       text = "";
@@ -1097,7 +1104,7 @@ export const WRITEUP_AREAS = [
   { key: "nh", name: "New Hampshire", states: ["NH"] },
   { key: "me", name: "Maine", states: ["ME"] },
   { key: "ny", name: "New York", states: ["NY"] },
-  { key: "south", name: "Massachusetts, Pennsylvania and West Virginia", short: "Mass., Pa. and W.Va.", states: ["MA", "PA", "WV"] },
+  { key: "south", name: "Massachusetts, Pennsylvania and West Virginia", short: "MA, PA, WV", states: ["MA", "PA", "WV"] },
 ];
 
 export function writeups(rows, resorts, { nws, setups } = {}) {
@@ -1182,7 +1189,8 @@ export function writeups(rows, resorts, { nws, setups } = {}) {
     const afd = offices.map((o) => ({ o, a: nws?.offices?.[o] })).find((x) => x.a?.excerpt);
     if (afd) {
       const first = afd.a.excerpt.split("\n").find((l) => l.length > 30 && !/^as of|^issued/i.test(l));
-      if (first) paras.push(`NWS ${OFF[afd.o] || afd.o} forecasters: "${first.replace(/\s+/g, " ").trim()}"`);
+      const at = afd.a.issued ? new Date(afd.a.issued).toLocaleString("en-US", { weekday: "long", hour: "numeric", minute: "2-digit", timeZone: "America/New_York" }).replace(" at ", " ") : "";
+      if (first) paras.push(`NWS ${OFF[afd.o] || afd.o} forecasters${at ? `, ${at}` : ""}: "${first.replace(/\s+/g, " ").trim()}"`);
     }
 
     // Days 8–14 from the Climate Prediction Center.

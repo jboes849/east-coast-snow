@@ -27,6 +27,7 @@ window.Icon = (function () {
     gauge: wrap(`<path d="M4 16a8 8 0 1 1 16 0"/><path d="m12 16 4-5"/>`),
     bars: wrap(`<path d="M4 20V12M9 20V6M14 20v-9M19 20V9M3 20h18"/>`),
     layers: wrap(`<path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/>`),
+    share: wrap(`<path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>`),
   };
   return (name, cls) => (cls ? icons[name].replace('class="icon ', `class="icon ${cls} `) : icons[name]);
 })();

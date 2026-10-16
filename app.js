@@ -140,6 +140,7 @@
     state.rows = state.data.resorts.filter((r) => byId[r.id]).map((r) => ({ ...r, resort: byId[r.id] }));
     state.dates = state.data.dates;
     state.open = state.rows.some(operating);
+    if (state.region === "★" && !state.favorites.size) state.region = "All";
     state.sparkMax = Math.max(6, ...state.rows.flatMap((r) => r.days.map((d) => d.snow)));
   }
 
@@ -147,10 +148,11 @@
   function renderHero() {
     const h = state.data.headline;
     $("#headline").innerHTML = `<h1>${fmt(h.title)}</h1><p>${fmt(h.text)}</p>`;
-    const biggest = [...state.rows].sort((a, b) => b.total7 - a.total7)[0];
+    const pool = passRows().length ? passRows() : state.rows;
+    const biggest = [...pool].sort((a, b) => b.total7 - a.total7)[0];
     const stats = [{ label: "Most snow · 7d", value: `${snowVal(biggest.total7)}<i>${snowUnit()}</i>`, sub: biggest.resort.name, id: biggest.resort.id }];
     if (state.open) {
-      const open = state.rows.filter(operating);
+      const open = pool.filter(operating).length ? pool.filter(operating) : state.rows.filter(operating);
       const powder = [...open].sort((a, b) => b.best.score - a.best.score || b.total3 - a.total3)[0];
       const bestSki = [...open].sort((a, b) => b.bestDay.score - a.bestDay.score || b.total3 - a.total3)[0];
       stats.push(
@@ -161,8 +163,8 @@
       );
     } else {
       const low = (r) => Math.min(...r.days.map((d) => d.tMin ?? 99));
-      const coldest = [...state.rows].sort((a, b) => low(a) - low(b))[0];
-      const first = [...state.rows].filter((r) => r.season.phase === "preseason").sort((a, b) => a.season.daysToOpen - b.season.daysToOpen)[0];
+      const coldest = [...pool].sort((a, b) => low(a) - low(b))[0];
+      const first = [...pool].filter((r) => r.season.phase === "preseason").sort((a, b) => a.season.daysToOpen - b.season.daysToOpen)[0];
       stats.push(
         { label: "Coldest Summit · 7d", value: tempTxtU(low(coldest)), sub: coldest.resort.name, id: coldest.resort.id },
         first
@@ -263,7 +265,7 @@
     if (d.snow >= 0.5) bits.push(`${snowTxt(d.snow)} snow`);
     if (d.rain + d.ice > 0.05) bits.push(d.ice > 0.05 ? "ice" : "rain");
     bits.push(`${tempTxtU(d.tMax)} / ${tempTxtU(d.tMin)}`);
-    if (d.gustMax >= 35) bits.push(`gusts ${windTxt(d.gustMax)}`);
+    if ((d.liftGust ?? d.gustMax) >= 35) bits.push(`gusts ${windTxt(d.liftGust ?? d.gustMax)}`);
     return `${d.grade ? `<span class="grade g-${d.grade.letter}">${d.grade.letter}</span>` : ""}<span>${esc(bits.join(" · "))}</span>`;
   }
 
@@ -394,6 +396,11 @@
     return null;
   }
 
+  function holidayMonday(date) {
+    const y = Number(date.slice(0, 4));
+    return date === iso(nthWeekday(y, 0, 1, 3)) || date === iso(nthWeekday(y, 1, 1, 3));
+  }
+
   // Sunrise and sunset (NOAA's simple solar formula), in local clock time.
   function sunTimes(date, lat, lon) {
     const d = new Date(`${date}T12:00:00Z`);
@@ -488,8 +495,14 @@
   function weekendDays() {
     const all = state.dates.map((d, k) => ({ d, k, wd: dateObj(d).getDay() }));
     const firstSat = all.find((x) => x.wd === 6);
-    if (all[0].wd === 0) return [all[0]];
-    return firstSat ? all.filter((x) => x.k === firstSat.k || x.k === firstSat.k + 1) : [];
+    // Monday holidays (MLK, Presidents' Day) count as part of the weekend.
+    const withMon = (days) => {
+      const mon = all.find((x) => x.k === days[days.length - 1].k + 1 && x.wd === 1);
+      return mon && holidayMonday(mon.d) ? [...days, mon] : days;
+    };
+    if (all[0].wd === 0) return withMon([all[0]]);
+    if (all[0].wd === 1 && holidayMonday(all[0].d)) return [all[0]];
+    return firstSat ? withMon(all.filter((x) => x.k === firstSat.k || x.k === firstSat.k + 1)) : [];
   }
 
   function planScope() {
@@ -508,7 +521,7 @@
     if (d.rain + d.ice > 0.05) bits.push(d.ice > 0.05 ? "ice" : "rain");
     bits.push(`${tempTxtU(d.tMax)}`);
     if (d.windHold) bits.push("lift holds");
-    else if (d.gustMax >= 35) bits.push(`gusts ${windTxt(d.gustMax)}`);
+    else if ((d.liftGust ?? d.gustMax) >= 35) bits.push(`gusts ${windTxt(d.liftGust ?? d.gustMax)}`);
     return `<span class="pl-cell${best ? " best" : ""}"><span class="grade g-${d.grade.letter}">${d.grade.letter}</span><span>${esc(bits.join(" · "))}</span></span>`;
   }
 
@@ -521,10 +534,10 @@
       return;
     }
     el.hidden = false;
-    const head = `<div class="block-head"><h2>Weekend Planner${qlink("weekend", "How the planner chooses")}</h2><span class="label">${wk.map((x) => dayLong(x.d)).join(" and ")}${state.pass !== "any" ? ` · ${PASS_NAME[state.pass]} mountains` : ""}</span></div>`;
+    const head = `<div class="block-head"><h2>Weekend Planner${qlink("weekend", "How the planner chooses")}</h2><span class="label">${andList(wk.map((x) => dayLong(x.d)))}${state.pass !== "any" ? ` · ${PASS_NAME[state.pass]} mountains` : ""}</span></div>`;
     if (!anyOpen) {
       const first = [...state.rows].filter((r) => r.season.phase === "preseason").sort((a, b) => a.season.daysToOpen - b.season.daysToOpen)[0];
-      el.innerHTML = `${head}<p class="hint">The planner turns on once lifts start spinning${first ? `. ${esc(first.resort.name)} usually opens first, around ${dayNum(first.season.open)}` : ""}. Until then, check the next openings below.</p>`;
+      el.innerHTML = `${head}<p class="hint">No East Coast mountains are usually open this weekend${first ? `. ${esc(first.resort.name)} usually opens first, around ${dayNum(first.season.open)}` : ""}. The planner picks the best mountain and day once lifts are turning.</p>`;
       return;
     }
     const { scope, rows } = planScope();
@@ -547,18 +560,23 @@
       })
       .sort((p, q) => q.best.d.grade.score - p.best.d.grade.score || q.best.d.overnight - p.best.d.overnight);
     const top = scored[0];
-    const why = whyList(top.best.d.grade.why).slice(0, 2).join(" and ") || "a solid day";
+    const why = andList(whyList(top.best.d.grade.why).slice(0, 2)) || "a solid day";
     let rec = `<b>Best bet: ${dayLong(top.best.x.d)} at ${esc(top.row.resort.name)}.</b> ${GRADE_WORD[top.best.d.grade.letter]}, ${fmt(why)}.`;
-    if (wk.length === 2) {
-      const satWins = rows.filter((r) => r.days[wk[0].k].grade.score > r.days[wk[1].k].grade.score + 4).length;
-      const sunWins = rows.filter((r) => r.days[wk[1].k].grade.score > r.days[wk[0].k].grade.score + 4).length;
-      if (rows.length >= 3 && satWins >= rows.length * 0.6) rec += ` Saturday beats Sunday at most of these mountains.`;
-      else if (rows.length >= 3 && sunWins >= rows.length * 0.6) rec += ` Sunday beats Saturday at most of these mountains.`;
-      else if (rows.length >= 3) rec += ` Neither day is clearly better across the board.`;
+    if (wk.length >= 2 && rows.length >= 3) {
+      const wins = wk.map((x, i) => rows.filter((r) => wk.every((y, j) => j === i || r.days[x.k].grade.score > r.days[y.k].grade.score + 4)).length);
+      const lead = wins.findIndex((n) => n >= rows.length * 0.6);
+      if (lead >= 0) rec += lead === wk.indexOf(top.best.x) ? ` ${dayLong(wk[lead].d)} is the better day at most of these mountains too.` : ` At most other mountains, ${dayLong(wk[lead].d)} is the better day.`;
+      else rec += ` Elsewhere the days are close, so pick by mountain.`;
     }
+    const fri = state.dates.findIndex((d) => d === wk[0].d) - 1;
+    const driveUp = fri >= 0 && dateObj(state.dates[fri]).getDay() === 5 ? rows.filter((r) => (r.days[fri].drive?.eve ?? 0) >= 0.5).length : 0;
+    const lastDay = wk[wk.length - 1];
+    const driveHome = rows.filter((r) => (r.days[lastDay.k].drive?.pm ?? 0) >= 0.5).length;
+    if (driveUp >= rows.length * 0.5) rec += ` Snow falls at the bases Friday evening, so allow extra time getting there.`;
+    if (driveHome >= rows.length * 0.5) rec += ` Snow falls at the bases ${dayLong(lastDay.d)} afternoon, so plan for a slower trip home.`;
     if (top.best.d.grade.score < 58) rec += ` A rough weekend overall; this is the least bad option.`;
     const busy = wk.map((x) => crowdFor(x.d)).find(Boolean);
-    if (busy) rec += ` It's ${busy === "Holiday week" ? "holiday week" : busy}, so expect crowds and go early.`;
+    if (busy && !rec.includes("crowd")) rec += ` It's ${busy === "Holiday week" ? "holiday week" : busy}, so expect crowds and go early.`;
     const list = scored.slice(0, scope === "all" ? 8 : 31);
     el.innerHTML = `${head}${controls}
       <p class="pl-rec">${rec}</p>
@@ -636,12 +654,15 @@
         text = snowVal(v);
         dark = snowLevel(v) >= 3;
       }
-      const icon = L.divIcon({
-        className: "pin-wrap",
-        html: `<span class="pin${dark ? " dark" : ""}" style="--c:${color}">${text}</span>`,
-        iconSize: [32, 20],
-        iconAnchor: [16, 10],
-      });
+      const quiet = (layer.kind === "snow" || !layer.kind) && v < 0.5;
+      const icon = quiet
+        ? L.divIcon({ className: "pin-wrap", html: `<span class="pin-dot"></span>`, iconSize: [10, 10], iconAnchor: [5, 5] })
+        : L.divIcon({
+            className: "pin-wrap",
+            html: `<span class="pin${dark ? " dark" : ""}" style="--c:${color}">${text}</span>`,
+            iconSize: [32, 20],
+            iconAnchor: [16, 10],
+          });
       L.marker([row.resort.lat, row.resort.lon], { icon, title: row.resort.name, riseOnHover: true, zIndexOffset: Math.round(Math.abs(v) * 10) })
         .bindTooltip(`<strong>${esc(row.resort.name)}</strong> · ${layer.tip(row, v, k)}`, { direction: "top", offset: [0, -10] })
         .on("click", () => openDetail(row.resort.id))
@@ -706,7 +727,10 @@
       if (state.region === "★") return state.favorites.has(r.resort.id);
       return state.region === "All" || r.resort.state === state.region;
     });
-    if (q) rows = rows.filter((r) => `${r.resort.name} ${r.resort.region} ${r.resort.state}`.toLowerCase().includes(q));
+    if (q) {
+      const byName = rows.filter((r) => r.resort.name.toLowerCase().includes(q));
+      rows = byName.length ? byName : rows.filter((r) => `${r.resort.region} ${r.resort.state}`.toLowerCase().includes(q));
+    }
     const by = {
       "3d": (a, b) => b.total3 - a.total3,
       "7d": (a, b) => b.total7 - a.total7,
@@ -778,7 +802,7 @@
     return `<div class="spark" role="img" aria-label="Daily snow: ${row.days.map((d) => `${dayShort(d.date)} ${snowTxt(d.snow)}`).join(", ")}">${row.days
       .map((d) => {
         const wet = d.rain + d.ice;
-        if (d.snow < 0.5 && wet > 0.1) return `<i class="rain" style="height:${Math.min(30, 8 + wet * 40)}%" title="${dayShort(d.date)}: ${d.ice > 0.05 ? "ice" : "rain"}"></i>`;
+        if (d.snow < 0.5 && wet > 0.1) return `<i class="rain" style="height:${Math.min(16, 6 + wet * 10)}%" title="${dayShort(d.date)}: ${d.ice > 0.05 ? "ice" : "rain"}"></i>`;
         const h = d.snow < 0.5 ? 0 : Math.max(4, (d.snow / state.sparkMax) * 100);
         const cls = [d.snow >= 0.5 && d.snow === peak ? "peak" : "", wet > 0.1 && d.snow >= 0.5 ? "mixed" : ""].join(" ").trim();
         return `<i class="${cls}" style="height:${h}%" title="${dayShort(d.date)}: ${snowTxt(d.snow)}"></i>`;
@@ -838,8 +862,8 @@
       return;
     }
     const legend = state.open
-      ? `<b>Number</b>: snow at the summit over 7 days, with the range across models under it. <b>Bars</b>: snow each day. <b>Letters</b>: ski grade for each day, A is best. Tap a resort for details.`
-      : `<b>Number</b>: snow at the summit over 7 days. <b>Bars</b>: snow each day. <b>Under the bars</b>: summit low each day. Tap a resort for details.`;
+      ? `<b>Number</b>: snow at the summit over 7 days, with the range across models under it. <b>Bars</b>: snow each day, darkest on the biggest day; red is rain and a red cap means rain mixes in. <b>Letters</b>: ski grade for each day, A is best. Tap a resort for details.`
+      : `<b>Number</b>: snow at the summit over 7 days. <b>Bars</b>: snow each day, darkest on the biggest day; red is rain and a red cap means rain mixes in. <b>Under the bars</b>: summit low each day. Tap a resort for details.`;
     el.innerHTML = `<p class="list-legend">${legend}</p>` + (state.view === "table" ? renderTableView(rows) : renderRowsView(rows));
   }
 
@@ -1269,6 +1293,27 @@
     return `<p class="trend" data-dir="season"><span class="label">Season</span><span>${fmt(txt)}</span></p>`;
   }
 
+  // The coming weekend at a glance, so nobody has to tap through day cards.
+  function weekendLine(row) {
+    const wk = weekendDays();
+    if (!wk.length || !operating(row)) return "";
+    const parts = wk.map((x) => {
+      const d = row.days[x.k];
+      const bits = [];
+      if (d.overnight >= 0.5) bits.push(`${snowTxt(d.overnight)} fresh`);
+      if (d.windHold) bits.push("lift holds");
+      else if (d.rain + d.ice > 0.1) bits.push(d.ice > 0.05 ? "ice" : "rain");
+      bits.push(`high ${tempTxtU(d.tMax)}`);
+      return `<b>${dayShort(x.d)} ${d.grade.letter}</b> ${esc(bits.join(", "))}`;
+    });
+    const fri = state.dates.findIndex((d) => d === wk[0].d) - 1;
+    const notes = [];
+    if (fri >= 0 && dateObj(state.dates[fri]).getDay() === 5 && (row.days[fri].drive?.eve ?? 0) >= 0.5) notes.push("Snow at the base Friday evening: allow extra time getting there.");
+    const last = row.days[wk[wk.length - 1].k];
+    if ((last.drive?.pm ?? 0) >= 0.5) notes.push(`Snow at the base ${dayLong(wk[wk.length - 1].d)} afternoon: plan for a slower trip home.`);
+    return `<p class="trend" data-dir="weekend"><span class="label">Weekend</span><span>${parts.join(" · ")}${notes.length ? `. ${notes.join(" ")}` : ""}</span></p>`;
+  }
+
   // How the forecast changed since about a day ago. Small wiggles stay quiet.
   function trendLine(row) {
     const t = row.trend;
@@ -1333,10 +1378,11 @@
     "lift holds likely": "wind may stop upper lifts",
     breezy: "breezy up top",
     "brutal wind chill": "dangerous wind chill",
-    "very cold": "very cold",
-    bluebird: "sunny and calm",
+    "very cold": "it's very cold",
+    bluebird: "sunny with light wind",
   };
   const whyList = (why) => why.map((w) => WHY_PLAIN[w] || w);
+  const andList = (xs) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
   const GRADE_WORD = { A: "Great day", B: "Good day", C: "Average day", D: "Below average", F: "Skip it" };
 
   function verdict(row) {
@@ -1367,7 +1413,7 @@
       .sort((a, b) => b.x.overnight - a.x.overnight)[0];
     if (deep) {
       const catchy = whyList(deep.x.grade.why.filter((w) => /hold|cold|chill|breezy|rain/.test(w)));
-      title += ` ${cap(deep.i === 0 ? "today" : dayLong(deep.x.date))} morning has more fresh snow ({{s:${deep.x.overnight}}} overnight)${catchy.length ? `, but ${catchy.join(" and ")}` : ""}.`;
+      title += ` ${cap(deep.i === 0 ? "today" : dayLong(deep.x.date))} morning has more fresh snow ({{s:${deep.x.overnight}}} overnight)${catchy.length ? `, but ${andList(catchy)}` : ""}.`;
     }
     return { title, sub: first };
   }
@@ -1380,7 +1426,7 @@
     if (d.grade) {
       bits.push(`<b>${name}: ${d.grade.letter} · ${GRADE_WORD[d.grade.letter]}.</b>`);
       const why = whyList(d.grade.why);
-      bits.push(why.length ? cap(why.join(", ")) + "." : "Nothing special either way.");
+      bits.push(why.length ? cap(andList(why)) + "." : "Nothing special either way.");
     } else {
       bits.push(`<b>${name}.</b>`);
       const w = row.snowmaking.windows.find((x) => x.start.slice(0, 10) <= d.date && x.end.slice(0, 10) >= d.date);
@@ -1388,11 +1434,11 @@
     }
     if (d.snow >= 0.5) {
       const tiers = d.midSnow != null && (d.snow - d.baseSnow >= 1 || d.baseRain > 0.1) ? `, about ${snowTxt(d.midSnow)} mid-mountain and ${snowTxt(d.baseSnow)} at the base` : "";
-      bits.push(`Snow ${snowTxt(d.snow)} at the summit${tiers} (summit models ${rangeTxt(d.lo, d.hi)}).`);
+      bits.push(`Snow during the day: ${snowTxt(d.snow)} at the summit${tiers} (summit models ${rangeTxt(d.lo, d.hi)}).`);
     }
     if (d.rain + d.ice > 0.05) bits.push(`${d.ice > 0.05 ? "Sleet or freezing rain" : "Rain"} at the summit.`);
     else if (d.baseRain > 0.1) bits.push("Rain at the base.");
-    bits.push(`High ${tempTxtU(d.tMax)}, low ${tempTxtU(d.tMin)} up top${d.gustMax != null ? `, gusts to ${windTxt(d.gustMax)}` : ""}.`);
+    bits.push(`High ${tempTxtU(d.tMax)}, low ${tempTxtU(d.tMin)} up top${(d.liftGust ?? d.gustMax) != null ? `, gusts to ${windTxt(d.liftGust ?? d.gustMax)} while lifts run` : ""}.`);
     if (d.fog >= 4) bits.push(`The summit is in the clouds much of the day, so expect flat light up top.`);
     else if (d.fog >= 2) bits.push(`Some fog up top at times.`);
     const busy = crowdFor(d.date);
@@ -1441,7 +1487,9 @@
         const wet = d.rain + d.ice;
         const flag = d.windHold
           ? `<span class="day-flag wind">Windy</span>`
-          : wet > 0.1
+          : operating(row) && d.overnight >= 1
+            ? `<span class="day-flag fresh">${snowTxt(d.overnight)} by 8am</span>`
+            : wet > 0.1
             ? `<span class="day-flag rain">${d.ice > 0.05 ? "Ice" : "Rain"}</span>`
             : operating(row) && crowdFor(d.date)
                 ? `<span class="day-flag busy">Busy</span>`
@@ -1491,8 +1539,8 @@
     const sel = defaultDay(row);
     state.dayK = sel;
     const actions = page
-      ? `${favButton(id, "sq fav")}<a class="sq wide" href="./#compare=${id}">Compare</a><a class="sq wide" href="./">All Resorts</a>`
-      : `<a class="sq wide" href="#compare=${id}" data-compare="${id}">Compare</a><a class="sq wide" href="resorts/${id}/">Full page</a>${favButton(id, "sq fav")}<button class="sq" data-close aria-label="Close">${Icon("close")}</button>`;
+      ? `<button class="sq" data-share="${id}" aria-label="Share">${Icon("share")}</button>${favButton(id, "sq fav")}<a class="sq wide" href="./#compare=${id}">Compare</a><a class="sq wide" href="./">All Resorts</a>`
+      : `<a class="sq wide" href="#compare=${id}" data-compare="${id}">Compare</a><a class="sq wide" href="resorts/${id}/">Full page</a><button class="sq" data-share="${id}" aria-label="Share">${Icon("share")}</button>${favButton(id, "sq fav")}<button class="sq" data-close aria-label="Close">${Icon("close")}</button>`;
     target.innerHTML = `
       <header class="detail-head">
         <span class="label">${esc(r.region)} · ${r.state} · ${seasonLine(row)}</span>
@@ -1505,6 +1553,7 @@
           <span class="label">This week</span>
           <p class="verdict-title">${fmt(v.title)}</p>
           ${v.sub ? `<p class="verdict-sub">${fmt(v.sub)}</p>` : ""}
+          ${weekendLine(row)}
           ${recentLine(row)}
           ${trendLine(row)}
         </section>
@@ -1530,9 +1579,11 @@
       if (e.target.open && state.details[id]) drawCharts(row, state.details[id]);
     });
     if (!page) {
-      if (!dlg.open) dlg.showModal();
+      if (!dlg.open) {
+        dlg.showModal();
+        history.pushState({ ups: id }, "", `#${id}`);
+      } else history.replaceState({ ups: id }, "", `#${id}`);
       dlg.scrollTop = 0;
-      history.replaceState(null, "", `#${id}`);
     }
     if (det) return state.moreOpen && drawCharts(row, det);
     const loaded = await loadDetail(id);
@@ -1602,12 +1653,26 @@
     }
   }
 
-  function closeDetail() {
+  function closeDetail(fromHistory) {
+    if (!state.selected) return;
     state.selected = null;
     destroyCharts();
     const dlg = $("#detail");
     if (dlg.open) dlg.close();
-    history.replaceState(null, "", location.pathname + location.search);
+    if (!fromHistory && history.state?.ups) history.back();
+    else history.replaceState(null, "", location.pathname + location.search);
+  }
+
+  async function shareResort(btn) {
+    const r = RESORTS.find((x) => x.id === btn.dataset.share);
+    const url = new URL(`resorts/${r.id}/`, (window.UPSLOPE_CONFIG?.siteUrl || location.origin + location.pathname.replace(/resorts\/[^/]+\/$/, "")).replace(/\/?$/, "/")).href;
+    const title = `${r.name} Snow Forecast · Upslope`;
+    try {
+      if (navigator.share) return await navigator.share({ title, url });
+      await navigator.clipboard.writeText(url);
+      btn.setAttribute("data-copied", "Link copied");
+      setTimeout(() => btn.removeAttribute("data-copied"), 1800);
+    } catch (e) {}
   }
 
   function toggleFav(id) {
@@ -1626,7 +1691,15 @@
     renderList();
   }
 
+  // From Thursday through Sunday the weekend matters most, so the planner moves up.
+  function placeWeekend() {
+    const wd = new Date().toLocaleDateString("en-US", { weekday: "short", timeZone: "America/New_York" });
+    const wk = $("#weekend-block"), wu = $("#writeup-block");
+    if (state.open && ["Thu", "Fri", "Sat", "Sun"].includes(wd) && wk && wu && wk.nextElementSibling !== wu) wu.before(wk);
+  }
+
   function renderAll() {
+    placeWeekend();
     renderFilters();
     renderHero();
     renderWeekend();
@@ -1650,6 +1723,8 @@
         return toggleFav(fav.dataset.fav);
       }
       if (e.target.closest("[data-close]")) return closeDetail();
+      const share = e.target.closest("[data-share]");
+      if (share) return shareResort(share);
       const rlink = e.target.closest(".r-link");
       if (rlink && !(e.metaKey || e.ctrlKey || e.shiftKey)) e.preventDefault();
       const signup = e.target.closest("[data-signup]");
@@ -1741,6 +1816,15 @@
       }
     });
     $("#detail").addEventListener("close", () => state.selected && closeDetail());
+    window.addEventListener("hashchange", () => {
+      const h = location.hash.slice(1);
+      if (!PAGE && RESORTS.some((r) => r.id === h) && state.selected !== h) openDetail(h);
+    });
+    window.addEventListener("popstate", (e) => {
+      if (PAGE) return;
+      if (e.state?.ups) openDetail(e.state.ups);
+      else if (state.selected) closeDetail(true);
+    });
     $("#detail").addEventListener("click", (e) => {
       if (e.target === $("#detail")) closeDetail();
     });
@@ -1770,6 +1854,7 @@
         state.pass = e.target.value;
         store.set("ups-pass", state.pass);
         if (!state.rows.length || PAGE) return;
+        renderHero();
         renderWeekend();
         renderPicks();
         renderMap();
@@ -1780,7 +1865,9 @@
       }
       if (e.target.matches("[data-cmp]")) {
         const pair = comparePair();
-        pair[Number(e.target.dataset.cmp)] = e.target.value;
+        const i = Number(e.target.dataset.cmp);
+        if (pair[1 - i] === e.target.value) pair[1 - i] = pair[i];
+        pair[i] = e.target.value;
         store.set("ups-compare", pair);
         return renderCompare();
       }
@@ -1814,8 +1901,13 @@
     const ageH = (Date.now() - gen) / 3600000;
     $("#asof").textContent = `Updated ${gen.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "America/New_York" })} · ${gen.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" })} ET`;
     const ok = state.data.models.filter((m) => m.ok);
-    $("#status").textContent = `${ok.length} models${state.data.ensembles.members ? ` + ${state.data.ensembles.members} ensemble runs` : ""} · ${ok.map((m) => m.label).join(" · ")}${ageH > 12 ? " · forecast is more than 12 hours old" : ""}`;
+    // Runs start at 4:25, 10:25, 16:25 and 22:25 UTC and land about 15 minutes later.
+    const next = [4, 10, 16, 22].map((h) => { const t = new Date(gen); t.setUTCHours(h, 40, 0, 0); return t; }).concat([(() => { const t = new Date(gen); t.setUTCDate(t.getUTCDate() + 1); t.setUTCHours(4, 40, 0, 0); return t; })()]).find((t) => t - gen > 30 * 60000);
+    const nextTxt = next ? next.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" }) : null;
+    $("#status").textContent = ageH > 12 ? "This forecast is more than 12 hours old. A fresh one should land soon." : `Updated four times a day${nextTxt ? ` · next around ${nextTxt} ET` : ""} · ${ok.length} weather models`;
     if (PAGE) {
+      const picksLink = document.querySelector('.navlinks a[href$="#picks-block"]');
+      if (picksLink) picksLink.textContent = state.open ? "Powder" : "Opening";
       document.querySelectorAll("[data-units]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.units === state.units)));
       return openDetail(PAGE);
     }
@@ -1832,7 +1924,10 @@
       }
       return $("#compare-block").scrollIntoView();
     }
-    if (hash && RESORTS.some((r) => r.id === hash)) openDetail(hash);
+    if (hash && RESORTS.some((r) => r.id === hash)) {
+      history.replaceState(null, "", location.pathname + location.search);
+      openDetail(hash);
+    }
   }
 
   init();
