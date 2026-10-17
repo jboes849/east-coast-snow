@@ -1,4 +1,4 @@
-2026-10-16T10:12:26.356Z
+2026-10-17T10:05:27.687Z
 jay: report=yes cams=yes map=yes
 burke: report=no cams=no map=no
 smuggs: report=no cams=no map=no
@@ -6,7 +6,7 @@ stowe: report=yes cams=yes map=yes
 bolton: report=yes cams=no map=yes
 mrg: report=yes cams=no map=yes
 sugarbush: report=yes cams=yes map=no
-killington: report=yes cams=yes map=no
+killington: report=no cams=no map=no
 okemo: report=yes cams=yes map=no
 stratton: report=no cams=yes map=yes
 mountsnow: report=no cams=yes map=no
@@ -21,7 +21,7 @@ saddleback: report=yes cams=yes map=yes
 sundayriver: report=yes cams=no map=no
 whiteface: report=no cams=no map=no
 gore: report=no cams=no map=no
-snowridge: report=yes cams=no map=yes
+snowridge: report=no cams=no map=yes
 holidayvalley: report=yes cams=yes map=yes
 hunter: report=yes cams=yes map=yes
 windham: report=yes cams=no map=no
