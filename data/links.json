@@ -14,8 +14,7 @@
  "stowe": {
   "site": "https://www.stowe.com",
   "report": "https://www.stowe.com/the-mountain/mountain-conditions/snow-and-weather-report.aspx",
-  "cams": "https://www.stowe.com/the-mountain/mountain-conditions/mountain-cams.aspx",
-  "map": "https://www.stowe.com/the-mountain/about-the-mountain/trail-map.aspx"
+  "cams": "https://www.stowe.com/the-mountain/mountain-conditions/mountain-cams.aspx"
  },
  "bolton": {
   "site": "https://www.boltonvalley.com",

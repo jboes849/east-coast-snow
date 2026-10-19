@@ -1,8 +1,8 @@
-2026-10-18T10:05:44.621Z
+2026-10-19T10:17:19.367Z
 jay: report=yes cams=yes map=yes
 burke: report=no cams=no map=no
 smuggs: report=no cams=no map=no
-stowe: report=yes cams=yes map=yes
+stowe: report=yes cams=yes map=no
 bolton: report=yes cams=no map=yes
 mrg: report=yes cams=no map=yes
 sugarbush: report=yes cams=yes map=no
