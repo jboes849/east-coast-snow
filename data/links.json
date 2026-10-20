@@ -6,7 +6,8 @@
   "map": "https://jaypeakresort.com/trail-map"
  },
  "burke": {
-  "site": "https://skiburke.com"
+  "site": "https://skiburke.com",
+  "cams": "https://skiburke.com/webcams"
  },
  "smuggs": {
   "site": "https://www.smuggs.com"
@@ -14,7 +15,8 @@
  "stowe": {
   "site": "https://www.stowe.com",
   "report": "https://www.stowe.com/the-mountain/mountain-conditions/snow-and-weather-report.aspx",
-  "cams": "https://www.stowe.com/the-mountain/mountain-conditions/mountain-cams.aspx"
+  "cams": "https://www.stowe.com/the-mountain/mountain-conditions/mountain-cams.aspx",
+  "map": "https://www.stowe.com/the-mountain/about-the-mountain/trail-map.aspx"
  },
  "bolton": {
   "site": "https://www.boltonvalley.com",
