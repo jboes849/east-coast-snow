@@ -1,4 +1,4 @@
-2026-10-20T16:53:54.120Z
+2026-10-20T22:50:23.120Z
 ncep_hrrr_conus: ok
 ncep_nam_conus: ok
 gem_hrdps_continental: ok
@@ -9,8 +9,8 @@ gem_global: ok
 icon_seamless: ok
 ens gfs025: ok
 ens ecmwf_ifs025: ok
-nws alerts: 3 active, 0 resorts affected
+nws alerts: 2 active, 0 resorts affected
 nws discussions: 7
 cpc layers: 0=CPC 8-14 Day Temperature Outlook; 1=CPC 8-14 Day Precipitation Outlook
-cpc fields: {"objectid":5,"fcst_date":1792368000000,"start_date":1793059200000,"end_date":1793577600000,"prob":33,"cat":"Above","inpoly_fid":null,"smopgnflag":null,"idp_ingestdate":1792437325000,"idp_filedate":1792437317000,"idp_source":"814temp_latest","st_area(shape)":336195030825.92523,"st_perimeter(shape)":12083392.98524708}
+cpc fields: {"objectid":5,"fcst_date":1792454400000,"start_date":1793145600000,"end_date":1793664000000,"prob":33,"cat":"Above","inpoly_fid":null,"smopgnflag":null,"idp_ingestdate":1792523731000,"idp_filedate":1792523713000,"idp_source":"814temp_latest","st_area(shape)":219584820876.03894,"st_perimeter(shape)":5083334.4805816375}
 cpc areas: 5
