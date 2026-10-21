@@ -14,7 +14,6 @@
  },
  "stowe": {
   "site": "https://www.stowe.com",
-  "report": "https://www.stowe.com/the-mountain/mountain-conditions/snow-and-weather-report.aspx",
   "cams": "https://www.stowe.com/the-mountain/mountain-conditions/mountain-cams.aspx",
   "map": "https://www.stowe.com/the-mountain/about-the-mountain/trail-map.aspx"
  },
@@ -34,9 +33,7 @@
   "cams": "https://www.sugarbush.com/mountain/webcams"
  },
  "killington": {
-  "site": "https://www.killington.com",
-  "report": "https://www.killington.com/mountain-report",
-  "cams": "https://www.killington.com/webcams"
+  "site": "https://www.killington.com"
  },
  "okemo": {
   "site": "https://www.okemo.com",
