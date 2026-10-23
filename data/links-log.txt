@@ -1,4 +1,4 @@
-2026-10-22T10:18:31.161Z
+2026-10-23T10:15:19.368Z
 jay: report=yes cams=yes map=yes
 burke: report=no cams=yes map=no
 smuggs: report=no cams=no map=no
