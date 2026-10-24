@@ -1,8 +1,8 @@
 {
- "generated": "2026-10-23T10:12:26.869Z",
+ "generated": "2026-10-24T10:05:55.230Z",
  "window": {
-  "start": "2026-09-23",
-  "end": "2026-10-22",
+  "start": "2026-09-24",
+  "end": "2026-10-23",
   "days": 30
  },
  "stations": 30,
@@ -10,11 +10,11 @@
   "ncep_hrrr_conus": {
    "label": "HRRR",
    "d1": {
-    "n": 743,
-    "wetDays": 145,
-    "mae": 0.095,
-    "bias": 1.29,
-    "hitRate": 0.81,
+    "n": 744,
+    "wetDays": 144,
+    "mae": 0.094,
+    "bias": 1.3,
+    "hitRate": 0.82,
     "falseAlarms": 23
    },
    "d2": null,
@@ -24,10 +24,10 @@
   "ncep_nam_conus": {
    "label": "NAM 3 km",
    "d1": {
-    "n": 743,
-    "wetDays": 145,
-    "mae": 0.095,
-    "bias": 1.37,
+    "n": 744,
+    "wetDays": 144,
+    "mae": 0.094,
+    "bias": 1.39,
     "hitRate": 0.88,
     "falseAlarms": 39
    },
@@ -38,10 +38,10 @@
   "gem_hrdps_continental": {
    "label": "Canadian HRDPS",
    "d1": {
-    "n": 743,
-    "wetDays": 145,
-    "mae": 0.082,
-    "bias": 1.26,
+    "n": 744,
+    "wetDays": 144,
+    "mae": 0.081,
+    "bias": 1.27,
     "hitRate": 0.86,
     "falseAlarms": 28
    },
@@ -52,53 +52,53 @@
   "ncep_nbm_conus": {
    "label": "NWS Blend",
    "d1": {
-    "n": 743,
-    "wetDays": 145,
-    "mae": 0.069,
+    "n": 744,
+    "wetDays": 144,
+    "mae": 0.068,
     "bias": 1.25,
     "hitRate": 0.91,
     "falseAlarms": 27
    },
    "d2": {
-    "n": 743,
-    "wetDays": 145,
+    "n": 744,
+    "wetDays": 144,
     "mae": 0.076,
-    "bias": 0.92,
+    "bias": 0.91,
     "hitRate": 0.88,
     "falseAlarms": 24
    },
    "d3": {
-    "n": 743,
-    "wetDays": 145,
+    "n": 744,
+    "wetDays": 144,
     "mae": 0.084,
     "bias": 0.95,
     "hitRate": 0.87,
-    "falseAlarms": 35
+    "falseAlarms": 34
    },
    "rank": 1
   },
   "gfs_global": {
    "label": "GFS",
    "d1": {
-    "n": 743,
-    "wetDays": 145,
-    "mae": 0.081,
-    "bias": 1.17,
+    "n": 744,
+    "wetDays": 144,
+    "mae": 0.08,
+    "bias": 1.18,
     "hitRate": 0.83,
     "falseAlarms": 28
    },
    "d2": {
-    "n": 743,
-    "wetDays": 145,
-    "mae": 0.091,
-    "bias": 1.17,
+    "n": 744,
+    "wetDays": 144,
+    "mae": 0.09,
+    "bias": 1.18,
     "hitRate": 0.87,
     "falseAlarms": 28
    },
    "d3": {
-    "n": 743,
-    "wetDays": 145,
-    "mae": 0.094,
+    "n": 744,
+    "wetDays": 144,
+    "mae": 0.093,
     "bias": 1.01,
     "hitRate": 0.82,
     "falseAlarms": 36
@@ -108,24 +108,24 @@
   "ecmwf_ifs025": {
    "label": "ECMWF",
    "d1": {
-    "n": 743,
-    "wetDays": 145,
-    "mae": 0.088,
-    "bias": 1.36,
+    "n": 744,
+    "wetDays": 144,
+    "mae": 0.087,
+    "bias": 1.37,
     "hitRate": 0.87,
     "falseAlarms": 40
    },
    "d2": {
-    "n": 743,
-    "wetDays": 145,
-    "mae": 0.086,
-    "bias": 1.28,
+    "n": 744,
+    "wetDays": 144,
+    "mae": 0.085,
+    "bias": 1.29,
     "hitRate": 0.87,
     "falseAlarms": 44
    },
    "d3": {
-    "n": 743,
-    "wetDays": 145,
+    "n": 744,
+    "wetDays": 144,
     "mae": 0.097,
     "bias": 1.27,
     "hitRate": 0.92,
@@ -136,26 +136,26 @@
   "gem_global": {
    "label": "Canadian GEM",
    "d1": {
-    "n": 743,
-    "wetDays": 145,
-    "mae": 0.087,
-    "bias": 1.23,
-    "hitRate": 0.86,
+    "n": 744,
+    "wetDays": 144,
+    "mae": 0.086,
+    "bias": 1.24,
+    "hitRate": 0.85,
     "falseAlarms": 40
    },
    "d2": {
-    "n": 743,
-    "wetDays": 145,
+    "n": 744,
+    "wetDays": 144,
     "mae": 0.089,
     "bias": 1.05,
     "hitRate": 0.79,
     "falseAlarms": 41
    },
    "d3": {
-    "n": 743,
-    "wetDays": 145,
+    "n": 744,
+    "wetDays": 144,
     "mae": 0.112,
-    "bias": 1.21,
+    "bias": 1.22,
     "hitRate": 0.77,
     "falseAlarms": 60
    },
@@ -164,28 +164,28 @@
   "icon_seamless": {
    "label": "German ICON",
    "d1": {
-    "n": 743,
-    "wetDays": 145,
-    "mae": 0.09,
-    "bias": 1.39,
+    "n": 744,
+    "wetDays": 144,
+    "mae": 0.089,
+    "bias": 1.4,
     "hitRate": 0.87,
     "falseAlarms": 29
    },
    "d2": {
-    "n": 743,
-    "wetDays": 145,
+    "n": 744,
+    "wetDays": 144,
     "mae": 0.093,
     "bias": 1.37,
     "hitRate": 0.88,
     "falseAlarms": 27
    },
    "d3": {
-    "n": 743,
-    "wetDays": 145,
-    "mae": 0.113,
+    "n": 744,
+    "wetDays": 144,
+    "mae": 0.112,
     "bias": 1.58,
-    "hitRate": 0.86,
-    "falseAlarms": 50
+    "hitRate": 0.85,
+    "falseAlarms": 49
    },
    "rank": 6
   }
@@ -637,76 +637,76 @@
   },
   "Tug Hill": {
    "ncep_hrrr_conus": {
-    "n": 44,
+    "n": 45,
     "wetDays": 13,
-    "mae": 0.191,
+    "mae": 0.187,
     "bias": 1.97,
     "hitRate": 0.69,
     "falseAlarms": 0,
     "factor": 0.62
    },
    "ncep_nam_conus": {
-    "n": 44,
+    "n": 45,
     "wetDays": 13,
-    "mae": 0.153,
+    "mae": 0.149,
     "bias": 1.65,
     "hitRate": 1,
     "falseAlarms": 1,
-    "factor": 0.77
+    "factor": 0.78
    },
    "gem_hrdps_continental": {
-    "n": 44,
+    "n": 45,
     "wetDays": 13,
-    "mae": 0.118,
+    "mae": 0.116,
     "bias": 1.54,
     "hitRate": 0.92,
     "falseAlarms": 0,
     "factor": 1
    },
    "ncep_nbm_conus": {
-    "n": 88,
+    "n": 90,
     "wetDays": 26,
-    "mae": 0.097,
+    "mae": 0.095,
     "bias": 1.06,
     "hitRate": 0.81,
     "falseAlarms": 0,
     "factor": 1.22
    },
    "gfs_global": {
-    "n": 88,
+    "n": 90,
     "wetDays": 26,
-    "mae": 0.105,
+    "mae": 0.103,
     "bias": 0.87,
     "hitRate": 0.77,
     "falseAlarms": 0,
-    "factor": 1.12
+    "factor": 1.13
    },
    "ecmwf_ifs025": {
-    "n": 88,
+    "n": 90,
     "wetDays": 26,
-    "mae": 0.093,
+    "mae": 0.09,
     "bias": 1.16,
     "hitRate": 0.92,
     "falseAlarms": 0,
-    "factor": 1.27
+    "factor": 1.29
    },
    "gem_global": {
-    "n": 88,
+    "n": 90,
     "wetDays": 26,
-    "mae": 0.089,
+    "mae": 0.087,
     "bias": 1.1,
     "hitRate": 0.88,
     "falseAlarms": 1,
     "factor": 1.33
    },
    "icon_seamless": {
-    "n": 88,
+    "n": 90,
     "wetDays": 26,
-    "mae": 0.134,
+    "mae": 0.131,
     "bias": 1.23,
     "hitRate": 0.85,
     "falseAlarms": 0,
-    "factor": 0.88
+    "factor": 0.89
    }
   },
   "Western New York": {
@@ -944,8 +944,8 @@
    "ncep_nam_conus": {
     "n": 30,
     "wetDays": 6,
-    "mae": 0.078,
-    "bias": 1.29,
+    "mae": 0.079,
+    "bias": 1.3,
     "hitRate": 0.83,
     "falseAlarms": 3,
     "factor": 1.04
@@ -1082,75 +1082,75 @@
   "West Virginia": {
    "ncep_hrrr_conus": {
     "n": 30,
-    "wetDays": 10,
-    "mae": 0.147,
-    "bias": 0.82,
-    "hitRate": 0.7,
+    "wetDays": 9,
+    "mae": 0.125,
+    "bias": 0.96,
+    "hitRate": 0.78,
     "falseAlarms": 0,
-    "factor": 0.93
+    "factor": 0.94
    },
    "ncep_nam_conus": {
     "n": 30,
-    "wetDays": 10,
-    "mae": 0.135,
-    "bias": 0.57,
-    "hitRate": 0.7,
+    "wetDays": 9,
+    "mae": 0.114,
+    "bias": 0.66,
+    "hitRate": 0.78,
     "falseAlarms": 0,
-    "factor": 1
+    "factor": 1.01
    },
    "gem_hrdps_continental": {
     "n": 30,
-    "wetDays": 10,
-    "mae": 0.137,
-    "bias": 0.53,
-    "hitRate": 0.6,
+    "wetDays": 9,
+    "mae": 0.115,
+    "bias": 0.62,
+    "hitRate": 0.67,
     "falseAlarms": 0,
-    "factor": 0.99
+    "factor": 1
    },
    "ncep_nbm_conus": {
     "n": 60,
-    "wetDays": 20,
-    "mae": 0.103,
-    "bias": 0.68,
-    "hitRate": 0.9,
+    "wetDays": 18,
+    "mae": 0.094,
+    "bias": 0.67,
+    "hitRate": 0.89,
     "falseAlarms": 1,
-    "factor": 1.31
+    "factor": 1.22
    },
    "gfs_global": {
     "n": 60,
-    "wetDays": 20,
-    "mae": 0.098,
-    "bias": 0.72,
-    "hitRate": 0.85,
+    "wetDays": 18,
+    "mae": 0.082,
+    "bias": 0.8,
+    "hitRate": 0.89,
     "falseAlarms": 1,
-    "factor": 1.38
+    "factor": 1.4
    },
    "ecmwf_ifs025": {
     "n": 60,
-    "wetDays": 20,
-    "mae": 0.11,
-    "bias": 0.85,
-    "hitRate": 0.9,
+    "wetDays": 18,
+    "mae": 0.093,
+    "bias": 0.96,
+    "hitRate": 0.89,
     "falseAlarms": 2,
-    "factor": 1.23
+    "factor": 1.24
    },
    "gem_global": {
     "n": 60,
-    "wetDays": 20,
-    "mae": 0.146,
+    "wetDays": 18,
+    "mae": 0.134,
     "bias": 0.66,
-    "hitRate": 0.8,
+    "hitRate": 0.78,
     "falseAlarms": 1,
-    "factor": 0.92
+    "factor": 0.86
    },
    "icon_seamless": {
     "n": 60,
-    "wetDays": 20,
-    "mae": 0.123,
-    "bias": 0.77,
-    "hitRate": 0.95,
+    "wetDays": 18,
+    "mae": 0.116,
+    "bias": 0.76,
+    "hitRate": 0.94,
     "falseAlarms": 1,
-    "factor": 1.1
+    "factor": 0.99
    }
   }
  }
