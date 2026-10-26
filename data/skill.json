@@ -1,8 +1,8 @@
 {
- "generated": "2026-10-25T10:05:57.295Z",
+ "generated": "2026-10-26T10:21:22.965Z",
  "window": {
-  "start": "2026-09-25",
-  "end": "2026-10-24",
+  "start": "2026-09-26",
+  "end": "2026-10-25",
   "days": 30
  },
  "stations": 30,
@@ -10,7 +10,7 @@
   "ncep_hrrr_conus": {
    "label": "HRRR",
    "d1": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
     "mae": 0.095,
     "bias": 1.3,
@@ -24,7 +24,7 @@
   "ncep_nam_conus": {
    "label": "NAM 3 km",
    "d1": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
     "mae": 0.094,
     "bias": 1.38,
@@ -38,7 +38,7 @@
   "gem_hrdps_continental": {
    "label": "Canadian HRDPS",
    "d1": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
     "mae": 0.081,
     "bias": 1.27,
@@ -52,7 +52,7 @@
   "ncep_nbm_conus": {
    "label": "NWS Blend",
    "d1": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
     "mae": 0.068,
     "bias": 1.25,
@@ -60,7 +60,7 @@
     "falseAlarms": 27
    },
    "d2": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
     "mae": 0.076,
     "bias": 0.91,
@@ -68,10 +68,10 @@
     "falseAlarms": 24
    },
    "d3": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
-    "mae": 0.084,
-    "bias": 0.95,
+    "mae": 0.083,
+    "bias": 0.94,
     "hitRate": 0.87,
     "falseAlarms": 34
    },
@@ -80,7 +80,7 @@
   "gfs_global": {
    "label": "GFS",
    "d1": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
     "mae": 0.08,
     "bias": 1.18,
@@ -88,7 +88,7 @@
     "falseAlarms": 28
    },
    "d2": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
     "mae": 0.091,
     "bias": 1.18,
@@ -96,19 +96,19 @@
     "falseAlarms": 28
    },
    "d3": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
-    "mae": 0.094,
+    "mae": 0.093,
     "bias": 1.01,
     "hitRate": 0.82,
-    "falseAlarms": 36
+    "falseAlarms": 34
    },
    "rank": 2
   },
   "ecmwf_ifs025": {
    "label": "ECMWF",
    "d1": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
     "mae": 0.087,
     "bias": 1.37,
@@ -116,7 +116,7 @@
     "falseAlarms": 40
    },
    "d2": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
     "mae": 0.085,
     "bias": 1.28,
@@ -124,7 +124,7 @@
     "falseAlarms": 43
    },
    "d3": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
     "mae": 0.097,
     "bias": 1.27,
@@ -136,7 +136,7 @@
   "gem_global": {
    "label": "Canadian GEM",
    "d1": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
     "mae": 0.086,
     "bias": 1.23,
@@ -144,7 +144,7 @@
     "falseAlarms": 40
    },
    "d2": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
     "mae": 0.088,
     "bias": 1.04,
@@ -152,19 +152,19 @@
     "falseAlarms": 40
    },
    "d3": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
-    "mae": 0.112,
-    "bias": 1.22,
+    "mae": 0.109,
+    "bias": 1.19,
     "hitRate": 0.77,
-    "falseAlarms": 60
+    "falseAlarms": 52
    },
    "rank": 4
   },
   "icon_seamless": {
    "label": "German ICON",
    "d1": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
     "mae": 0.089,
     "bias": 1.39,
@@ -172,7 +172,7 @@
     "falseAlarms": 28
    },
    "d2": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
     "mae": 0.093,
     "bias": 1.37,
@@ -180,12 +180,12 @@
     "falseAlarms": 27
    },
    "d3": {
-    "n": 743,
+    "n": 742,
     "wetDays": 144,
-    "mae": 0.112,
-    "bias": 1.58,
+    "mae": 0.111,
+    "bias": 1.57,
     "hitRate": 0.85,
-    "falseAlarms": 49
+    "falseAlarms": 46
    },
    "rank": 6
   }
@@ -204,11 +204,11 @@
    "ncep_nam_conus": {
     "n": 148,
     "wetDays": 18,
-    "mae": 0.071,
+    "mae": 0.07,
     "bias": 1.63,
     "hitRate": 0.72,
     "falseAlarms": 13,
-    "factor": 1.31
+    "factor": 1.33
    },
    "gem_hrdps_continental": {
     "n": 148,
@@ -418,10 +418,10 @@
     "n": 69,
     "wetDays": 18,
     "mae": 0.096,
-    "bias": 1.26,
+    "bias": 1.27,
     "hitRate": 0.94,
     "falseAlarms": 1,
-    "factor": 1.09
+    "factor": 1.08
    },
    "ncep_nam_conus": {
     "n": 69,
@@ -430,7 +430,7 @@
     "bias": 1.45,
     "hitRate": 0.89,
     "falseAlarms": 3,
-    "factor": 0.94
+    "factor": 0.93
    },
    "gem_hrdps_continental": {
     "n": 69,
@@ -439,16 +439,16 @@
     "bias": 0.96,
     "hitRate": 0.89,
     "falseAlarms": 1,
-    "factor": 1.12
+    "factor": 1.11
    },
    "ncep_nbm_conus": {
     "n": 138,
     "wetDays": 36,
     "mae": 0.09,
-    "bias": 1.05,
+    "bias": 1.06,
     "hitRate": 1,
     "falseAlarms": 2,
-    "factor": 1.17
+    "factor": 1.16
    },
    "gfs_global": {
     "n": 138,
@@ -457,12 +457,12 @@
     "bias": 1.46,
     "hitRate": 0.83,
     "falseAlarms": 6,
-    "factor": 0.91
+    "factor": 0.9
    },
    "ecmwf_ifs025": {
     "n": 138,
     "wetDays": 36,
-    "mae": 0.105,
+    "mae": 0.104,
     "bias": 1.14,
     "hitRate": 0.83,
     "falseAlarms": 6,
@@ -475,7 +475,7 @@
     "bias": 1.02,
     "hitRate": 0.81,
     "falseAlarms": 4,
-    "factor": 1.14
+    "factor": 1.13
    },
    "icon_seamless": {
     "n": 138,
@@ -484,7 +484,7 @@
     "bias": 1.25,
     "hitRate": 0.89,
     "falseAlarms": 3,
-    "factor": 0.92
+    "factor": 0.91
    }
   },
   "Western Maine": {
@@ -563,72 +563,72 @@
   },
   "Adirondacks": {
    "ncep_hrrr_conus": {
-    "n": 71,
+    "n": 70,
     "wetDays": 17,
-    "mae": 0.145,
+    "mae": 0.147,
     "bias": 1.24,
     "hitRate": 0.88,
     "falseAlarms": 2,
     "factor": 0.72
    },
    "ncep_nam_conus": {
-    "n": 71,
+    "n": 70,
     "wetDays": 17,
-    "mae": 0.105,
+    "mae": 0.106,
     "bias": 1.15,
     "hitRate": 0.82,
     "falseAlarms": 1,
     "factor": 1
    },
    "gem_hrdps_continental": {
-    "n": 71,
+    "n": 70,
     "wetDays": 17,
-    "mae": 0.095,
+    "mae": 0.096,
     "bias": 1.33,
     "hitRate": 0.94,
     "falseAlarms": 3,
-    "factor": 1.11
+    "factor": 1.1
    },
    "ncep_nbm_conus": {
-    "n": 142,
+    "n": 140,
     "wetDays": 34,
-    "mae": 0.079,
+    "mae": 0.081,
     "bias": 0.88,
     "hitRate": 0.82,
     "falseAlarms": 4,
-    "factor": 1.33
+    "factor": 1.31
    },
    "gfs_global": {
-    "n": 142,
+    "n": 140,
     "wetDays": 34,
-    "mae": 0.108,
+    "mae": 0.11,
     "bias": 0.97,
     "hitRate": 0.82,
     "falseAlarms": 3,
-    "factor": 0.97
+    "factor": 0.96
    },
    "ecmwf_ifs025": {
-    "n": 142,
+    "n": 140,
     "wetDays": 34,
-    "mae": 0.076,
+    "mae": 0.077,
     "bias": 1.02,
     "hitRate": 0.79,
     "falseAlarms": 3,
     "factor": 1.38
    },
    "gem_global": {
-    "n": 142,
+    "n": 140,
     "wetDays": 34,
-    "mae": 0.095,
+    "mae": 0.097,
     "bias": 0.96,
     "hitRate": 0.79,
     "falseAlarms": 8,
-    "factor": 1.11
+    "factor": 1.09
    },
    "icon_seamless": {
-    "n": 142,
+    "n": 140,
     "wetDays": 34,
-    "mae": 0.105,
+    "mae": 0.106,
     "bias": 1.26,
     "hitRate": 0.79,
     "falseAlarms": 6,
@@ -649,7 +649,7 @@
     "n": 45,
     "wetDays": 13,
     "mae": 0.149,
-    "bias": 1.65,
+    "bias": 1.64,
     "hitRate": 1,
     "falseAlarms": 1,
     "factor": 0.78
@@ -815,7 +815,7 @@
     "n": 122,
     "wetDays": 20,
     "mae": 0.064,
-    "bias": 1.01,
+    "bias": 1,
     "hitRate": 0.95,
     "falseAlarms": 3,
     "factor": 1.11
@@ -888,11 +888,11 @@
    "ncep_nbm_conus": {
     "n": 120,
     "wetDays": 20,
-    "mae": 0.066,
+    "mae": 0.065,
     "bias": 1.29,
     "hitRate": 1,
     "falseAlarms": 8,
-    "factor": 1.11
+    "factor": 1.12
    },
    "gfs_global": {
     "n": 120,
@@ -1092,7 +1092,7 @@
    "ncep_nam_conus": {
     "n": 30,
     "wetDays": 9,
-    "mae": 0.114,
+    "mae": 0.113,
     "bias": 0.66,
     "hitRate": 0.78,
     "falseAlarms": 0,
@@ -1114,7 +1114,7 @@
     "bias": 0.66,
     "hitRate": 0.89,
     "falseAlarms": 1,
-    "factor": 1.21
+    "factor": 1.2
    },
    "gfs_global": {
     "n": 60,
@@ -1123,7 +1123,7 @@
     "bias": 0.8,
     "hitRate": 0.89,
     "falseAlarms": 1,
-    "factor": 1.41
+    "factor": 1.4
    },
    "ecmwf_ifs025": {
     "n": 60,
@@ -1132,7 +1132,7 @@
     "bias": 0.93,
     "hitRate": 0.89,
     "falseAlarms": 1,
-    "factor": 1.28
+    "factor": 1.27
    },
    "gem_global": {
     "n": 60,
@@ -1141,7 +1141,7 @@
     "bias": 0.58,
     "hitRate": 0.78,
     "falseAlarms": 0,
-    "factor": 0.92
+    "factor": 0.91
    },
    "icon_seamless": {
     "n": 60,
@@ -1150,7 +1150,7 @@
     "bias": 0.74,
     "hitRate": 0.94,
     "falseAlarms": 0,
-    "factor": 1.01
+    "factor": 1
    }
   }
  }
