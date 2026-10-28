@@ -1,4 +1,4 @@
-2026-10-27T10:19:29.496Z
+2026-10-28T10:24:28.662Z
 obs stations: 29
 ncep_hrrr_conus: ok
 ncep_nam_conus: ok
