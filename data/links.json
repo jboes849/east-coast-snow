@@ -34,9 +34,7 @@
   "cams": "https://www.sugarbush.com/mountain/webcams"
  },
  "killington": {
-  "site": "https://www.killington.com",
-  "report": "https://www.killington.com/mountain-report",
-  "cams": "https://www.killington.com/webcams"
+  "site": "https://www.killington.com"
  },
  "okemo": {
   "site": "https://www.okemo.com",
