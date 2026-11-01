@@ -1,4 +1,4 @@
-2026-10-31T22:53:33.612Z
+2026-11-01T05:08:37.594Z
 ncep_hrrr_conus: ok
 ncep_nam_conus: ok
 gem_hrdps_continental: ok
@@ -11,5 +11,6 @@ ens gfs025: ok
 ens ecmwf_ifs025: ok
 nws alerts: 2 active, 0 resorts affected
 nws discussions: 7
-cpc: FAILED Unexpected token '<', "<html>
-<h"... is not valid JSON
+cpc layers: 0=CPC 8-14 Day Temperature Outlook; 1=CPC 8-14 Day Precipitation Outlook
+cpc fields: {"objectid":11,"fcst_date":1793404800000,"start_date":1794096000000,"end_date":1794614400000,"prob":40,"cat":"Above","inpoly_fid":null,"smopgnflag":null,"idp_ingestdate":1793475930000,"idp_filedate":1793475915000,"idp_source":"814temp_latest","st_area(shape)":2647361932193.6973,"st_perimeter(shape)":25560919.868504856}
+cpc areas: 5
