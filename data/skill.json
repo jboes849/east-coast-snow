@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-01T10:18:32.636Z",
+ "generated": "2026-11-02T10:33:12.162Z",
  "window": {
-  "start": "2026-10-02",
-  "end": "2026-10-31",
+  "start": "2026-10-03",
+  "end": "2026-11-01",
   "days": 30
  },
  "stations": 29,
@@ -10,12 +10,12 @@
   "ncep_hrrr_conus": {
    "label": "HRRR",
    "d1": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.084,
-    "bias": 1.39,
-    "hitRate": 0.8,
-    "falseAlarms": 21
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.081,
+    "bias": 1.41,
+    "hitRate": 0.79,
+    "falseAlarms": 18
    },
    "d2": null,
    "d3": null,
@@ -24,12 +24,12 @@
   "ncep_nam_conus": {
    "label": "NAM 3 km",
    "d1": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.075,
-    "bias": 1.34,
-    "hitRate": 0.9,
-    "falseAlarms": 33
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.069,
+    "bias": 1.33,
+    "hitRate": 0.89,
+    "falseAlarms": 25
    },
    "d2": null,
    "d3": null,
@@ -38,12 +38,12 @@
   "gem_hrdps_continental": {
    "label": "Canadian HRDPS",
    "d1": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.062,
-    "bias": 1.25,
-    "hitRate": 0.82,
-    "falseAlarms": 21
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.058,
+    "bias": 1.21,
+    "hitRate": 0.8,
+    "falseAlarms": 18
    },
    "d2": null,
    "d3": null,
@@ -52,140 +52,140 @@
   "ncep_nbm_conus": {
    "label": "NWS Blend",
    "d1": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.055,
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.051,
     "bias": 1.23,
-    "hitRate": 0.92,
-    "falseAlarms": 21
+    "hitRate": 0.91,
+    "falseAlarms": 14
    },
    "d2": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.061,
-    "bias": 0.88,
-    "hitRate": 0.86,
-    "falseAlarms": 18
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.055,
+    "bias": 0.84,
+    "hitRate": 0.84,
+    "falseAlarms": 13
    },
    "d3": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.067,
-    "bias": 0.9,
-    "hitRate": 0.84,
-    "falseAlarms": 20
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.06,
+    "bias": 0.86,
+    "hitRate": 0.82,
+    "falseAlarms": 15
    },
    "rank": 1
   },
   "gfs_global": {
    "label": "GFS",
    "d1": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.059,
-    "bias": 1.02,
-    "hitRate": 0.77,
-    "falseAlarms": 22
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.054,
+    "bias": 1.01,
+    "hitRate": 0.75,
+    "falseAlarms": 19
    },
    "d2": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.063,
-    "bias": 0.99,
-    "hitRate": 0.85,
-    "falseAlarms": 21
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.058,
+    "bias": 0.98,
+    "hitRate": 0.83,
+    "falseAlarms": 18
    },
    "d3": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.073,
-    "bias": 0.89,
-    "hitRate": 0.79,
-    "falseAlarms": 22
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.069,
+    "bias": 0.9,
+    "hitRate": 0.77,
+    "falseAlarms": 20
    },
    "rank": 2
   },
   "ecmwf_ifs025": {
    "label": "ECMWF",
    "d1": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.064,
-    "bias": 1.29,
-    "hitRate": 0.86,
-    "falseAlarms": 30
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.06,
+    "bias": 1.3,
+    "hitRate": 0.84,
+    "falseAlarms": 27
    },
    "d2": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.065,
-    "bias": 1.29,
-    "hitRate": 0.88,
-    "falseAlarms": 34
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.058,
+    "bias": 1.26,
+    "hitRate": 0.86,
+    "falseAlarms": 27
    },
    "d3": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.082,
-    "bias": 1.28,
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.074,
+    "bias": 1.26,
     "hitRate": 0.94,
-    "falseAlarms": 41
+    "falseAlarms": 33
    },
    "rank": 4
   },
   "gem_global": {
    "label": "Canadian GEM",
    "d1": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.071,
-    "bias": 1.26,
-    "hitRate": 0.87,
-    "falseAlarms": 38
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.066,
+    "bias": 1.21,
+    "hitRate": 0.85,
+    "falseAlarms": 32
    },
    "d2": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.074,
-    "bias": 1.12,
-    "hitRate": 0.78,
-    "falseAlarms": 35
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.069,
+    "bias": 1.08,
+    "hitRate": 0.76,
+    "falseAlarms": 29
    },
    "d3": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.085,
-    "bias": 1.16,
-    "hitRate": 0.76,
-    "falseAlarms": 35
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.077,
+    "bias": 1.08,
+    "hitRate": 0.74,
+    "falseAlarms": 28
    },
    "rank": 5
   },
   "icon_seamless": {
    "label": "German ICON",
    "d1": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.072,
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.066,
     "bias": 1.33,
-    "hitRate": 0.83,
-    "falseAlarms": 17
+    "hitRate": 0.81,
+    "falseAlarms": 11
    },
    "d2": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.068,
-    "bias": 1.25,
-    "hitRate": 0.85,
-    "falseAlarms": 16
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.063,
+    "bias": 1.28,
+    "hitRate": 0.84,
+    "falseAlarms": 13
    },
    "d3": {
-    "n": 737,
-    "wetDays": 106,
-    "mae": 0.078,
-    "bias": 1.39,
-    "hitRate": 0.83,
-    "falseAlarms": 23
+    "n": 734,
+    "wetDays": 96,
+    "mae": 0.063,
+    "bias": 1.23,
+    "hitRate": 0.81,
+    "falseAlarms": 15
    },
    "rank": 6
   }
@@ -194,149 +194,149 @@
   "Northern Vermont": {
    "ncep_hrrr_conus": {
     "n": 148,
-    "wetDays": 15,
-    "mae": 0.097,
-    "bias": 2.12,
-    "hitRate": 0.67,
-    "falseAlarms": 12,
-    "factor": 0.85
+    "wetDays": 13,
+    "mae": 0.092,
+    "bias": 2.16,
+    "hitRate": 0.62,
+    "falseAlarms": 10,
+    "factor": 0.82
    },
    "ncep_nam_conus": {
     "n": 148,
-    "wetDays": 15,
-    "mae": 0.061,
-    "bias": 1.53,
-    "hitRate": 0.67,
-    "falseAlarms": 11,
-    "factor": 1.34
+    "wetDays": 13,
+    "mae": 0.058,
+    "bias": 1.57,
+    "hitRate": 0.62,
+    "falseAlarms": 9,
+    "factor": 1.29
    },
    "gem_hrdps_continental": {
     "n": 148,
-    "wetDays": 15,
-    "mae": 0.082,
-    "bias": 1.53,
-    "hitRate": 0.6,
-    "falseAlarms": 10,
-    "factor": 1
+    "wetDays": 13,
+    "mae": 0.074,
+    "bias": 1.44,
+    "hitRate": 0.54,
+    "falseAlarms": 8,
+    "factor": 1.01
    },
    "ncep_nbm_conus": {
     "n": 296,
-    "wetDays": 30,
-    "mae": 0.063,
-    "bias": 1.39,
-    "hitRate": 0.77,
-    "falseAlarms": 16,
-    "factor": 1.3
+    "wetDays": 26,
+    "mae": 0.058,
+    "bias": 1.37,
+    "hitRate": 0.73,
+    "falseAlarms": 12,
+    "factor": 1.29
    },
    "gfs_global": {
     "n": 296,
-    "wetDays": 30,
-    "mae": 0.076,
-    "bias": 1.64,
-    "hitRate": 0.7,
-    "falseAlarms": 28,
-    "factor": 1.08
+    "wetDays": 26,
+    "mae": 0.068,
+    "bias": 1.61,
+    "hitRate": 0.65,
+    "falseAlarms": 24,
+    "factor": 1.1
    },
    "ecmwf_ifs025": {
     "n": 296,
-    "wetDays": 30,
-    "mae": 0.082,
-    "bias": 1.84,
-    "hitRate": 0.77,
-    "falseAlarms": 32,
-    "factor": 1
+    "wetDays": 26,
+    "mae": 0.076,
+    "bias": 1.85,
+    "hitRate": 0.73,
+    "falseAlarms": 28,
+    "factor": 0.99
    },
    "gem_global": {
     "n": 296,
-    "wetDays": 30,
-    "mae": 0.086,
-    "bias": 1.64,
-    "hitRate": 0.73,
-    "falseAlarms": 37,
-    "factor": 0.95
+    "wetDays": 26,
+    "mae": 0.078,
+    "bias": 1.57,
+    "hitRate": 0.69,
+    "falseAlarms": 33,
+    "factor": 0.96
    },
    "icon_seamless": {
     "n": 296,
-    "wetDays": 30,
-    "mae": 0.081,
-    "bias": 1.9,
-    "hitRate": 0.73,
-    "falseAlarms": 22,
-    "factor": 1.01
+    "wetDays": 26,
+    "mae": 0.075,
+    "bias": 1.94,
+    "hitRate": 0.69,
+    "falseAlarms": 18,
+    "factor": 1
    }
   },
   "Central Vermont": {
    "ncep_hrrr_conus": {
     "n": 119,
-    "wetDays": 15,
-    "mae": 0.03,
+    "wetDays": 14,
+    "mae": 0.028,
     "bias": 1.19,
     "hitRate": 1,
     "falseAlarms": 1,
-    "factor": 1.6
+    "factor": 1.54
    },
    "ncep_nam_conus": {
     "n": 119,
-    "wetDays": 15,
-    "mae": 0.056,
-    "bias": 1.11,
+    "wetDays": 14,
+    "mae": 0.05,
+    "bias": 1.05,
     "hitRate": 0.93,
     "falseAlarms": 1,
     "factor": 0.86
    },
    "gem_hrdps_continental": {
     "n": 119,
-    "wetDays": 15,
-    "mae": 0.045,
-    "bias": 1.07,
-    "hitRate": 0.73,
+    "wetDays": 14,
+    "mae": 0.04,
+    "bias": 0.99,
+    "hitRate": 0.71,
     "falseAlarms": 1,
     "factor": 1.07
    },
    "ncep_nbm_conus": {
     "n": 238,
-    "wetDays": 30,
-    "mae": 0.041,
-    "bias": 1.06,
+    "wetDays": 28,
+    "mae": 0.035,
+    "bias": 0.97,
     "hitRate": 1,
     "falseAlarms": 0,
-    "factor": 1.17
+    "factor": 1.23
    },
    "gfs_global": {
     "n": 238,
-    "wetDays": 30,
-    "mae": 0.037,
-    "bias": 0.9,
-    "hitRate": 0.8,
+    "wetDays": 28,
+    "mae": 0.036,
+    "bias": 0.87,
+    "hitRate": 0.79,
     "falseAlarms": 1,
-    "factor": 1.3
+    "factor": 1.19
    },
    "ecmwf_ifs025": {
     "n": 238,
-    "wetDays": 30,
-    "mae": 0.048,
-    "bias": 1.29,
-    "hitRate": 0.77,
+    "wetDays": 28,
+    "mae": 0.043,
+    "bias": 1.24,
+    "hitRate": 0.75,
     "falseAlarms": 6,
     "factor": 1
    },
    "gem_global": {
     "n": 238,
-    "wetDays": 30,
-    "mae": 0.066,
-    "bias": 1.17,
-    "hitRate": 0.77,
-    "falseAlarms": 3,
-    "factor": 0.73
+    "wetDays": 28,
+    "mae": 0.06,
+    "bias": 1.08,
+    "hitRate": 0.75,
+    "falseAlarms": 2,
+    "factor": 0.72
    },
    "icon_seamless": {
     "n": 238,
-    "wetDays": 30,
-    "mae": 0.06,
-    "bias": 1.22,
-    "hitRate": 0.87,
+    "wetDays": 28,
+    "mae": 0.058,
+    "bias": 1.21,
+    "hitRate": 0.86,
     "falseAlarms": 2,
-    "factor": 0.8
+    "factor": 0.74
    }
   },
   "Southern Vermont": {
@@ -344,25 +344,25 @@
     "n": 120,
     "wetDays": 11,
     "mae": 0.049,
-    "bias": 1.53,
+    "bias": 1.54,
     "hitRate": 1,
     "falseAlarms": 1,
-    "factor": 0.93
+    "factor": 0.89
    },
    "ncep_nam_conus": {
     "n": 120,
     "wetDays": 11,
-    "mae": 0.074,
-    "bias": 2.12,
+    "mae": 0.065,
+    "bias": 1.96,
     "hitRate": 1,
-    "falseAlarms": 4,
-    "factor": 0.64
+    "falseAlarms": 2,
+    "factor": 0.69
    },
    "gem_hrdps_continental": {
     "n": 120,
     "wetDays": 11,
-    "mae": 0.045,
-    "bias": 1.55,
+    "mae": 0.043,
+    "bias": 1.54,
     "hitRate": 1,
     "falseAlarms": 3,
     "factor": 1
@@ -370,173 +370,173 @@
    "ncep_nbm_conus": {
     "n": 240,
     "wetDays": 22,
-    "mae": 0.036,
-    "bias": 1.38,
+    "mae": 0.033,
+    "bias": 1.3,
     "hitRate": 1,
-    "falseAlarms": 6,
-    "factor": 1.25
+    "falseAlarms": 2,
+    "factor": 1.3
    },
    "gfs_global": {
     "n": 240,
     "wetDays": 22,
-    "mae": 0.035,
-    "bias": 1.04,
+    "mae": 0.033,
+    "bias": 0.99,
     "hitRate": 0.91,
     "falseAlarms": 2,
-    "factor": 1.29
+    "factor": 1.3
    },
    "ecmwf_ifs025": {
     "n": 240,
     "wetDays": 22,
-    "mae": 0.044,
-    "bias": 1.5,
+    "mae": 0.04,
+    "bias": 1.42,
     "hitRate": 1,
-    "falseAlarms": 5,
-    "factor": 1.02
+    "falseAlarms": 2,
+    "factor": 1.07
    },
    "gem_global": {
     "n": 240,
     "wetDays": 22,
-    "mae": 0.049,
-    "bias": 1.36,
+    "mae": 0.044,
+    "bias": 1.27,
     "hitRate": 0.86,
-    "falseAlarms": 10,
-    "factor": 0.92
+    "falseAlarms": 5,
+    "factor": 0.98
    },
    "icon_seamless": {
     "n": 240,
     "wetDays": 22,
-    "mae": 0.041,
-    "bias": 1.45,
+    "mae": 0.038,
+    "bias": 1.39,
     "hitRate": 1,
-    "falseAlarms": 2,
-    "factor": 1.1
+    "falseAlarms": 0,
+    "factor": 1.13
    }
   },
   "White Mountains": {
    "ncep_hrrr_conus": {
     "n": 66,
-    "wetDays": 12,
-    "mae": 0.078,
-    "bias": 1.43,
-    "hitRate": 0.83,
+    "wetDays": 11,
+    "mae": 0.076,
+    "bias": 1.48,
+    "hitRate": 0.82,
     "falseAlarms": 0,
-    "factor": 0.94
+    "factor": 0.95
    },
    "ncep_nam_conus": {
     "n": 66,
-    "wetDays": 12,
-    "mae": 0.079,
-    "bias": 1.58,
-    "hitRate": 0.92,
-    "falseAlarms": 2,
-    "factor": 0.92
+    "wetDays": 11,
+    "mae": 0.076,
+    "bias": 1.57,
+    "hitRate": 0.91,
+    "falseAlarms": 1,
+    "factor": 0.95
    },
    "gem_hrdps_continental": {
     "n": 66,
-    "wetDays": 12,
-    "mae": 0.059,
-    "bias": 1.12,
-    "hitRate": 0.75,
+    "wetDays": 11,
+    "mae": 0.057,
+    "bias": 1.13,
+    "hitRate": 0.73,
     "falseAlarms": 0,
     "factor": 1.24
    },
    "ncep_nbm_conus": {
     "n": 132,
-    "wetDays": 24,
-    "mae": 0.063,
-    "bias": 1.24,
+    "wetDays": 22,
+    "mae": 0.062,
+    "bias": 1.23,
     "hitRate": 1,
     "falseAlarms": 0,
     "factor": 1.16
    },
    "gfs_global": {
     "n": 132,
-    "wetDays": 24,
-    "mae": 0.073,
-    "bias": 1.37,
-    "hitRate": 0.79,
+    "wetDays": 22,
+    "mae": 0.072,
+    "bias": 1.36,
+    "hitRate": 0.77,
     "falseAlarms": 2,
     "factor": 1
    },
    "ecmwf_ifs025": {
     "n": 132,
-    "wetDays": 24,
-    "mae": 0.067,
-    "bias": 1.45,
-    "hitRate": 0.79,
+    "wetDays": 22,
+    "mae": 0.066,
+    "bias": 1.44,
+    "hitRate": 0.77,
     "falseAlarms": 2,
     "factor": 1.09
    },
    "gem_global": {
     "n": 132,
-    "wetDays": 24,
-    "mae": 0.066,
-    "bias": 1.22,
-    "hitRate": 0.75,
+    "wetDays": 22,
+    "mae": 0.065,
+    "bias": 1.21,
+    "hitRate": 0.73,
     "falseAlarms": 2,
     "factor": 1.11
    },
    "icon_seamless": {
     "n": 132,
-    "wetDays": 24,
+    "wetDays": 22,
     "mae": 0.078,
-    "bias": 1.67,
-    "hitRate": 0.88,
+    "bias": 1.7,
+    "hitRate": 0.86,
     "falseAlarms": 1,
-    "factor": 0.94
+    "factor": 0.92
    }
   },
   "Western Maine": {
    "ncep_hrrr_conus": {
     "n": 38,
-    "wetDays": 7,
-    "mae": 0.059,
-    "bias": 1.13,
-    "hitRate": 0.71,
+    "wetDays": 6,
+    "mae": 0.057,
+    "bias": 1.15,
+    "hitRate": 0.83,
     "falseAlarms": 1,
-    "factor": 1.02
+    "factor": 1.03
    },
    "ncep_nam_conus": {
     "n": 38,
-    "wetDays": 7,
-    "mae": 0.063,
-    "bias": 0.89,
+    "wetDays": 6,
+    "mae": 0.061,
+    "bias": 0.91,
     "hitRate": 1,
     "falseAlarms": 1,
-    "factor": 0.98
+    "factor": 0.99
    },
    "gem_hrdps_continental": {
     "n": 38,
-    "wetDays": 7,
-    "mae": 0.043,
+    "wetDays": 6,
+    "mae": 0.042,
     "bias": 1.14,
     "hitRate": 1,
     "falseAlarms": 0,
-    "factor": 1.24
+    "factor": 1.21
    },
    "ncep_nbm_conus": {
     "n": 76,
-    "wetDays": 14,
+    "wetDays": 12,
     "mae": 0.043,
     "bias": 0.93,
     "hitRate": 1,
     "falseAlarms": 0,
-    "factor": 1.42
+    "factor": 1.4
    },
    "gfs_global": {
     "n": 76,
-    "wetDays": 14,
-    "mae": 0.053,
-    "bias": 1.12,
-    "hitRate": 0.93,
+    "wetDays": 12,
+    "mae": 0.05,
+    "bias": 1.1,
+    "hitRate": 0.92,
     "falseAlarms": 1,
-    "factor": 1.15
+    "factor": 1.2
    },
    "ecmwf_ifs025": {
     "n": 76,
-    "wetDays": 14,
-    "mae": 0.061,
+    "wetDays": 12,
+    "mae": 0.06,
     "bias": 1.21,
     "hitRate": 1,
     "falseAlarms": 2,
@@ -544,18 +544,18 @@
    },
    "gem_global": {
     "n": 76,
-    "wetDays": 14,
-    "mae": 0.073,
-    "bias": 1.33,
+    "wetDays": 12,
+    "mae": 0.071,
+    "bias": 1.32,
     "hitRate": 1,
     "falseAlarms": 1,
-    "factor": 0.84
+    "factor": 0.85
    },
    "icon_seamless": {
     "n": 76,
-    "wetDays": 14,
-    "mae": 0.082,
-    "bias": 1.37,
+    "wetDays": 12,
+    "mae": 0.081,
+    "bias": 1.38,
     "hitRate": 1,
     "falseAlarms": 0,
     "factor": 0.74
@@ -563,167 +563,167 @@
   },
   "Adirondacks": {
    "ncep_hrrr_conus": {
-    "n": 69,
-    "wetDays": 15,
-    "mae": 0.147,
-    "bias": 1.26,
-    "hitRate": 0.8,
+    "n": 68,
+    "wetDays": 13,
+    "mae": 0.144,
+    "bias": 1.27,
+    "hitRate": 0.77,
     "falseAlarms": 3,
-    "factor": 0.61
+    "factor": 0.6
    },
    "ncep_nam_conus": {
-    "n": 69,
-    "wetDays": 15,
-    "mae": 0.095,
-    "bias": 1.06,
-    "hitRate": 0.87,
+    "n": 68,
+    "wetDays": 13,
+    "mae": 0.087,
+    "bias": 1.09,
+    "hitRate": 0.85,
     "falseAlarms": 2,
-    "factor": 0.94
+    "factor": 0.97
    },
    "gem_hrdps_continental": {
-    "n": 69,
-    "wetDays": 15,
-    "mae": 0.071,
-    "bias": 1.18,
-    "hitRate": 0.87,
+    "n": 68,
+    "wetDays": 13,
+    "mae": 0.062,
+    "bias": 1.13,
+    "hitRate": 0.85,
+    "falseAlarms": 2,
+    "factor": 1.35
+   },
+   "ncep_nbm_conus": {
+    "n": 136,
+    "wetDays": 26,
+    "mae": 0.067,
+    "bias": 0.83,
+    "hitRate": 0.81,
     "falseAlarms": 2,
     "factor": 1.25
    },
-   "ncep_nbm_conus": {
-    "n": 138,
-    "wetDays": 30,
-    "mae": 0.073,
-    "bias": 0.82,
-    "hitRate": 0.83,
-    "falseAlarms": 2,
-    "factor": 1.22
-   },
    "gfs_global": {
-    "n": 138,
-    "wetDays": 30,
-    "mae": 0.085,
-    "bias": 0.75,
-    "hitRate": 0.83,
+    "n": 136,
+    "wetDays": 26,
+    "mae": 0.079,
+    "bias": 0.77,
+    "hitRate": 0.81,
     "falseAlarms": 2,
-    "factor": 1.05
+    "factor": 1.06
    },
    "ecmwf_ifs025": {
-    "n": 138,
-    "wetDays": 30,
-    "mae": 0.072,
-    "bias": 1,
-    "hitRate": 0.8,
+    "n": 136,
+    "wetDays": 26,
+    "mae": 0.064,
+    "bias": 1.04,
+    "hitRate": 0.77,
     "falseAlarms": 2,
-    "factor": 1.24
+    "factor": 1.31
    },
    "gem_global": {
-    "n": 138,
-    "wetDays": 30,
-    "mae": 0.089,
-    "bias": 0.94,
-    "hitRate": 0.83,
+    "n": 136,
+    "wetDays": 26,
+    "mae": 0.086,
+    "bias": 0.9,
+    "hitRate": 0.81,
     "falseAlarms": 9,
-    "factor": 1
+    "factor": 0.98
    },
    "icon_seamless": {
-    "n": 138,
-    "wetDays": 30,
-    "mae": 0.091,
-    "bias": 1.11,
-    "hitRate": 0.73,
+    "n": 136,
+    "wetDays": 26,
+    "mae": 0.084,
+    "bias": 1.18,
+    "hitRate": 0.69,
     "falseAlarms": 2,
-    "factor": 0.98
+    "factor": 1
    }
   },
   "Tug Hill": {
    "ncep_hrrr_conus": {
-    "n": 45,
-    "wetDays": 12,
-    "mae": 0.19,
-    "bias": 1.99,
-    "hitRate": 0.67,
+    "n": 44,
+    "wetDays": 10,
+    "mae": 0.191,
+    "bias": 2.26,
+    "hitRate": 0.6,
     "falseAlarms": 1,
-    "factor": 0.6
+    "factor": 0.61
    },
    "ncep_nam_conus": {
-    "n": 45,
-    "wetDays": 12,
-    "mae": 0.139,
-    "bias": 1.58,
+    "n": 44,
+    "wetDays": 10,
+    "mae": 0.125,
+    "bias": 1.8,
     "hitRate": 1,
     "falseAlarms": 0,
-    "factor": 0.73
+    "factor": 0.85
    },
    "gem_hrdps_continental": {
-    "n": 45,
-    "wetDays": 12,
-    "mae": 0.101,
-    "bias": 1.48,
+    "n": 44,
+    "wetDays": 10,
+    "mae": 0.102,
+    "bias": 1.59,
     "hitRate": 1,
     "falseAlarms": 0,
     "factor": 1
    },
    "ncep_nbm_conus": {
-    "n": 90,
-    "wetDays": 24,
-    "mae": 0.09,
-    "bias": 1.01,
-    "hitRate": 0.75,
+    "n": 88,
+    "wetDays": 20,
+    "mae": 0.077,
+    "bias": 1.07,
+    "hitRate": 0.7,
     "falseAlarms": 0,
-    "factor": 1.12
+    "factor": 1.32
    },
    "gfs_global": {
-    "n": 90,
-    "wetDays": 24,
-    "mae": 0.09,
-    "bias": 0.75,
-    "hitRate": 0.71,
+    "n": 88,
+    "wetDays": 20,
+    "mae": 0.078,
+    "bias": 0.77,
+    "hitRate": 0.65,
     "falseAlarms": 0,
-    "factor": 1.12
-   },
-   "ecmwf_ifs025": {
-    "n": 90,
-    "wetDays": 24,
-    "mae": 0.082,
-    "bias": 1.14,
-    "hitRate": 1,
-    "falseAlarms": 0,
-    "factor": 1.23
-   },
-   "gem_global": {
-    "n": 90,
-    "wetDays": 24,
-    "mae": 0.077,
-    "bias": 1.08,
-    "hitRate": 0.92,
-    "falseAlarms": 1,
     "factor": 1.31
    },
-   "icon_seamless": {
-    "n": 90,
-    "wetDays": 24,
-    "mae": 0.12,
-    "bias": 1.11,
-    "hitRate": 0.79,
+   "ecmwf_ifs025": {
+    "n": 88,
+    "wetDays": 20,
+    "mae": 0.067,
+    "bias": 1.26,
+    "hitRate": 1,
     "falseAlarms": 0,
-    "factor": 0.84
+    "factor": 1.52
+   },
+   "gem_global": {
+    "n": 88,
+    "wetDays": 20,
+    "mae": 0.075,
+    "bias": 1.06,
+    "hitRate": 0.9,
+    "falseAlarms": 1,
+    "factor": 1.36
+   },
+   "icon_seamless": {
+    "n": 88,
+    "wetDays": 20,
+    "mae": 0.104,
+    "bias": 1.23,
+    "hitRate": 0.75,
+    "falseAlarms": 0,
+    "factor": 0.98
    }
   },
   "Western New York": {
    "ncep_hrrr_conus": {
     "n": 30,
     "wetDays": 1,
-    "mae": 0.038,
-    "bias": 1.6,
+    "mae": 0.034,
+    "bias": 1.46,
     "hitRate": 1,
     "falseAlarms": 1,
-    "factor": 1.05
+    "factor": 1.04
    },
    "ncep_nam_conus": {
     "n": 30,
     "wetDays": 1,
-    "mae": 0.093,
-    "bias": 3.84,
+    "mae": 0.074,
+    "bias": 3.16,
     "hitRate": 1,
     "falseAlarms": 4,
     "factor": 0.97
@@ -731,8 +731,8 @@
    "gem_hrdps_continental": {
     "n": 30,
     "wetDays": 1,
-    "mae": 0.065,
-    "bias": 3.64,
+    "mae": 0.053,
+    "bias": 3.24,
     "hitRate": 1,
     "falseAlarms": 3,
     "factor": 0.99
@@ -740,47 +740,47 @@
    "ncep_nbm_conus": {
     "n": 60,
     "wetDays": 2,
-    "mae": 0.054,
-    "bias": 3.02,
+    "mae": 0.035,
+    "bias": 2.27,
     "hitRate": 1,
     "falseAlarms": 4,
-    "factor": 1.02
+    "factor": 1.07
    },
    "gfs_global": {
     "n": 60,
     "wetDays": 2,
-    "mae": 0.044,
-    "bias": 1.87,
+    "mae": 0.027,
+    "bias": 1.17,
     "hitRate": 1,
     "falseAlarms": 3,
-    "factor": 1.06
+    "factor": 1.14
    },
    "ecmwf_ifs025": {
     "n": 60,
     "wetDays": 2,
-    "mae": 0.066,
-    "bias": 3.39,
-    "hitRate": 1,
-    "falseAlarms": 4,
-    "factor": 0.98
-   },
-   "gem_global": {
-    "n": 60,
-    "wetDays": 2,
-    "mae": 0.06,
-    "bias": 3.46,
+    "mae": 0.049,
+    "bias": 2.77,
     "hitRate": 1,
     "falseAlarms": 4,
     "factor": 1
    },
+   "gem_global": {
+    "n": 60,
+    "wetDays": 2,
+    "mae": 0.053,
+    "bias": 3.25,
+    "hitRate": 1,
+    "falseAlarms": 4,
+    "factor": 0.99
+   },
    "icon_seamless": {
     "n": 60,
     "wetDays": 2,
-    "mae": 0.052,
-    "bias": 2.98,
+    "mae": 0.032,
+    "bias": 2.21,
     "hitRate": 1,
     "falseAlarms": 1,
-    "factor": 1.03
+    "factor": 1.09
    }
   },
   "Catskills": {
@@ -791,15 +791,15 @@
     "bias": 0.9,
     "hitRate": 1,
     "falseAlarms": 0,
-    "factor": 0.89
+    "factor": 0.88
    },
    "ncep_nam_conus": {
     "n": 60,
     "wetDays": 4,
-    "mae": 0.052,
-    "bias": 1.43,
+    "mae": 0.049,
+    "bias": 1.37,
     "hitRate": 1,
-    "falseAlarms": 3,
+    "falseAlarms": 2,
     "factor": 0.93
    },
    "gem_hrdps_continental": {
@@ -809,31 +809,31 @@
     "bias": 1.44,
     "hitRate": 1,
     "falseAlarms": 1,
-    "factor": 1.07
+    "factor": 1.05
    },
    "ncep_nbm_conus": {
     "n": 120,
     "wetDays": 8,
-    "mae": 0.041,
-    "bias": 1,
+    "mae": 0.039,
+    "bias": 0.95,
     "hitRate": 1,
-    "falseAlarms": 2,
+    "falseAlarms": 1,
     "factor": 1
    },
    "gfs_global": {
     "n": 120,
     "wetDays": 8,
-    "mae": 0.036,
-    "bias": 0.65,
+    "mae": 0.035,
+    "bias": 0.64,
     "hitRate": 1,
     "falseAlarms": 1,
-    "factor": 1.09
+    "factor": 1.08
    },
    "ecmwf_ifs025": {
     "n": 120,
     "wetDays": 8,
-    "mae": 0.048,
-    "bias": 1.38,
+    "mae": 0.046,
+    "bias": 1.35,
     "hitRate": 1,
     "falseAlarms": 3,
     "factor": 0.9
@@ -841,20 +841,20 @@
    "gem_global": {
     "n": 120,
     "wetDays": 8,
-    "mae": 0.035,
-    "bias": 1.14,
+    "mae": 0.034,
+    "bias": 1.11,
     "hitRate": 1,
     "falseAlarms": 2,
-    "factor": 1.11
+    "factor": 1.1
    },
    "icon_seamless": {
     "n": 120,
     "wetDays": 8,
     "mae": 0.023,
-    "bias": 1.04,
+    "bias": 1.02,
     "hitRate": 1,
     "falseAlarms": 0,
-    "factor": 1.52
+    "factor": 1.46
    }
   },
   "Berkshires": {
@@ -865,90 +865,90 @@
     "bias": 0.87,
     "hitRate": 1,
     "falseAlarms": 1,
-    "factor": 0.99
+    "factor": 0.96
    },
    "ncep_nam_conus": {
     "n": 60,
     "wetDays": 4,
-    "mae": 0.066,
-    "bias": 1.88,
+    "mae": 0.053,
+    "bias": 1.66,
     "hitRate": 1,
-    "falseAlarms": 6,
-    "factor": 0.88
+    "falseAlarms": 4,
+    "factor": 0.92
    },
    "gem_hrdps_continental": {
     "n": 60,
     "wetDays": 4,
-    "mae": 0.04,
-    "bias": 1.21,
+    "mae": 0.039,
+    "bias": 1.19,
     "hitRate": 1,
     "falseAlarms": 2,
-    "factor": 1.02
+    "factor": 1.01
    },
    "ncep_nbm_conus": {
     "n": 120,
     "wetDays": 8,
-    "mae": 0.043,
-    "bias": 1.13,
+    "mae": 0.04,
+    "bias": 1.07,
     "hitRate": 1,
-    "falseAlarms": 8,
+    "falseAlarms": 6,
     "factor": 1
    },
    "gfs_global": {
     "n": 120,
     "wetDays": 8,
-    "mae": 0.037,
-    "bias": 0.88,
+    "mae": 0.035,
+    "bias": 0.85,
     "hitRate": 1,
     "falseAlarms": 2,
-    "factor": 1.11
+    "factor": 1.1
    },
    "ecmwf_ifs025": {
     "n": 120,
     "wetDays": 8,
-    "mae": 0.043,
-    "bias": 1.15,
+    "mae": 0.039,
+    "bias": 1.08,
     "hitRate": 1,
-    "falseAlarms": 8,
-    "factor": 1
+    "falseAlarms": 6,
+    "factor": 1.02
    },
    "gem_global": {
     "n": 120,
     "wetDays": 8,
-    "mae": 0.05,
-    "bias": 1.28,
+    "mae": 0.046,
+    "bias": 1.21,
     "hitRate": 1,
-    "falseAlarms": 8,
+    "falseAlarms": 5,
     "factor": 0.91
    },
    "icon_seamless": {
     "n": 120,
     "wetDays": 8,
-    "mae": 0.026,
-    "bias": 1.19,
+    "mae": 0.022,
+    "bias": 1.13,
     "hitRate": 1,
-    "falseAlarms": 2,
-    "factor": 1.44
+    "falseAlarms": 0,
+    "factor": 1.55
    }
   },
   "Poconos": {
    "ncep_hrrr_conus": {
     "n": 30,
     "wetDays": 3,
-    "mae": 0.066,
-    "bias": 0.43,
+    "mae": 0.062,
+    "bias": 0.39,
     "hitRate": 0.67,
-    "falseAlarms": 1,
+    "falseAlarms": 0,
     "factor": 0.97
    },
    "ncep_nam_conus": {
     "n": 30,
     "wetDays": 3,
-    "mae": 0.049,
-    "bias": 1.16,
+    "mae": 0.042,
+    "bias": 1.09,
     "hitRate": 1,
-    "falseAlarms": 2,
-    "factor": 1.05
+    "falseAlarms": 1,
+    "factor": 1.08
    },
    "gem_hrdps_continental": {
     "n": 30,
@@ -957,200 +957,200 @@
     "bias": 0.93,
     "hitRate": 0.67,
     "falseAlarms": 0,
-    "factor": 1.09
+    "factor": 1.06
    },
    "ncep_nbm_conus": {
     "n": 60,
     "wetDays": 6,
-    "mae": 0.067,
-    "bias": 0.72,
+    "mae": 0.063,
+    "bias": 0.68,
     "hitRate": 0.67,
-    "falseAlarms": 2,
+    "falseAlarms": 1,
     "factor": 0.94
    },
    "gfs_global": {
     "n": 60,
     "wetDays": 6,
-    "mae": 0.067,
-    "bias": 0.39,
+    "mae": 0.066,
+    "bias": 0.38,
     "hitRate": 0.83,
     "falseAlarms": 0,
-    "factor": 0.94
+    "factor": 0.92
    },
    "ecmwf_ifs025": {
     "n": 60,
     "wetDays": 6,
-    "mae": 0.059,
-    "bias": 0.56,
+    "mae": 0.055,
+    "bias": 0.53,
     "hitRate": 0.83,
-    "falseAlarms": 1,
+    "falseAlarms": 0,
     "factor": 1
    },
    "gem_global": {
     "n": 60,
     "wetDays": 6,
-    "mae": 0.049,
-    "bias": 0.75,
+    "mae": 0.048,
+    "bias": 0.74,
     "hitRate": 0.83,
     "falseAlarms": 0,
-    "factor": 1.1
+    "factor": 1.07
    },
    "icon_seamless": {
     "n": 60,
     "wetDays": 6,
     "mae": 0.04,
-    "bias": 0.61,
+    "bias": 0.6,
     "hitRate": 0.67,
     "falseAlarms": 0,
-    "factor": 1.24
+    "factor": 1.19
    }
   },
   "Laurel Highlands": {
    "ncep_hrrr_conus": {
-    "n": 12,
+    "n": 11,
     "wetDays": 6,
-    "mae": 0.192,
-    "bias": 1.3,
+    "mae": 0.204,
+    "bias": 1.29,
     "hitRate": 0.67,
-    "falseAlarms": 0,
-    "factor": 0.95
-   },
-   "ncep_nam_conus": {
-    "n": 12,
-    "wetDays": 6,
-    "mae": 0.203,
-    "bias": 1.18,
-    "hitRate": 0.83,
     "falseAlarms": 0,
     "factor": 0.93
    },
-   "gem_hrdps_continental": {
-    "n": 12,
+   "ncep_nam_conus": {
+    "n": 11,
     "wetDays": 6,
-    "mae": 0.143,
-    "bias": 0.94,
+    "mae": 0.216,
+    "bias": 1.16,
     "hitRate": 0.83,
-    "falseAlarms": 1,
-    "factor": 1.11
+    "falseAlarms": 0,
+    "factor": 0.9
+   },
+   "gem_hrdps_continental": {
+    "n": 11,
+    "wetDays": 6,
+    "mae": 0.145,
+    "bias": 0.91,
+    "hitRate": 0.83,
+    "falseAlarms": 0,
+    "factor": 1.1
    },
    "ncep_nbm_conus": {
-    "n": 24,
+    "n": 22,
     "wetDays": 12,
-    "mae": 0.134,
-    "bias": 0.95,
+    "mae": 0.136,
+    "bias": 0.91,
     "hitRate": 0.83,
-    "falseAlarms": 2,
-    "factor": 1.3
+    "falseAlarms": 0,
+    "factor": 1.28
    },
    "gfs_global": {
-    "n": 24,
+    "n": 22,
     "wetDays": 12,
     "mae": 0.116,
-    "bias": 1,
+    "bias": 0.96,
     "hitRate": 0.67,
-    "falseAlarms": 2,
+    "falseAlarms": 0,
     "factor": 1.5
    },
    "ecmwf_ifs025": {
-    "n": 24,
+    "n": 22,
     "wetDays": 12,
-    "mae": 0.126,
-    "bias": 1.16,
+    "mae": 0.128,
+    "bias": 1.13,
     "hitRate": 0.92,
-    "falseAlarms": 1,
-    "factor": 1.38
+    "falseAlarms": 0,
+    "factor": 1.36
    },
    "gem_global": {
-    "n": 24,
+    "n": 22,
     "wetDays": 12,
-    "mae": 0.251,
-    "bias": 1.06,
+    "mae": 0.238,
+    "bias": 0.93,
     "hitRate": 0.75,
-    "falseAlarms": 2,
-    "factor": 0.69
+    "falseAlarms": 0,
+    "factor": 0.73
    },
    "icon_seamless": {
-    "n": 24,
+    "n": 22,
     "wetDays": 12,
     "mae": 0.174,
-    "bias": 1.01,
+    "bias": 0.96,
     "hitRate": 0.75,
-    "falseAlarms": 2,
+    "falseAlarms": 0,
     "factor": 1
    }
   },
   "West Virginia": {
    "ncep_hrrr_conus": {
     "n": 30,
-    "wetDays": 9,
-    "mae": 0.12,
-    "bias": 0.98,
-    "hitRate": 0.78,
+    "wetDays": 8,
+    "mae": 0.11,
+    "bias": 1.07,
+    "hitRate": 0.75,
     "falseAlarms": 0,
-    "factor": 0.89
+    "factor": 0.92
    },
    "ncep_nam_conus": {
     "n": 30,
-    "wetDays": 9,
-    "mae": 0.103,
+    "wetDays": 8,
+    "mae": 0.097,
     "bias": 0.62,
-    "hitRate": 0.89,
+    "hitRate": 0.88,
     "falseAlarms": 0,
     "factor": 1
    },
    "gem_hrdps_continental": {
     "n": 30,
-    "wetDays": 9,
-    "mae": 0.069,
-    "bias": 0.63,
-    "hitRate": 0.78,
+    "wetDays": 8,
+    "mae": 0.068,
+    "bias": 0.59,
+    "hitRate": 0.75,
     "falseAlarms": 0,
-    "factor": 1.37
+    "factor": 1.28
    },
    "ncep_nbm_conus": {
     "n": 60,
-    "wetDays": 18,
-    "mae": 0.088,
-    "bias": 0.67,
-    "hitRate": 0.89,
+    "wetDays": 16,
+    "mae": 0.082,
+    "bias": 0.68,
+    "hitRate": 0.88,
     "falseAlarms": 1,
-    "factor": 1.17
+    "factor": 1.18
    },
    "gfs_global": {
     "n": 60,
-    "wetDays": 18,
-    "mae": 0.08,
-    "bias": 0.8,
-    "hitRate": 0.89,
+    "wetDays": 16,
+    "mae": 0.071,
+    "bias": 0.86,
+    "hitRate": 0.88,
     "falseAlarms": 1,
-    "factor": 1.29
+    "factor": 1.37
    },
    "ecmwf_ifs025": {
     "n": 60,
-    "wetDays": 18,
-    "mae": 0.079,
-    "bias": 0.89,
+    "wetDays": 16,
+    "mae": 0.073,
+    "bias": 0.92,
     "hitRate": 0.94,
     "falseAlarms": 1,
-    "factor": 1.3
+    "factor": 1.33
    },
    "gem_global": {
     "n": 60,
-    "wetDays": 18,
-    "mae": 0.12,
+    "wetDays": 16,
+    "mae": 0.113,
     "bias": 0.58,
-    "hitRate": 0.78,
+    "hitRate": 0.75,
     "falseAlarms": 0,
     "factor": 0.86
    },
    "icon_seamless": {
     "n": 60,
-    "wetDays": 18,
-    "mae": 0.117,
-    "bias": 0.75,
-    "hitRate": 0.94,
+    "wetDays": 16,
+    "mae": 0.103,
+    "bias": 0.84,
+    "hitRate": 1,
     "falseAlarms": 0,
-    "factor": 0.88
+    "factor": 0.94
    }
   }
  }
