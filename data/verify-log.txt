@@ -1,6 +1,6 @@
-2026-11-02T10:33:12.164Z
+2026-11-03T10:49:26.795Z
 obs stations: 29
-ncep_hrrr_conus: ok
+ncep_hrrr_conus: FAILED TypeError: fetch failed
 ncep_nam_conus: ok
 gem_hrdps_continental: ok
 ncep_nbm_conus: ok
