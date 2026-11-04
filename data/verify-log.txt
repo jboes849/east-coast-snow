@@ -1,6 +1,6 @@
-2026-11-03T10:49:26.795Z
-obs stations: 29
-ncep_hrrr_conus: FAILED TypeError: fetch failed
+2026-11-04T10:45:31.464Z
+obs stations: 30
+ncep_hrrr_conus: ok
 ncep_nam_conus: ok
 gem_hrdps_continental: ok
 ncep_nbm_conus: ok
