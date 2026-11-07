@@ -19,7 +19,9 @@
   "map": "https://www.stowe.com/the-mountain/about-the-mountain/trail-map.aspx"
  },
  "bolton": {
-  "site": "https://www.boltonvalley.com"
+  "site": "https://www.boltonvalley.com",
+  "report": "https://www.boltonvalley.com/the-mountain/snow-report",
+  "map": "https://www.boltonvalley.com/mountain/trail-map"
  },
  "mrg": {
   "site": "https://www.madriverglen.com",
